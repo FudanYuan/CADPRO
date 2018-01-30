@@ -6,7 +6,7 @@
 
 PaintArea::PaintArea(QWidget *parent) : QWidget(parent)
 {
-    image = QImage(400,300,QImage::Format_RGB32); // 画 布 的 初 始 化 大 小 设 为 400*300，使用 32 位颜色
+    image = QImage(2560,1600,QImage::Format_RGB32); // 画布的初始化大小设为 400*300，使用 32 位颜色
     backColor = qRgb(255,255,255); //画布初始化背景色使用白色
     image.fill(backColor);
     modified = false;
@@ -61,40 +61,38 @@ void PaintArea::print()
 
 void PaintArea::paintEvent(QPaintEvent *)
 {
-
-//    QPainter painter(this);
-//    painter.scale(scale,scale);
-//    if(angle) {
-//        QImage copyImage = image;
-//        QPainter pp(&copyImage);
-//        QPointF center(copyImage.width()/2.0,copyImage.height()/2.0);
-//        pp.translate(center);
-//        pp.rotate(angle);
-//        pp.translate(-center);
-//        pp.drawImage(0,0,image);
-//        image = copyImage; //只会复制图片上的内容，不会复制坐标系统
-//        angle = 0; //完成旋转后将角度值重新设为 0
-//        }
-//    if(shear) {
-//        QImage copyImage = image;
-//        QPainter pp(&copyImage);
-//        pp.shear(shear,shear);
-//        pp.drawImage(0,0,image);
-//        image = copyImage;
-//        shear = 0;
-//    }
-//    painter.drawImage(0,0,image);
-
-
-    int side = qMin(width(), height());                                           //创建窗口宽高参数
     QPainter painter(this);
+    painter.scale(scale,scale);
+    if(angle) {
+        QImage copyImage = image;
+        QPainter pp(&copyImage);
+        QPointF center(copyImage.width()/2.0,copyImage.height()/2.0);
+        pp.translate(center);
+        pp.rotate(angle);
+        pp.translate(-center);
+        pp.drawImage(0,0,image);
+        image = copyImage; //只会复制图片上的内容，不会复制坐标系统
+        angle = 0; //完成旋转后将角度值重新设为 0
+        }
+    if(shear) {
+        QImage copyImage = image;
+        QPainter pp(&copyImage);
+        pp.shear(shear,shear);
+        pp.drawImage(0,0,image);
+        image = copyImage;
+        shear = 0;
+    }
+    painter.drawImage(0,0,image);
+
+    int side = qMin(width(), height());
     painter.setRenderHint(QPainter::Antialiasing,true);                //开启抗锯齿
-    painter.translate(width() / 2, height() / 2);                               //坐标系统平移变换，把原点平移到窗口中心
-    painter.scale(side / 300.0, side / 300.0);            //坐标系统比例变换，使绘制的图形随窗口的放大而放大
+    painter.translate(width() / 2, height() / 2);                      //坐标系统平移变换，把原点平移到窗口中心
+    //painter.scale(side / 300.0, side / 300.0);            //坐标系统比例变换，使绘制的图形随窗口的放大而放大
     painter.scale(1, -1);                                          //Y轴向上翻转，翻转成正常平面直角坐标系
     painter.setPen(QPen(Qt::black, height() / 600));
     painter.drawLine(-2000,0,2000,0);
     painter.drawLine(0,1500,0,-1500);
+    drawGrid(&painter);
 }
 
 void PaintArea::mousePressEvent(QMouseEvent *event)
@@ -207,4 +205,24 @@ void PaintArea::doShear() {
 void PaintArea::doClear() {
     image.fill(backColor);
     update();
+}
+
+void PaintArea::drawGrid(QPainter *painter)
+{
+    painter->drawLine(0,0,100,100);
+    int Margin=40;//边缘
+    QRect rect;
+    //取得绘图区域，大小要减去旁白
+    //rect=QRect(Margin+300,Margin+300,width()-Margin-700,height()-Margin-500);
+    rect=QRect(Margin+25,Margin,width()-2*Margin-10,height()-2*Margin);
+    for(int i=0;i<=20;i++)
+    {
+    int x=rect.left()+(i*(rect.width()-1)/20);
+    painter->drawLine(x,rect.top(),x,rect.bottom());
+    }
+    for(int j=0;j<=10;j++)
+    {
+        int y=rect.bottom()-(j*(rect.height()-1)/10);
+        painter->drawLine(rect.left()-5,y,rect.right(),y);
+    }
 }

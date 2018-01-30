@@ -17,7 +17,6 @@ public:
     void setImageColor(QColor color); // 设置图像背景颜色
     QSize getImageSize(); // 获取图片大小
 
-public slots:
     void print(); // 打印
     void zoomIn(); //放大
     void zoomOut(); //缩小
@@ -25,7 +24,7 @@ public slots:
     void doRotate(int in_angle, int direction); //旋转
     void doShear(); //拉伸
     void doClear(); //清空
-
+    void drawGrid(QPainter *painter); // 画网格
 protected:
     void paintEvent(QPaintEvent *); // 重绘事件
     void mousePressEvent(QMouseEvent *event);
