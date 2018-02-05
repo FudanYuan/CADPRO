@@ -6,6 +6,7 @@
 
 PaintArea::PaintArea(QWidget *parent) : QWidget(parent)
 {
+    name = tr("未命名");
     image = QImage(2560,1600,QImage::Format_RGB32); // 画布的初始化大小设为 400*300，使用 32 位颜色
     backColor = qRgb(255,255,255); //画布初始化背景色使用白色
     image.fill(backColor);
@@ -41,6 +42,21 @@ bool PaintArea::openImage(const QString &fileName)
 QSize PaintArea::getImageSize()
 {
     return image.size()*scale;
+}
+
+void PaintArea::setModified(bool modified)
+{
+    this->modified = modified;
+}
+
+QString PaintArea::getName()
+{
+    return this->name;
+}
+
+void PaintArea::setName(QString name)
+{
+    this->name = name;
 }
 
 void PaintArea::print()
@@ -83,6 +99,7 @@ void PaintArea::paintEvent(QPaintEvent *)
         shear = 0;
     }
     painter.drawImage(0,0,image);
+
 
     int side = qMin(width(), height());
     painter.setRenderHint(QPainter::Antialiasing,true);                //开启抗锯齿

@@ -25,11 +25,15 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    paintarea.cpp
+    paintarea.cpp \
+    mydocktitlebar.cpp \
+    project.cpp
 
 HEADERS += \
         mainwindow.h \
-    paintarea.h
+    paintarea.h \
+    mydocktitlebar.h \
+    project.h
 
 FORMS += \
         mainwindow.ui
