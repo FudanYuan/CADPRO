@@ -3,17 +3,34 @@
 #include <QPrinter>
 #include <QPrintDialog>
 #include <QPrintPreviewDialog>
+#include <QDebug>
 
 PaintArea::PaintArea(QWidget *parent) : QWidget(parent)
 {
-    name = tr("未命名");
-    image = QImage(2560,1600,QImage::Format_RGB32); // 画布的初始化大小设为 400*300，使用 32 位颜色
+    name = tr("");
+    image = QImage(400,300,QImage::Format_RGB32); // 画布的初始化大小设为 400*300，使用 32 位颜色
     backColor = qRgb(255,255,255); //画布初始化背景色使用白色
     image.fill(backColor);
     modified = false;
+    curShape = None;
+    penColor = Qt::black;
+    brushColor = Qt::black;
+    penWidth = 1;
+    penStyle = Qt::SolidLine;
+    isDrawing = false;
     scale = 1;
     angle = 0;
     shear = 0;
+}
+
+void PaintArea::initPaintArea()
+{
+    curShape = None;
+    penColor = Qt::black;
+    brushColor = Qt::black;
+    penWidth = 1;
+    penStyle = Qt::SolidLine;
+    isDrawing = false;
 }
 
 bool PaintArea::saveImage(const QString &fileName, const char *fileFormat)
@@ -59,6 +76,11 @@ void PaintArea::setName(QString name)
     this->name = name;
 }
 
+QImage PaintArea::getImage()
+{
+    return this->image;
+}
+
 void PaintArea::print()
 {
     QPrinter printer(QPrinter::HighResolution);
@@ -100,12 +122,11 @@ void PaintArea::paintEvent(QPaintEvent *)
     }
     painter.drawImage(0,0,image);
 
-
     int side = qMin(width(), height());
-    painter.setRenderHint(QPainter::Antialiasing,true);                //开启抗锯齿
-    painter.translate(width() / 2, height() / 2);                      //坐标系统平移变换，把原点平移到窗口中心
+    painter.setRenderHint(QPainter::Antialiasing,true);     //开启抗锯齿
+    painter.translate(width() / 2, height() / 2);           //坐标系统平移变换，把原点平移到窗口中心
     //painter.scale(side / 300.0, side / 300.0);            //坐标系统比例变换，使绘制的图形随窗口的放大而放大
-    painter.scale(1, -1);                                          //Y轴向上翻转，翻转成正常平面直角坐标系
+    painter.scale(1, -1);                                   //Y轴向上翻转，翻转成正常平面直角坐标系
     painter.setPen(QPen(Qt::black, height() / 600));
     painter.drawLine(-2000,0,2000,0);
     painter.drawLine(0,1500,0,-1500);
@@ -123,7 +144,16 @@ void PaintArea::mouseMoveEvent(QMouseEvent *event)
 {
     if(event->buttons()&Qt::LeftButton) {       //如果鼠标左键按着的同时移动鼠标
         secondPoint = event->pos();             //获得鼠标指针的当前坐标作为终止坐标
-        paint(image);                           //绘制图形
+        if(curShape == None) //如果不进行特殊图形绘制，则直接在 image 上绘制
+        {
+            isDrawing = false;
+            paint(image);
+        }
+        else //如果绘制特殊图形，则在临时绘图区 tempImage 上绘制
+        {
+            tempImage = image; //每次绘制tempImage前用上一次image中的图片对其进行填充
+            paint(tempImage);
+        }
     }
 }
 
@@ -131,53 +161,106 @@ void PaintArea::mouseReleaseEvent(QMouseEvent *event)
 {
     if(event->buttons() == Qt::LeftButton) {
         secondPoint = event->pos();
+        isDrawing = false;
         paint(image);
     }
+}
+
+void PaintArea::setShape(ShapeType shape)
+{
+    curShape = shape;
+}
+
+void PaintArea::setPenStyle(Qt::PenStyle style)
+{
+    penStyle = style;
+}
+
+void PaintArea::setPenWidth(int width)
+{
+    penWidth = width;
+}
+
+void PaintArea::setPenColor(QColor color)
+{
+    penColor = color;
+}
+
+void PaintArea::setBrushColor(QColor color)
+{
+    brushColor = color;
+}
+
+void PaintArea::setPoint(PaintArea::Points point, int x, int y, int z)
+{
+    switch (point) {
+    case First:
+        firstPoint = QPoint(x, y);
+        break;
+    case Second:
+        secondPoint = QPoint(x, y);
+    case Third:
+        thirdPoint = QPoint(x, y);
+    default:
+        break;
+    }
+}
+
+QColor PaintArea::IntToQColor(const int &intColor)
+{
+    //将Color 从int 转换成 QColor
+    int red = intColor & 255;
+    int green = intColor >> 8 & 255;
+    int blue = intColor >> 16 & 255;
+    return QColor(red, green, blue);
 }
 
 void PaintArea::paint(QImage &image)
 {
     QPainter pp(&image); //在 theImage 上绘图
-    pp.drawLine(firstPoint/scale, secondPoint/scale); //由起始坐标和终止坐标绘制直线
-    firstPoint = secondPoint; //让终止坐标变为起始坐标
+    QPen pen = QPen();
+    pen.setColor(penColor);
+    pen.setStyle(penStyle);
+    pen.setWidth(penWidth);
+    QBrush brush = QBrush(brushColor);
+    pp.setPen(pen);
+    pp.setBrush(brush);
+
+    int x,y,w,h;
+    x = firstPoint.x()/scale;
+    y = firstPoint.y()/scale;
+    w = secondPoint.x()/scale - x;
+    h = secondPoint.y()/scale - y;
+    switch(curShape) {
+    case None: //不绘制特殊图形
+    {
+        pp.drawLine(firstPoint/scale,secondPoint/scale); //由起始坐标和终止坐标绘制直线
+        firstPoint = secondPoint; //让终止坐标变为起始坐标
+        break;
+    }
+    case Point:
+    {
+        pp.drawPoint(x, y);
+        break;
+    }
+    case Line: //绘制直线
+    {
+        pp.drawLine(firstPoint/scale,secondPoint/scale);
+        break;
+    }
+    case Rectangle: //绘制矩形
+    {
+        pp.drawRect(x,y,w,h);
+        break;
+    }
+    case Ellipse: //绘制椭圆
+    {
+        pp.drawEllipse(x,y,w,h);
+        break;
+    }
+    }
     update(); //进行更新界面显示，可引起窗口重绘事件，重绘窗口
     modified = true;
-
-//    QPainter pp(&theImage);
-//    QPen pen = QPen();
-//    pen.setColor(penColor);
-//    pen.setStyle(penStyle);
-//    pen.setWidth(penWidth);
-//    QBrush brush = QBrush(brushColor);
-//    pp.setPen(pen);
-//    pp.setBrush(brush);
-//    int x,y,w,h;
-//    x = lastPoint.x()/scale;
-//    y = lastPoint.y()/scale;
-//    w = endPoint.x()/scale - x;
-//    h = endPoint.y()/scale - y;
-
-//    switch(curShape) {
-//    case None:
-//    {
-
-//        break;
-//    }
-//    case Line: {
-
-//    }
-//    update(); modified = true;
-//    pp.drawLine(lastPoint/scale,endPoint/scale);
-//    lastPoint = endPoint;
-//    pp.drawLine(lastPoint/scale,endPoint/scale);
-//    break; }
-//    case Rectangle: {
-//    pp.drawRect(x,y,w,h);
-//    break; }
-//    case Ellipse: {
-//    pp.drawEllipse(x,y,w,h);
-//    break; }
-    //由起始坐标和终止坐标绘制直 //让终止坐标变为起始坐标
 }
 
 void PaintArea::setImageSize(int width, int height)
@@ -242,4 +325,53 @@ void PaintArea::drawGrid(QPainter *painter)
         int y=rect.bottom()-(j*(rect.height()-1)/10);
         painter->drawLine(rect.left()-5,y,rect.right(),y);
     }
+}
+
+void PaintArea::paint()
+{
+    QPainter pp(&image); //在 theImage 上绘图
+    QPen pen = QPen();
+
+    pen.setColor(penColor);
+    pen.setStyle(penStyle);
+    pen.setWidth(penWidth);
+    QBrush brush = QBrush(brushColor);
+    pp.setPen(pen);
+    pp.setBrush(brush);
+
+    int x,y,w,h;
+    x = firstPoint.x()/scale;
+    y = firstPoint.y()/scale;
+    w = secondPoint.x()/scale - x;
+    h = secondPoint.y()/scale - y;
+    switch(curShape) {
+    case None: //不绘制特殊图形
+    {
+        pp.drawLine(firstPoint/scale,secondPoint/scale); //由起始坐标和终止坐标绘制直线
+        firstPoint = secondPoint; //让终止坐标变为起始坐标
+        break;
+    }
+    case Point:
+    {
+        pp.drawPoint(x, y);
+        break;
+    }
+    case Line: //绘制直线
+    {
+        pp.drawLine(firstPoint/scale,secondPoint/scale);
+        break;
+    }
+    case Rectangle: //绘制矩形
+    {
+        pp.drawRect(x,y,w,h);
+        break;
+    }
+    case Ellipse: //绘制椭圆
+    {
+        pp.drawEllipse(x,y,w,h);
+        break;
+    }
+    }
+    update(); //进行更新界面显示，可引起窗口重绘事件，重绘窗口
+    modified = true;
 }

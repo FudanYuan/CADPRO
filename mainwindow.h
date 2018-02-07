@@ -301,6 +301,7 @@ private slots:
     bool onActionFileSave();            // 保存文件操作
     bool onActionFileSaveAs();          // 文件另存为操作
 
+    void onActionFileImportDXF();       // DXF文件导入操作
     void updateViewMenu();
 
     void onToolSlideChanged();
@@ -316,7 +317,7 @@ private slots:
     void onActionTreeExpandAll();
     void onActionTreeFoldAll();
 
-//    void onTreeProjectItemDoubleClicked(QTreeWidgetItem *item, int i);
+    void onTreeProjectItemDoubleClicked(QTreeWidgetItem *item, int i);
     void onActionTreeProjectAddLayer(); // 项目添加图层
     void onActionTreeProjectSave();
     void onActionTreeProjectSaveAs();

@@ -22,18 +22,36 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
+INCLUDEPATH += dxflib
+
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
     paintarea.cpp \
     mydocktitlebar.cpp \
-    project.cpp
+    project.cpp \
+    dxflib/dl_writer_ascii.cpp \
+    dxflib/dl_dxf.cpp \
+    dxffilter.cpp
 
 HEADERS += \
         mainwindow.h \
     paintarea.h \
     mydocktitlebar.h \
-    project.h
+    project.h \
+    dxflib/dl_writer.h \
+    dxflib/dl_writer_ascii.h \
+    dxflib/dl_global.h \
+    dxflib/dl_extrusion.h \
+    dxflib/dl_exception.h \
+    dxflib/dl_entities.h \
+    dxflib/dl_dxf.h \
+    dxflib/dl_creationinterface.h \
+    dxflib/dl_creationadapter.h \
+    dxflib/dl_codes.h \
+    dxflib/dl_attributes.h \
+    dxffilter.h \
+    mydxfentities.h
 
 FORMS += \
         mainwindow.ui

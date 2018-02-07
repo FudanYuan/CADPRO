@@ -46,12 +46,11 @@ void MainWindow::onActionFileNew()
     QString name_project_new = getNewProjectName();
     project_active = new Project(name_project_new);
     area_active = project_active->getActiveLayer();
-    QString name_layer_new = area_active->getName();
+    QString name_layer_new = project_active->getLayerName(0);
+    area_active->setName(name_layer_new);
     list_project.append(project_active);
 
     updatePaintArea();
-
-    setWindowTitle("CADPRO-<" + name_project_new + "-" + name_layer_new + ">");
 
     QTreeWidgetItem *item_project = new QTreeWidgetItem(tree_project,QStringList(name_project_new));
     QTreeWidgetItem *item_layer = new QTreeWidgetItem(item_project,QStringList(name_layer_new)); //子节点1
@@ -72,8 +71,6 @@ void MainWindow::onActionFileOpen()
         list_project.append(project_active);
 
         updatePaintArea();
-
-        setWindowTitle("CADPRO-<" + name_project_new + "-" + name_layer_new + ">");setWindowTitle("CADPRO-<" + name_project_new + ">");
 
         QTreeWidgetItem *item_project = new QTreeWidgetItem(tree_project,QStringList(name_project_new));
         QTreeWidgetItem *item_layer = new QTreeWidgetItem(item_project,QStringList(name_layer_new)); //子节点1
@@ -97,6 +94,32 @@ bool MainWindow::onActionFileSaveAs()
         return false;
     } else
         return saveFile(fileName);
+}
+
+void MainWindow::onActionFileImportDXF()
+{
+    QString fileName = QFileDialog::getOpenFileName(this, tr("打开DXF文件"), QDir::currentPath());
+    if (!fileName.isEmpty()) {
+        QFileInfo new_project = QFileInfo(fileName);
+        QString name_project_new = new_project.fileName();
+        project_active = new Project(name_project_new);
+        list_project.append(project_active);
+
+        project_active->dxfFileParser(fileName);
+        QTreeWidgetItem *item_project = new QTreeWidgetItem(tree_project,QStringList(name_project_new));
+
+        int count = project_active->getLayerList().length();
+
+        for(int i=0;i<count;i++){
+            QString name_layer_new = project_active->getLayerName(i);
+            QTreeWidgetItem *item_layer = new QTreeWidgetItem(item_project,QStringList(name_layer_new)); //子节点1
+            item_project->addChild(item_layer); //添加子节点
+            item_layer->setCheckState(0, Qt::Checked);
+        }
+        area_active = project_active->getLayer(0);
+        project_active->setActiveLayer(area_active);
+        updatePaintArea();
+    }
 }
 
 void MainWindow::doPrint()
@@ -166,19 +189,22 @@ void MainWindow::onActionTreeFoldAll()
     tree_project->collapseAll();
 }
 
-//void MainWindow::onTreeProjectItemDoubleClicked(QTreeWidgetItem *item, int i)
-//{
-//    QTreeWidgetItem *parent=item->parent();//获得父节点
-//    if(NULL==parent) return;
-//    if (i == 0) {
-//        item->setFlags(item->flags()|Qt::ItemIsEditable);
-//        qDebug() << "1" << item->text(0);
-//    }
-//    else {//可编辑属性去掉
-//        item->setFlags(item->flags()&~(Qt::ItemIsEditable));
-//        qDebug() << "2" << item->text(0);
-//    }
-//}
+void MainWindow::onTreeProjectItemDoubleClicked(QTreeWidgetItem *item, int i)
+{
+    QTreeWidgetItem *parent=item->parent();//获得父节点
+    if(NULL == parent) {
+        // 根据项目名称获取项目指针
+        QString project_name = item->text(0);
+        project_active = getProjectByName(project_name);
+        area_active = project_active->getLayer(0);
+    } else{
+        QString project_name = parent->text(0);
+        project_active = getProjectByName(project_name);
+        area_active = getLayerByName(project_active, item->text(0));
+        project_active->setActiveLayer(area_active);
+    }
+    updatePaintArea();
+}
 
 void MainWindow::onActionTreeProjectAddLayer()
 {
@@ -193,8 +219,6 @@ void MainWindow::onActionTreeProjectAddLayer()
     item_layer->setCheckState(0, Qt::Checked);
 
     updatePaintArea();
-
-    setWindowTitle("CADPRO-<" + project_name + "-" + name_layer_new + ">");
 }
 
 void MainWindow::onActionTreeProjectSave()
@@ -282,6 +306,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::updatePaintArea()
 {
+    setWindowTitle("CADPRO-<" + project_active->getName() + "-" + area_active->getName() + ">");
     dock_paint_area->setWidget(project_active->getActiveLayer());
 }
 
@@ -332,6 +357,7 @@ void MainWindow::initActions()
 
     action_file_import_DXF = new QAction(tr("&DXF"), this);
     action_file_import_DXF->setStatusTip(tr("导入DXF文件"));
+    connect(action_file_import_DXF, &QAction::triggered, this, &MainWindow::onActionFileImportDXF);
 
     action_file_import_DVS = new QAction(tr("&DVS"), this);
     action_file_import_DVS->setStatusTip(tr("导入DVS文件"));
@@ -1415,7 +1441,7 @@ void MainWindow::initProject()
     tree_project->setHeaderLabel(tr("项目列表")); //设置头的标题
     tree_project->setContextMenuPolicy(Qt::CustomContextMenu);//右键 不可少否则右键无反应
     connect(tree_project, &QTreeWidget::customContextMenuRequested, this, &MainWindow::showTreeMenu);
-//    connect(tree_project, &QTreeWidget::itemDoubleClicked, this, &MainWindow::onTreeProjectItemDoubleClicked);
+    connect(tree_project, &QTreeWidget::itemDoubleClicked, this, &MainWindow::onTreeProjectItemDoubleClicked);
 
     QTreeWidgetItem *item_project = new QTreeWidgetItem(tree_project,QStringList(name_project_new));
     QTreeWidgetItem *item_layer = new QTreeWidgetItem(item_project,QStringList(name_layer_new)); //子节点1
