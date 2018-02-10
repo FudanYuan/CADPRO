@@ -2,13 +2,15 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "paintarea.h"
+#include "Layer.h"
 #include "project.h"
 #include <QList>
 #include <QActionGroup>
 #include <QTreeWidget>
 #include <QInputDialog>
 #include <QSettings>
+
+#include "mygraphicsview.h"
 
 #define CONFG_FILE_PATH  "config.ini"
 
@@ -30,15 +32,14 @@ public:
     void doRotate();            // 旋转
     void doShear();             // 拉伸
     void doClear();             // 清空
+
 protected:
     void closeEvent(QCloseEvent *event);
-    void mousePressEvent(QMoveEvent *event);
-
-    void mouseMoveEvent(QMouseEvent *event);
-    void mouseReleaseEvent(QMoveEvent *event);
 
 private:
     Ui::MainWindow *ui;
+
+    MyGraphicsView *view;
 
     QMenu *menu_file;
     QAction *action_file_new;
@@ -283,7 +284,7 @@ private:
     QTreeWidgetItem *tree_project_layer_active_item; // 弹出菜单属于的那个项目
 
     Project *project_active;            // 活动项目
-    PaintArea *area_active;             // 活动图层
+    Layer *layer_active;             // 活动图层
     QList<Project *> list_project;      // 项目列表
 
     void initActions();         // 初始化action
@@ -297,10 +298,10 @@ private:
     QString getNewProjectName();// 获取新项目名称
 
     Project *getProjectByName(QString project_name);
-    PaintArea *getLayerByName(Project* project, QString layer_name);
+    Layer *getLayerByName(Project* project, QString layer_name);
 
     void showTreeMenu(QPoint pos);      // 显示项目栏菜单
-    void updatePaintArea();             // 更新绘图区域
+    void updateLayer();             // 更新绘图区域
     bool maybeSave();                   // 是否保存项目
     bool saveFile(QString fileName);    // 实现文件的存储
 
@@ -315,11 +316,17 @@ private slots:
     void onActionFileConfiguration();   // 系统配置操作
 
     void onActionDrawLine();            // 画直线
-    void onActionViewXYAxes(bool toggled);
+
+    void onActionViewXYAxes(bool toggled); // 显示xy轴
     void onActionViewGrid(bool toggled);
     void onActionViewGradingRules(bool toggled);
     void onActionViewFilledPatterns(bool toggled);
 
+    void onActionViewZoomWindow(); // 选择区域放大
+    void onActionViewZoomAll(); // 全部图形居中最大
+    void onActionViewZoomIn(); // 放大
+    void onActionViewZoomOut(); // 缩小
+    void onActionViewZoomBack(); // 缩小
     void onActionViewToolFindStyleToggled(bool toggled);
     void onActionViewToolProjectToggled(bool toggled);
     void onActionViewToolPropertiesToggled(bool toggled);

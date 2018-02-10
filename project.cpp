@@ -5,8 +5,7 @@ Project::Project(QString name, QWidget *parent)
 {
     this->name = name;
     this->saved = true;
-    layer_active = new PaintArea;
-    layer_active->setMinimumSize(400, 300);
+    layer_active = new Layer(parent);
     this->addLayer(layer_active);
 }
 
@@ -33,25 +32,24 @@ void Project::setName(QString name)
     this->name = name;
 }
 
-void Project::addLayer(PaintArea *area)
+void Project::addLayer(Layer *layer)
 {
-    this->layer.append(area);
+    this->layer.append(layer);
 }
 
-PaintArea * Project::addLayer()
+Layer * Project::addLayer()
 {
-    layer_active = new PaintArea;
-    layer_active->setMinimumSize(400, 300);
+    layer_active = new Layer;
     this->addLayer(layer_active);
     return layer_active;
 }
 
-QList<PaintArea *> Project::getLayerList()
+QList<Layer *> Project::getLayerList()
 {
     return this->layer;
 }
 
-PaintArea *Project::getLayer(int index)
+Layer *Project::getLayer(int index)
 {
     int length = this->layer.length();
     if(index > length){
@@ -60,12 +58,12 @@ PaintArea *Project::getLayer(int index)
     return this->layer.at(index);
 }
 
-PaintArea *Project::getActiveLayer()
+Layer *Project::getActiveLayer()
 {
     return this->layer_active;
 }
 
-void Project::setActiveLayer(PaintArea *layer)
+void Project::setActiveLayer(Layer *layer)
 {
     this->layer_active = layer;
 }
@@ -91,7 +89,7 @@ QString Project::getNewLayerName()
     return tr(ch);
 }
 
-QString Project::getLayerName(PaintArea *layer)
+QString Project::getLayerName(Layer *layer)
 {
     return layer->getName();
 }
@@ -115,7 +113,7 @@ void Project::dxfFileParser(QString fileName)
                 QString name = QString::fromStdString(dxf_filter.layers.at(i).layer.name);
                 qDebug() << name;
                 qDebug() << dxf_filter.layers.at(i).attribute.getColor();
-                PaintArea *area = new PaintArea();
+                Layer *area = new Layer();
                 area->setName(name);
                 layer.append(area);
             }
@@ -123,24 +121,24 @@ void Project::dxfFileParser(QString fileName)
         qDebug() << layer.length();
         layer_active = layer.at(0);
         for(int i=0; i<dxf_filter.points.length();i++){
-            layer_active->setShape(PaintArea::Point);
-            int x = dxf_filter.points.at(i).point.x;
-            int y = dxf_filter.points.at(i).point.y;
-            int z = dxf_filter.points.at(i).point.z;
-            layer_active->setPoint(PaintArea::First, x, y, z);
-            layer_active->paint();
+            layer_active->setCurShape(Layer::Point);
+//            int x = dxf_filter.points.at(i).point.x;
+//            int y = dxf_filter.points.at(i).point.y;
+//            int z = dxf_filter.points.at(i).point.z;
+//            layer_active->setPoint(Layer::First, x, y, z);
+//            layer_active->paint();
         }
 
         for(int i=0; i<dxf_filter.lines.length();i++){
-            layer_active->setShape(PaintArea::Line);
+            layer_active->setCurShape(Layer::Line);
             int x1 = dxf_filter.lines.at(i).line.x1;
             int y1 = dxf_filter.lines.at(i).line.y1;
             int z1 = dxf_filter.lines.at(i).line.z1;
             int x2 = dxf_filter.lines.at(i).line.x2;
             int y2 = dxf_filter.lines.at(i).line.y2;
             int z2 = dxf_filter.lines.at(i).line.z2;
-            layer_active->setPoint(PaintArea::First, x1, y1, z1);
-            layer_active->setPoint(PaintArea::Second, x2, y2, z2);
+//            layer_active->setPoint(Layer::First, x1, y1, z1);
+//            layer_active->setPoint(Layer::Second, x2, y2, z2);
 
             int color = dxf_filter.lines.at(i).attribute.getColor();
             qDebug() << "color" << color;
@@ -149,12 +147,12 @@ void Project::dxfFileParser(QString fileName)
                 width = 10;
             }
             qDebug() << "width" << width;
-            layer_active->setPenColor(layer_active->IntToQColor(color));
+            layer_active->setPenColor(layer_active->transformIntToQColor(color));
             layer_active->setPenWidth(width);
-            layer_active->paint();
+//            layer_active->paint();
         }
     }
-    layer_active->initPaintArea();
+//    layer_active->initLayer();
 }
 
 //void Project::onActiveProjectChanged(Project *active_project)

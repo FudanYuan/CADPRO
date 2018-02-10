@@ -32,7 +32,11 @@ SOURCES += \
     project.cpp \
     dxflib/dl_writer_ascii.cpp \
     dxflib/dl_dxf.cpp \
-    dxffilter.cpp
+    dxffilter.cpp \
+    layer.cpp \
+    mygraphicsview.cpp \
+    mygraphicsscene.cpp \
+    mygraphicsitem.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -51,7 +55,12 @@ HEADERS += \
     dxflib/dl_codes.h \
     dxflib/dl_attributes.h \
     dxffilter.h \
-    mydxfentities.h
+    mydxfentities.h \
+    layer.h \
+    mygraphicsview.h \
+    mygraphicsscene.h \
+    mygraphicsitem.h
+
 
 FORMS += \
         mainwindow.ui

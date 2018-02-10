@@ -9,6 +9,7 @@
 #include <QMdiSubWindow>
 #include <QFrame>
 
+#include <QPixmap>
 #include <QPainter>
 #include <QMouseEvent>
 #include <QBitmap>
@@ -19,6 +20,8 @@
 
 #include <QDebug>
 
+#define TILE_SIZE 100
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -26,8 +29,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     setWindowTitle("CADPRO");
     setWindowState(Qt::WindowMaximized);
-    ui->centralWidget->setMouseTracking(true);
     setMouseTracking(true);     // 开启鼠标追踪
+
     // 系统初始化
     initActions();      // 初始化动作
     initMenuBar();      // 初始化菜单栏
@@ -47,12 +50,12 @@ void MainWindow::onActionFileNew()
 {
     QString name_project_new = getNewProjectName();
     project_active = new Project(name_project_new);
-    area_active = project_active->getActiveLayer();
+    layer_active = project_active->getActiveLayer();
     QString name_layer_new = project_active->getLayerName(0);
-    area_active->setName(name_layer_new);
+    layer_active->setName(name_layer_new);
     list_project.append(project_active);
 
-    updatePaintArea();
+    updateLayer();
 
     QTreeWidgetItem *item_project = new QTreeWidgetItem(tree_project,QStringList(name_project_new));
     QTreeWidgetItem *item_layer = new QTreeWidgetItem(item_project,QStringList(name_layer_new)); //子节点1
@@ -64,15 +67,15 @@ void MainWindow::onActionFileOpen()
 {
     QString fileName = QFileDialog::getOpenFileName(this, tr("打开文件"), QDir::currentPath());
     if (!fileName.isEmpty()) {
-        area_active->openImage(fileName);
-        project_active->setName(fileName);
+//        layer_active->openImage(fileName);
+//        project_active->setName(fileName);
 
         QString name_project_new = getNewProjectName();
         project_active = new Project(name_project_new);
         QString name_layer_new = project_active->getNewLayerName();
         list_project.append(project_active);
 
-        updatePaintArea();
+        updateLayer();
 
         QTreeWidgetItem *item_project = new QTreeWidgetItem(tree_project,QStringList(name_project_new));
         QTreeWidgetItem *item_layer = new QTreeWidgetItem(item_project,QStringList(name_layer_new)); //子节点1
@@ -118,9 +121,9 @@ void MainWindow::onActionFileImportDXF()
             item_project->addChild(item_layer); //添加子节点
             item_layer->setCheckState(0, Qt::Checked);
         }
-        area_active = project_active->getLayer(0);
-        project_active->setActiveLayer(area_active);
-        updatePaintArea();
+        layer_active = project_active->getLayer(0);
+        project_active->setActiveLayer(layer_active);
+        updateLayer();
     }
 }
 
@@ -132,15 +135,13 @@ void MainWindow::onActionFileConfiguration()
 void MainWindow::onActionDrawLine()
 {
     qDebug() << "line";
-    area_active->setPoint(PaintArea::First, 10, 10, 0);
-    area_active->setPoint(PaintArea::Second, 20, 20, 0);
-    area_active->setShape(PaintArea::Line);
-    area_active->paint();
+    layer_active->setCurShape(Layer::Line);
+//    layer_active->paint();
 }
 
 void MainWindow::onActionViewXYAxes(bool toggled)
 {
-    area_active->setShape(PaintArea::None);
+    layer_active->setCurShape(Layer::None);
     // 是否显示xy轴
     QSettings settings(CONFG_FILE_PATH,QSettings::IniFormat);
     qDebug() << "xy axes about to " << toggled;
@@ -166,6 +167,31 @@ void MainWindow::onActionViewFilledPatterns(bool toggled)
     QSettings settings(CONFG_FILE_PATH,QSettings::IniFormat);
     qDebug() << "filled patterns about to " << toggled;
     settings.setValue("view/view_filled_patterns", QVariant(toggled));
+}
+
+void MainWindow::onActionViewZoomWindow()
+{
+    qDebug() << "选择视图放大";
+}
+
+void MainWindow::onActionViewZoomAll()
+{
+    qDebug() << "全局最大";
+}
+
+void MainWindow::onActionViewZoomIn()
+{
+    view->zoomIn();
+}
+
+void MainWindow::onActionViewZoomOut()
+{
+    view->zoomOut();
+}
+
+void MainWindow::onActionViewZoomBack()
+{
+    view->zoomBack();
 }
 
 void MainWindow::onActionViewToolFindStyleToggled(bool toggled)
@@ -194,41 +220,27 @@ void MainWindow::onActionViewToolPropertiesToggled(bool toggled)
 
 void MainWindow::doPrint()
 {
-    area_active->print();
+//    layer_active->print();
 }
 
 void MainWindow::zoomIn()
 {
-    area_active->zoomIn();
-    //scrollArea->widget()->resize(area->getImageSize());
-    //获得图片的大小，然后更改 scrollArea 的大小
+//    layer_active->zoomIn();
 }
 
 void MainWindow::zoomOut()
 {
-    area_active->zoomOut();
-    //scrollArea->widget()->resize(area->getImageSize());
-    //获得图片的大小，然后更改 scrollArea 的大小
+//    layer_active->zoomOut();
 }
 
 void MainWindow::zoomBack()
 {
-    area_active->zoomBack();
+//    layer_active->zoomBack();
 }
 
 void MainWindow::doRotate()
 {
-    area_active->doRotate(90, -1);
-}
-
-void MainWindow::doShear()
-{
-    area_active->doShear();
-}
-
-void MainWindow::doClear()
-{
-    area_active->doClear();
+//    layer_active->doRotate(90, -1);
 }
 
 void MainWindow::slideFindStyleToggle()
@@ -266,14 +278,14 @@ void MainWindow::onTreeProjectItemDoubleClicked(QTreeWidgetItem *item, int i)
         // 根据项目名称获取项目指针
         QString project_name = item->text(0);
         project_active = getProjectByName(project_name);
-        area_active = project_active->getLayer(0);
+        layer_active = project_active->getLayer(0);
     } else{
         QString project_name = parent->text(0);
         project_active = getProjectByName(project_name);
-        area_active = getLayerByName(project_active, item->text(0));
-        project_active->setActiveLayer(area_active);
+        layer_active = getLayerByName(project_active, item->text(0));
+        project_active->setActiveLayer(layer_active);
     }
-    updatePaintArea();
+    updateLayer();
 }
 
 void MainWindow::onActionTreeProjectAddLayer()
@@ -281,14 +293,14 @@ void MainWindow::onActionTreeProjectAddLayer()
     // 根据项目名称获取项目指针
     QString project_name = tree_project_active_item->text(0);
     project_active = getProjectByName(project_name);
-    area_active = project_active->addLayer();
-    QString name_layer_new = project_active->getLayerName(area_active);
+    layer_active = project_active->addLayer();
+    QString name_layer_new = project_active->getLayerName(layer_active);
 
     QTreeWidgetItem *item_layer = new QTreeWidgetItem(tree_project_active_item,QStringList(name_layer_new)); //子节点1
     tree_project_active_item->addChild(item_layer);
     item_layer->setCheckState(0, Qt::Checked);
 
-    updatePaintArea();
+    updateLayer();
 }
 
 void MainWindow::onActionTreeProjectSave()
@@ -350,7 +362,7 @@ void MainWindow::onActionTreeProjectLayerRename()
 {
     // 根据图层名称获取图层指针
     Project *project = getProjectByName(tree_project_active_item->text(0));
-    PaintArea *layer = getLayerByName(project, tree_project_layer_active_item->text(0));
+    Layer *layer = getLayerByName(project, tree_project_layer_active_item->text(0));
 
     // 获取新的图层名称
     bool ok;
@@ -374,34 +386,19 @@ void MainWindow::closeEvent(QCloseEvent *event)
     else event->ignore();
 }
 
-void MainWindow::mousePressEvent(QMoveEvent *event)
+void MainWindow::updateLayer()
 {
-    qDebug() << 'mainwindow press';
-}
-
-void MainWindow::mouseMoveEvent(QMouseEvent *event)
-{
-    qDebug() << 'mainwindow move';
-}
-
-void MainWindow::mouseReleaseEvent(QMoveEvent *event)
-{
-    qDebug() << 'mainwindow release';
-}
-
-void MainWindow::updatePaintArea()
-{
-    setWindowTitle("CADPRO-<" + project_active->getName() + "-" + area_active->getName() + ">");
+    setWindowTitle("CADPRO-<" + project_active->getName() + "-" + layer_active->getName() + ">");
     dock_paint_area->setWidget(project_active->getActiveLayer());
 }
 
 bool MainWindow::saveFile(QString fileName)
 {
-    if(area_active->saveImage(fileName, "png")) {
-        project_active->setSaved(true);
-        return true;
-    } else
-        return false;
+//    if(layer_active->saveImage(fileName, "png")) {
+//        project_active->setSaved(true);
+//        return true;
+//    } else
+//        return false;
 }
 
 void MainWindow::initActions()
@@ -837,16 +834,22 @@ void MainWindow::initActions()
     connect(action_view_filled_patterns, &QAction::toggled, this, &MainWindow::onActionViewFilledPatterns);
 
     action_view_zoom_window = new QAction(tr("&缩放窗口"), this);
+    action_view_zoom_window->setStatusTip(tr("&缩放窗口"));
+    connect(action_view_zoom_window, &QAction::triggered, this, &MainWindow::onActionViewZoomWindow);
 
     action_view_zoom_all = new QAction(tr("&全部缩放"), this);
+    action_view_zoom_all->setStatusTip(tr("&全部缩放"));
+    connect(action_view_zoom_all, &QAction::triggered, this, &MainWindow::onActionViewZoomAll);
 
     action_view_zoom_in = new QAction(tr("&放大"), this);
     action_view_zoom_in->setShortcut(QKeySequence::ZoomIn);
     action_view_zoom_in->setStatusTip(tr("放大"));
+    connect(action_view_zoom_in, &QAction::triggered, this, &MainWindow::onActionViewZoomIn);
 
     action_view_zoom_out = new QAction(tr("&缩小"), this);
     action_view_zoom_out->setShortcut(QKeySequence::ZoomOut);
     action_view_zoom_out->setStatusTip(tr("缩小"));
+    connect(action_view_zoom_out, &QAction::triggered, this, &MainWindow::onActionViewZoomOut);
 
     action_view_zoom_back = new QAction(tr("&还原"), this);
     action_view_zoom_back->setStatusTip(tr("还原"));
@@ -1533,13 +1536,17 @@ void MainWindow::initDockWidget()
 
 void MainWindow::initProject()
 {
+    // 初始化view
+    view = new MyGraphicsView(this);
+
     // 初始化项目
     QString name_project_new = getNewProjectName();
-    project_active = new Project(name_project_new);
+    project_active = new Project(name_project_new, this);
     QString name_layer_new = project_active->getLayerName(project_active->getActiveLayer());
     list_project.append(project_active);
-    area_active = project_active->getActiveLayer();
-    dock_paint_area->setWidget(area_active);
+    layer_active = project_active->getActiveLayer();
+    view->setScene(layer_active->getScene());
+    dock_paint_area->setWidget(view);
 
     tree_project = new QTreeWidget();
     tree_project->setColumnCount(1); //设置列数
@@ -1628,7 +1635,7 @@ Project *MainWindow::getProjectByName(QString project_name)
     }
 }
 
-PaintArea *MainWindow::getLayerByName(Project *project, QString layer_name)
+Layer *MainWindow::getLayerByName(Project *project, QString layer_name)
 {
     for(int i=0;i<project->getLayerList().length();i++){
         if(project->getLayer(i)->getName() == layer_name){
