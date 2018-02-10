@@ -16,7 +16,7 @@ public:
     QString getName();                              // 获取项目名称
     void setName(QString name);                     // 设置项目名称
     void addLayer(PaintArea *area);                 // 添加项目图层
-    PaintArea *addLayer();                                // 添加项目图层
+    PaintArea *addLayer();                          // 添加项目图层
     QList<PaintArea *> getLayerList();              // 获取项目图层列表
     PaintArea* getLayer(int index);                 // 获取项目图层
     PaintArea* getActiveLayer();                    // 获取项目活动图层
@@ -26,7 +26,7 @@ public:
     bool saveProject();                             // 保存项目
     QString getNewLayerName();                      // 获取新图层名称
     QString getLayerName(PaintArea *layer);         // 获取图层名称
-    QString getLayerName(int i);         // 获取图层名称
+    QString getLayerName(int i);                    // 获取图层名称
     void dxfFileParser(QString fileName);           // 解析dxf文件
 
 private:

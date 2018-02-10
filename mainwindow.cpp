@@ -26,7 +26,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     setWindowTitle("CADPRO");
     setWindowState(Qt::WindowMaximized);
-
+    ui->centralWidget->setMouseTracking(true);
+    setMouseTracking(true);     // 开启鼠标追踪
     // 系统初始化
     initActions();      // 初始化动作
     initMenuBar();      // 初始化菜单栏
@@ -34,6 +35,7 @@ MainWindow::MainWindow(QWidget *parent) :
     initStatusBar();    // 初始化状态栏
     initDockWidget();   // 初始化窗口
     initProject();      // 初始化项目
+    readConfiguration();// 初始化配置文件
 }
 
 MainWindow::~MainWindow()
@@ -120,6 +122,74 @@ void MainWindow::onActionFileImportDXF()
         project_active->setActiveLayer(area_active);
         updatePaintArea();
     }
+}
+
+void MainWindow::onActionFileConfiguration()
+{
+    qDebug() << "系统配置中···";
+}
+
+void MainWindow::onActionDrawLine()
+{
+    qDebug() << "line";
+    area_active->setPoint(PaintArea::First, 10, 10, 0);
+    area_active->setPoint(PaintArea::Second, 20, 20, 0);
+    area_active->setShape(PaintArea::Line);
+    area_active->paint();
+}
+
+void MainWindow::onActionViewXYAxes(bool toggled)
+{
+    area_active->setShape(PaintArea::None);
+    // 是否显示xy轴
+    QSettings settings(CONFG_FILE_PATH,QSettings::IniFormat);
+    qDebug() << "xy axes about to " << toggled;
+    settings.setValue("view/view_xy_axes", QVariant(toggled));
+}
+
+void MainWindow::onActionViewGrid(bool toggled)
+{
+    QSettings settings(CONFG_FILE_PATH,QSettings::IniFormat);
+    qDebug() << "grid axes about to " << toggled;
+    settings.setValue("view/view_grid", QVariant(toggled));
+}
+
+void MainWindow::onActionViewGradingRules(bool toggled)
+{
+    QSettings settings(CONFG_FILE_PATH,QSettings::IniFormat);
+    qDebug() << "grading rules axes about to " << toggled;
+    settings.setValue("view/view_grading_rules", QVariant(toggled));
+}
+
+void MainWindow::onActionViewFilledPatterns(bool toggled)
+{
+    QSettings settings(CONFG_FILE_PATH,QSettings::IniFormat);
+    qDebug() << "filled patterns about to " << toggled;
+    settings.setValue("view/view_filled_patterns", QVariant(toggled));
+}
+
+void MainWindow::onActionViewToolFindStyleToggled(bool toggled)
+{
+    onDockFindStyleVisibilityChanged(toggled);
+    QSettings settings(CONFG_FILE_PATH,QSettings::IniFormat);
+    qDebug() << "find style about to " << toggled;
+    settings.setValue("view/view_tool_find_style", QVariant(toggled));
+}
+
+void MainWindow::onActionViewToolProjectToggled(bool toggled)
+{
+    onDockProjectVisibilityChanged(toggled);
+    QSettings settings(CONFG_FILE_PATH,QSettings::IniFormat);
+    qDebug() << "project about to " << toggled;
+    settings.setValue("view/view_tool_project", QVariant(toggled));
+}
+
+void MainWindow::onActionViewToolPropertiesToggled(bool toggled)
+{
+    onDockPropertiesVisibilityChanged(toggled);
+    QSettings settings(CONFG_FILE_PATH,QSettings::IniFormat);
+    qDebug() << "propertities about to " << toggled;
+    settings.setValue("view/view_tool_properties", QVariant(toggled));
 }
 
 void MainWindow::doPrint()
@@ -304,6 +374,21 @@ void MainWindow::closeEvent(QCloseEvent *event)
     else event->ignore();
 }
 
+void MainWindow::mousePressEvent(QMoveEvent *event)
+{
+    qDebug() << 'mainwindow press';
+}
+
+void MainWindow::mouseMoveEvent(QMouseEvent *event)
+{
+    qDebug() << 'mainwindow move';
+}
+
+void MainWindow::mouseReleaseEvent(QMoveEvent *event)
+{
+    qDebug() << 'mainwindow release';
+}
+
 void MainWindow::updatePaintArea()
 {
     setWindowTitle("CADPRO-<" + project_active->getName() + "-" + area_active->getName() + ">");
@@ -376,6 +461,7 @@ void MainWindow::initActions()
 
     action_file_configuration = new QAction(tr("&配置"), this);
     action_file_configuration->setStatusTip(tr("修改cadPro配置"));
+    connect(action_file_configuration, &QAction::triggered, this, &MainWindow::onActionFileConfiguration);
 
     action_file_exit = new QAction(tr("&退出"), this);
     action_file_exit->setShortcut(QKeySequence::Quit);
@@ -395,6 +481,7 @@ void MainWindow::initActions()
 // ![2] 绘图
     action_draw_line = new QAction(tr("&线条"), this);
     action_draw_line->setStatusTip(tr("绘制直线"));
+    connect(action_draw_line, &QAction::triggered, this, &MainWindow::onActionDrawLine);
 
     action_draw_middle_axis = new QAction(tr("&中轴线"), this);
     action_draw_middle_axis->setStatusTip(tr("绘制中轴线"));
@@ -715,21 +802,39 @@ void MainWindow::initActions()
 
 // ![6] 查看
     action_view_xy_axes = new QAction(tr("&XY轴"), this);
+    action_view_xy_axes->setCheckable(true);
+    action_view_xy_axes->setStatusTip(tr("显示/隐藏xy轴"));
+    connect(action_view_xy_axes, &QAction::toggled, this, &MainWindow::onActionViewXYAxes);
 
     action_view_grid = new QAction(tr("&网格"), this);
+    action_view_grid->setCheckable(true);
+    action_view_grid->setStatusTip(tr("显示/隐藏网格"));
+    connect(action_view_grid, &QAction::toggled, this, &MainWindow::onActionViewGrid);
 
     action_view_knots = new QAction(tr("&节点"), this);
+    action_view_knots->setCheckable(true);
+    action_view_knots->setStatusTip(tr("显示/隐藏节点"));
     action_view_knots->setDisabled(true);
 
     action_view_image = new QAction(tr("&图片"), this);
+    action_view_image->setCheckable(true);
+    action_view_image->setStatusTip(tr("显示/隐藏图片"));
     action_view_image->setDisabled(true);
 
     action_view_design_rules = new QAction(tr("&设计尺"), this);
+    action_view_design_rules->setCheckable(true);
+    action_view_design_rules->setStatusTip(tr("显示/隐藏绘图规则"));
     action_view_design_rules->setDisabled(true);
 
     action_view_grading_rules = new QAction(tr("&级放规则"), this);
+    action_view_grading_rules->setCheckable(true);
+    action_view_grading_rules->setStatusTip(tr("显示/隐藏级放规则"));
+    connect(action_view_grading_rules, &QAction::toggled, this, &MainWindow::onActionViewGradingRules);
 
     action_view_filled_patterns = new QAction(tr("&填充图样"), this);
+    action_view_filled_patterns->setCheckable(true);
+    action_view_filled_patterns->setStatusTip(tr("显示/隐藏填充图样"));
+    connect(action_view_filled_patterns, &QAction::toggled, this, &MainWindow::onActionViewFilledPatterns);
 
     action_view_zoom_window = new QAction(tr("&缩放窗口"), this);
 
@@ -764,15 +869,15 @@ void MainWindow::initActions()
 
     action_view_tool_find_style = new QAction(tr("&寻找款型"), this);
     action_view_tool_find_style->setCheckable(true);
-    connect(action_view_tool_find_style, &QAction::toggled, this, &MainWindow::onDockFindStyleVisibilityChanged);
+    connect(action_view_tool_find_style, &QAction::toggled, this, &MainWindow::onActionViewToolFindStyleToggled);
 
     action_view_tool_project = new QAction(tr("&项目"), this);
     action_view_tool_project->setCheckable(true);
-    connect(action_view_tool_project, &QAction::toggled, this, &MainWindow::onDockProjectVisibilityChanged);
+    connect(action_view_tool_project, &QAction::toggled, this, &MainWindow::onActionViewToolProjectToggled);
 
     action_view_tool_properties = new QAction(tr("&属性"), this);
     action_view_tool_properties->setCheckable(true);
-    connect(action_view_tool_properties, &QAction::toggled, this, &MainWindow::onDockPropertiesVisibilityChanged);
+    connect(action_view_tool_properties, &QAction::toggled, this, &MainWindow::onActionViewToolPropertiesToggled);
 
     action_view_tool_slide = new QActionGroup(this);
     action_view_tool_slide->setExclusive(false);
@@ -1408,9 +1513,9 @@ void MainWindow::initDockWidget()
     dock_project->setHidden(!action_view_tool_project->isChecked());
     dock_properties->setHidden(!action_view_tool_properties->isChecked());
 
-    connect(dock_find_style, &QDockWidget::visibilityChanged, this, &MainWindow::onDockFindStyleVisibilityChanged);
-    connect(dock_project, &QDockWidget::visibilityChanged, this, &MainWindow::onDockProjectVisibilityChanged);
-    connect(dock_properties, &QDockWidget::visibilityChanged, this, &MainWindow::onDockPropertiesVisibilityChanged);
+//    connect(dock_find_style, &QDockWidget::visibilityChanged, this, &MainWindow::onDockFindStyleVisibilityChanged);
+//    connect(dock_project, &QDockWidget::visibilityChanged, this, &MainWindow::onDockProjectVisibilityChanged);
+//    connect(dock_properties, &QDockWidget::visibilityChanged, this, &MainWindow::onDockPropertiesVisibilityChanged);
 
     // 绘图区隐藏标题栏
     QWidget * qw=new QWidget(this);
@@ -1433,8 +1538,8 @@ void MainWindow::initProject()
     project_active = new Project(name_project_new);
     QString name_layer_new = project_active->getLayerName(project_active->getActiveLayer());
     list_project.append(project_active);
-
-    dock_paint_area->setWidget(project_active->getActiveLayer());
+    area_active = project_active->getActiveLayer();
+    dock_paint_area->setWidget(area_active);
 
     tree_project = new QTreeWidget();
     tree_project->setColumnCount(1); //设置列数
@@ -1450,6 +1555,57 @@ void MainWindow::initProject()
     item_project->addChild(item_layer); //添加子节点
     tree_project->expandAll(); //结点全部展开
     dock_project->setWidget(tree_project);
+}
+
+void MainWindow::writeConfiguration()
+{
+    QSettings settings(CONFG_FILE_PATH,QSettings::IniFormat);
+    settings.beginGroup("view");
+    settings.setValue("view_xy_axes", QVariant(action_view_xy_axes->isChecked()));
+    settings.setValue("view_grid", QVariant(action_view_grid->isChecked()));
+    settings.setValue("view_grading_rules", QVariant(action_view_grading_rules->isChecked()));
+    settings.setValue("view_filled_patterns", QVariant(action_view_filled_patterns->isChecked()));
+    settings.setValue("view_tool_find_style", QVariant(action_view_tool_find_style->isChecked()));
+    settings.setValue("view_tool_project", QVariant(action_view_tool_project->isChecked()));
+    settings.setValue("view_tool_properties",QVariant( action_view_tool_properties->isChecked()));
+    settings.endGroup();
+}
+
+void MainWindow::readConfiguration()
+{
+    QFileInfo file(CONFG_FILE_PATH);
+    // 若配置文件不存在，初始化系统配置
+    if(!file.exists()){
+        qDebug() << "配置文件不存在";
+        writeConfiguration();
+        return;
+    }
+    // 若配置文件存在，读入配置
+    qDebug() << "配置文件已存在";
+    QSettings settings(CONFG_FILE_PATH,QSettings::IniFormat);
+    settings.beginGroup("view");
+    bool view_xy_axes_on = settings.value("view_xy_axes").toBool();
+    bool view_grid_on = settings.value("view_grid").toBool();
+    bool view_grading_rules_on = settings.value("view_grading_rules").toBool();
+    bool view_filled_patterns_on = settings.value("view_filled_patterns").toBool();
+    bool view_tool_find_style_on = settings.value("view_tool_find_style").toBool();
+    bool view_tool_project_on = settings.value("view_tool_project").toBool();
+    bool view_tool_properties_on = settings.value("view_tool_properties").toBool();
+    qDebug() << view_xy_axes_on;
+    qDebug() << view_grid_on;
+    qDebug() << view_grading_rules_on;
+    qDebug() << view_filled_patterns_on;
+    qDebug() << view_tool_find_style_on;
+    qDebug() << view_tool_project_on;
+    qDebug() << view_tool_properties_on;
+    action_view_xy_axes->setChecked(view_xy_axes_on);
+    action_view_grid->setChecked(view_grid_on);
+    action_view_grid->setChecked(view_grid_on);
+    action_view_grading_rules->setChecked(view_grading_rules_on);
+    action_view_filled_patterns->setChecked(view_filled_patterns_on);
+    action_view_tool_project->setChecked(view_tool_project_on);
+    action_view_tool_properties->setChecked(view_tool_properties_on);
+    settings.endGroup();
 }
 
 QString MainWindow::getNewProjectName()

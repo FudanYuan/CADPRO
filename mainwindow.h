@@ -8,6 +8,9 @@
 #include <QActionGroup>
 #include <QTreeWidget>
 #include <QInputDialog>
+#include <QSettings>
+
+#define CONFG_FILE_PATH  "config.ini"
 
 namespace Ui {
 class MainWindow;
@@ -29,6 +32,10 @@ public:
     void doClear();             // 清空
 protected:
     void closeEvent(QCloseEvent *event);
+    void mousePressEvent(QMoveEvent *event);
+
+    void mouseMoveEvent(QMouseEvent *event);
+    void mouseReleaseEvent(QMoveEvent *event);
 
 private:
     Ui::MainWindow *ui;
@@ -285,12 +292,14 @@ private:
     void initStatusBar();       // 初始化状态栏
     void initDockWidget();      // 初始化dock widget
     void initProject();         // 初始化项目
-    QString getNewProjectName();    // 获取新项目名称
+    void writeConfiguration();  // 写配置文件
+    void readConfiguration();   // 加载配置文件
+    QString getNewProjectName();// 获取新项目名称
 
     Project *getProjectByName(QString project_name);
     PaintArea *getLayerByName(Project* project, QString layer_name);
 
-    void showTreeMenu(QPoint pos);
+    void showTreeMenu(QPoint pos);      // 显示项目栏菜单
     void updatePaintArea();             // 更新绘图区域
     bool maybeSave();                   // 是否保存项目
     bool saveFile(QString fileName);    // 实现文件的存储
@@ -302,6 +311,18 @@ private slots:
     bool onActionFileSaveAs();          // 文件另存为操作
 
     void onActionFileImportDXF();       // DXF文件导入操作
+
+    void onActionFileConfiguration();   // 系统配置操作
+
+    void onActionDrawLine();            // 画直线
+    void onActionViewXYAxes(bool toggled);
+    void onActionViewGrid(bool toggled);
+    void onActionViewGradingRules(bool toggled);
+    void onActionViewFilledPatterns(bool toggled);
+
+    void onActionViewToolFindStyleToggled(bool toggled);
+    void onActionViewToolProjectToggled(bool toggled);
+    void onActionViewToolPropertiesToggled(bool toggled);
     void updateViewMenu();
 
     void onToolSlideChanged();

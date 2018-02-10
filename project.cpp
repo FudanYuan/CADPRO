@@ -5,16 +5,15 @@ Project::Project(QString name, QWidget *parent)
 {
     this->name = name;
     this->saved = true;
-    PaintArea *area = new PaintArea;
-    area->setMinimumSize(400, 400);
-    layer_active = area;
+    layer_active = new PaintArea;
+    layer_active->setMinimumSize(400, 300);
     this->addLayer(layer_active);
 }
 
 bool Project::isSaved()
 {
     for(int i=0; i<this->layer.length();i++){
-        this->saved &= this->layer.at(i)->isModified();
+        this->saved &= !this->layer.at(i)->isModified();
     }
     return this->saved;
 }
@@ -42,7 +41,7 @@ void Project::addLayer(PaintArea *area)
 PaintArea * Project::addLayer()
 {
     layer_active = new PaintArea;
-    layer_active->setMinimumSize(400, 400);
+    layer_active->setMinimumSize(400, 300);
     this->addLayer(layer_active);
     return layer_active;
 }

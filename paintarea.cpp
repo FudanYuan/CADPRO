@@ -7,10 +7,13 @@
 
 PaintArea::PaintArea(QWidget *parent) : QWidget(parent)
 {
+    setMouseTracking(true);
     name = tr("");
-    image = QImage(400,300,QImage::Format_RGB32); // 画布的初始化大小设为 400*300，使用 32 位颜色
+    image = QImage(this->width(),this->height(),QImage::Format_RGB32); // 画布的初始化大小设为 400*300，使用 32 位颜色
+    tempImage = QImage(this->width(),this->height(),QImage::Format_RGB32); // 画布的初始化大小设为 400*300，使用 32 位颜色
     backColor = qRgb(255,255,255); //画布初始化背景色使用白色
     image.fill(backColor);
+    tempImage.fill(backColor);
     modified = false;
     curShape = None;
     penColor = Qt::black;
@@ -101,47 +104,54 @@ void PaintArea::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
     painter.scale(scale,scale);
-    if(angle) {
-        QImage copyImage = image;
-        QPainter pp(&copyImage);
-        QPointF center(copyImage.width()/2.0,copyImage.height()/2.0);
-        pp.translate(center);
-        pp.rotate(angle);
-        pp.translate(-center);
-        pp.drawImage(0,0,image);
-        image = copyImage; //只会复制图片上的内容，不会复制坐标系统
-        angle = 0; //完成旋转后将角度值重新设为 0
-        }
-    if(shear) {
-        QImage copyImage = image;
-        QPainter pp(&copyImage);
-        pp.shear(shear,shear);
-        pp.drawImage(0,0,image);
-        image = copyImage;
-        shear = 0;
+    if(isDrawing) {
+        painter.drawImage(0,0,tempImage);
     }
-    painter.drawImage(0,0,image);
-
-    int side = qMin(width(), height());
-    painter.setRenderHint(QPainter::Antialiasing,true);     //开启抗锯齿
-    painter.translate(width() / 2, height() / 2);           //坐标系统平移变换，把原点平移到窗口中心
+    else {
+        if(angle) {
+            QImage copyImage = image;
+            QPainter pp(&copyImage);
+            QPointF center(copyImage.width()/2.0,copyImage.height()/2.0);
+            pp.translate(center);
+            pp.rotate(angle);
+            pp.translate(-center);
+            pp.drawImage(0,0,image);
+            image = copyImage; //只会复制图片上的内容，不会复制坐标系统
+            angle = 0; //完成旋转后将角度值重新设为 0
+        }
+        if(shear) {
+            QImage copyImage = image;
+            QPainter pp(&copyImage);
+            pp.shear(shear,shear);
+            pp.drawImage(0,0,image);
+            image = copyImage;
+            shear = 0;
+        }
+        painter.drawImage(0,0,image);
+    }
+    //int side = qMin(width(), height());
+    //painter.setRenderHint(QPainter::Antialiasing,true);                //开启抗锯齿
+    //painter.translate(width() / 2, height() / 2);                      //坐标系统平移变换，把原点平移到窗口中心
     //painter.scale(side / 300.0, side / 300.0);            //坐标系统比例变换，使绘制的图形随窗口的放大而放大
-    painter.scale(1, -1);                                   //Y轴向上翻转，翻转成正常平面直角坐标系
-    painter.setPen(QPen(Qt::black, height() / 600));
-    painter.drawLine(-2000,0,2000,0);
-    painter.drawLine(0,1500,0,-1500);
-    drawGrid(&painter);
+    //ainter.scale(1, -1);                                          //Y轴向上翻转，翻转成正常平面直角坐标系
+    //painter.setPen(QPen(Qt::black, height() / 600));
+    //painter.drawLine(-2000,0,2000,0);
+    //painter.drawLine(0,1500,0,-1500);
+    //drawGrid(&painter);
 }
 
 void PaintArea::mousePressEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::LeftButton) {     //当鼠标左键按下
         firstPoint = event->pos();              //获得鼠标指针的当前坐标作为起始坐标
+        isDrawing = true;
     }
 }
 
 void PaintArea::mouseMoveEvent(QMouseEvent *event)
 {
+    qDebug() << event->globalPos().x() << " " << event->globalPos().y();
+    qDebug() << event->pos().x() << " " << event->pos().y();
     if(event->buttons()&Qt::LeftButton) {       //如果鼠标左键按着的同时移动鼠标
         secondPoint = event->pos();             //获得鼠标指针的当前坐标作为终止坐标
         if(curShape == None) //如果不进行特殊图形绘制，则直接在 image 上绘制
@@ -159,10 +169,18 @@ void PaintArea::mouseMoveEvent(QMouseEvent *event)
 
 void PaintArea::mouseReleaseEvent(QMouseEvent *event)
 {
+    if(isDrawing){
+        image = tempImage;
+        isDrawing = false;
+    }
+    if(event->buttons() == Qt::NoButton) {
+        qDebug() << "no button";
+    }
     if(event->buttons() == Qt::LeftButton) {
         secondPoint = event->pos();
         isDrawing = false;
-        paint(image);
+        image = tempImage;
+        update();
     }
 }
 
@@ -209,15 +227,15 @@ void PaintArea::setPoint(PaintArea::Points point, int x, int y, int z)
 QColor PaintArea::IntToQColor(const int &intColor)
 {
     //将Color 从int 转换成 QColor
-    int red = intColor & 255;
+    int blue = intColor & 255;
     int green = intColor >> 8 & 255;
-    int blue = intColor >> 16 & 255;
+    int red = intColor >> 16 & 255;
     return QColor(red, green, blue);
 }
 
 void PaintArea::paint(QImage &image)
 {
-    QPainter pp(&image); //在 theImage 上绘图
+    QPainter pp(&image); //在 the Image 上绘图
     QPen pen = QPen();
     pen.setColor(penColor);
     pen.setStyle(penStyle);
@@ -231,6 +249,11 @@ void PaintArea::paint(QImage &image)
     y = firstPoint.y()/scale;
     w = secondPoint.x()/scale - x;
     h = secondPoint.y()/scale - y;
+
+//    if(isDrawing){
+//        image = tempImage;
+//    }
+
     switch(curShape) {
     case None: //不绘制特殊图形
     {
