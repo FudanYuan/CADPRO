@@ -27,20 +27,25 @@ INCLUDEPATH += dxflib
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    paintarea.cpp \
     mydocktitlebar.cpp \
     project.cpp \
     dxflib/dl_writer_ascii.cpp \
     dxflib/dl_dxf.cpp \
     dxffilter.cpp \
-    layer.cpp \
-    mygraphicsview.cpp \
-    mygraphicsscene.cpp \
-    mygraphicsitem.cpp
+#    layer.cpp \
+#    mygraphicsview.cpp \
+#    mygraphicsscene.cpp \
+#    mygraphicsitem.cpp \
+#    mygraphicslineitem.cpp \
+    shape.cpp \
+    scene.cpp \
+    line.cpp \
+    view.cpp \
+    configure.cpp \
+    rect.cpp
 
 HEADERS += \
         mainwindow.h \
-    paintarea.h \
     mydocktitlebar.h \
     project.h \
     dxflib/dl_writer.h \
@@ -56,10 +61,17 @@ HEADERS += \
     dxflib/dl_attributes.h \
     dxffilter.h \
     mydxfentities.h \
-    layer.h \
-    mygraphicsview.h \
-    mygraphicsscene.h \
-    mygraphicsitem.h
+#    layer.h \
+#    mygraphicsview.h \
+#    mygraphicsscene.h \
+#    mygraphicsitem.h \
+#    mygraphicslineitem.h \
+    shape.h \
+    scene.h \
+    line.h \
+    view.h \
+    configure.h \
+    rect.h
 
 
 FORMS += \

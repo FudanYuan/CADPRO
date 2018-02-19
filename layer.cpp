@@ -2,13 +2,7 @@
 
 Layer::Layer(QWidget *parent) : QWidget(parent)
 {
-    scene.setSceneRect(-100, -100, 200, 200);
-    for(int i = 0; i < 5; ++i) {
-        MyGraphicsItem *item = new MyGraphicsItem;
-        item->setPos(i * 50 - 90, -50);
-        scene.addItem(item);
-    }
-    scene.addLine(0, 0, 150, 150);
+    scene.setSceneRect(-300000, -300000, 600000, 600000);
 }
 
 Layer::~Layer()
@@ -80,12 +74,12 @@ QColor Layer::getBrushColor()
     return this->brushColor;
 }
 
-void Layer::setCurShape(Layer::ShapeType curShape)
+void Layer::setCurShape(MyGraphicsItem::ShapeType curShape)
 {
     this->curShape = curShape;
 }
 
-Layer::ShapeType Layer::getCurShape()
+MyGraphicsItem::ShapeType Layer::getCurShape()
 {
     return this->curShape;
 }

@@ -5,6 +5,7 @@
 #include "mygraphicsview.h"
 #include "mygraphicsscene.h"
 #include "mygraphicsitem.h"
+#include "mygraphicsitem.h"
 #include <QMouseEvent>
 #include <QWheelEvent>
 #include <QKeyEvent>
@@ -13,9 +14,6 @@ class Layer : public QWidget
 {
     Q_OBJECT
 public:
-    //枚举变量，几个图形的选择
-    enum ShapeType {None,Point,Line,Rectangle,Ellipse};
-
     explicit Layer(QWidget *parent = 0);
     ~Layer();
 
@@ -39,8 +37,8 @@ public:
     void setBrushColor(QColor brushColor);  // 设置填充颜色
     QColor getBrushColor();  // 获取填充颜色
 
-    void setCurShape(ShapeType curShape);  // 设置当前图形
-    ShapeType getCurShape();  // 获取当前图形
+    void setCurShape(MyGraphicsItem::ShapeType curShape);  // 设置当前图形
+    MyGraphicsItem::ShapeType getCurShape();  // 获取当前图形
 
     void setModified(bool modified);  // 设置画布是否被更改
     bool isModified() const;  // 返回画布内容是否被更改过
@@ -73,7 +71,7 @@ private:
 
     QPoint sPoint, ePoint;  // 鼠标起止点
 
-    ShapeType curShape;  // 当前图形
+    MyGraphicsItem::ShapeType curShape;  // 当前图形
     bool isDrawing; // 是否在绘制特殊图形
     bool modified;  // 标志图层是否被更改过
 

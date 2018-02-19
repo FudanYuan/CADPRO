@@ -1,22 +1,20 @@
-#ifndef MYGRAPHICSITEM_H
-#define MYGRAPHICSITEM_H
+#ifndef MYGRAPHICSLINEITEM_H
+#define MYGRAPHICSLINEITEM_H
 
-#include <QGraphicsItem>
+#include <QGraphicsLineItem>
 #include <QGraphicsSceneMouseEvent>
-#include <QPainter>
-#include <QPen>
-#include <QColor>
 #include "shape.h"
+#include <QPointF>
 
-class MyGraphicsItem : public Shape, public QGraphicsItem
+class MyGraphicsLineItem : public Shape, public QGraphicsLineItem
 {
+    Q_OBJECT
 public:
-    MyGraphicsItem();
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE;
-    QRectF boundingRect() const Q_DECL_OVERRIDE;
+    MyGraphicsLineItem();
 
     void startDraw(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 开始绘图
     void drawing(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 绘图开始
+    void setStyle(EntityStyle style) Q_DECL_OVERRIDE;  // 设置属性
 protected:
     //鼠标事件
     void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
@@ -27,6 +25,9 @@ protected:
     void dragLeaveEvent(QGraphicsSceneDragDropEvent *event) Q_DECL_OVERRIDE;
     void dragMoveEvent(QGraphicsSceneDragDropEvent *event) Q_DECL_OVERRIDE;
     void dropEvent(QGraphicsSceneDragDropEvent *event) Q_DECL_OVERRIDE;
+
+private:
+    QPointF sPoint, ePoint;  // 起止点
 };
 
-#endif // MYGRAPHICSITEM_H
+#endif // MYGRAPHICSLINEITEM_H

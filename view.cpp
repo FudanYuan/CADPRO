@@ -1,12 +1,14 @@
-#include "mygraphicsview.h"
+#include "view.h"
 #include <QDebug>
 
 #define VIEW_CENTER viewport()->rect().center()
 #define VIEW_WIDTH  viewport()->rect().width()
 #define VIEW_HEIGHT viewport()->rect().height()
 
-MyGraphicsView::MyGraphicsView(QWidget *parent)
+View::View(QWidget *parent)
     : QGraphicsView(parent),
+      xPos(0),
+      yPos(0),
       windowScale(1.0),
       zoomDelta(0.1),
       isTranslate(false),
@@ -19,72 +21,101 @@ MyGraphicsView::MyGraphicsView(QWidget *parent)
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setRenderHint(QPainter::Antialiasing);
-    setSceneRect(INT_MIN/2, INT_MIN/2, INT_MAX, INT_MAX);
-    centerOn(0, 0);
+
+    // 设置视图中央
+    centerOn(mapFromScene(0,0));
+#if 0
+    // 视图坐标原点(0,0)对应场景坐标（场景坐标）
+    qDebug() << "mapToScene(0, 0):" << mapToScene(0, 0);
+
+    // 场景坐标原点(0,0)对应视图坐标（视图坐标）
+    qDebug() << "mapFromScene(0, 0):" << mapFromScene(0, 0);
+    // 场景左上角坐标（场景坐标）
+    QPointF p1 = QPointF(sceneRect().topLeft());
+    qDebug() << "p1:" << p1;
+    // 场景左上角对应视图坐标（视图坐标）
+    qDebug() << "mapFromScene(p1.x(), p1.y())" << mapFromScene(p1.x(), p1.y());
+    qDebug() << "view " << size().width() << "  " << size().height();
+#endif
 }
 
-void MyGraphicsView::setZoomDelta(qreal zoomDelta)
+void View::setPosition(qreal x, qreal y)
+{
+    xPos = x;
+    yPos = -y;
+}
+
+void View::setPosition(QPointF pos)
+{
+    xPos = pos.x();
+    yPos = -pos.y();
+}
+
+QPoint View::getPosition()
+{
+    return QPoint(xPos, yPos);
+}
+
+void View::setZoomDelta(qreal zoomDelta)
 {
     this->zoomDelta = zoomDelta;
 }
 
-qreal MyGraphicsView::getZoomDelta()
+qreal View::getZoomDelta()
 {
     return this->zoomDelta;
 }
 
-void MyGraphicsView::setIsTranslate(bool isTranslate)
+void View::setIsTranslate(bool isTranslate)
 {
     this->isTranslate = isTranslate;
 }
 
-bool MyGraphicsView::getIsTranslate()
+bool View::getIsTranslate()
 {
     return this->isTranslate;
 }
 
-void MyGraphicsView::setTranslateSpeed(qreal translateSpeed)
+void View::setTranslateSpeed(qreal translateSpeed)
 {
     this->translateSpeed = translateSpeed;
 }
 
-qreal MyGraphicsView::getTranslateSpeed()
+qreal View::getTranslateSpeed()
 {
     return this->translateSpeed;
 }
 
-void MyGraphicsView::setAngle(qreal angle)
+void View::setAngle(qreal angle)
 {
     this->angle = angle;
 }
 
-qreal MyGraphicsView::getAngle()
+qreal View::getAngle()
 {
     return this->angle;
 }
 
-void MyGraphicsView::keyPressEvent(QKeyEvent *event)
+void View::keyPressEvent(QKeyEvent *event)
 {
-    // qDebug() << "MyGraphicsView::keyPressEvent";
+    // qDebug() << "View::keyPressEvent";
     switch (event->key()) {
     case Qt::Key_Up:
-        translate(QPointF(0, -2));  // 上移
+        translate(QPointF(0, 2));  // 上移
         break;
     case Qt::Key_Down:
-        translate(QPointF(0, 2));  // 下移
+        translate(QPointF(0, -2));  // 下移
         break;
     case Qt::Key_Left:
-        translate(QPointF(-2, 0));  // 左移
+        translate(QPointF(2, 0));  // 左移
         break;
     case Qt::Key_Right:
-        translate(QPointF(2, 0));  // 右移
+        translate(QPointF(-2, 0));  // 右移
         break;
     case Qt::Key_Plus:  // 放大
-        // qDebug() << "in";
         zoomIn();
         break;
     case Qt::Key_Minus:  // 缩小
-        // qDebug() << "out";
         zoomOut();
         break;
     case Qt::Key_Space:  // 逆时针旋转
@@ -100,57 +131,57 @@ void MyGraphicsView::keyPressEvent(QKeyEvent *event)
 
 }
 
-void MyGraphicsView::mousePressEvent(QMouseEvent *event)
+void View::mousePressEvent(QMouseEvent *event)
 {
-    // qDebug() << "MyGraphicsView::mousePressEvent";
+    // qDebug() << "View::mousePressEvent";
     QGraphicsView::mousePressEvent(event);
 }
 
-void MyGraphicsView::mouseMoveEvent(QMouseEvent *event)
+void View::mouseMoveEvent(QMouseEvent *event)
 {
-    // qDebug() << "MyGraphicsView::mouseMoveEvent";
     QGraphicsView::mouseMoveEvent(event);
-    qDebug() << "(" << event->pos().x() << " , " << event->pos().y() << ")";
+    setPosition(event->pos());
+    emit mousePositionChanged(mapToScene(event->pos()));
 }
 
-void MyGraphicsView::mouseReleaseEvent(QMouseEvent *event)
+void View::mouseReleaseEvent(QMouseEvent *event)
 {
-    // qDebug() << "MyGraphicsView::mouseReleaseEvent";
+    // qDebug() << "View::mouseReleaseEvent";
     QGraphicsView::mouseReleaseEvent(event);
 }
 
-void MyGraphicsView::paintEvent(QPaintEvent *event)
+void View::paintEvent(QPaintEvent *event)
 {
-    // qDebug() << "MyGraphicsView::paintEvent";
+    // qDebug() << "View::paintEvent";
     QGraphicsView::paintEvent(event);
 }
 
-void MyGraphicsView::dragEnterEvent(QDragEnterEvent *event)
+void View::dragEnterEvent(QDragEnterEvent *event)
 {
-    // qDebug() << "MyGraphicsView::dragEnterEvent";
+    // qDebug() << "View::dragEnterEvent";
     QGraphicsView::dragEnterEvent(event);
 }
 
-void MyGraphicsView::dragLeaveEvent(QDragLeaveEvent *event)
+void View::dragLeaveEvent(QDragLeaveEvent *event)
 {
-    // qDebug() << "MyGraphicsView::dragLeaveEvent";
+    // qDebug() << "View::dragLeaveEvent";
     QGraphicsView::dragLeaveEvent(event);
 }
 
-void MyGraphicsView::dragMoveEvent(QDragMoveEvent *event)
+void View::dragMoveEvent(QDragMoveEvent *event)
 {
-    // qDebug() << "MyGraphicsView::dragMoveEvent";
+    // qDebug() << "View::dragMoveEvent";
     QGraphicsView::dragMoveEvent(event);
 
 }
 
-void MyGraphicsView::dropEvent(QDropEvent *event)
+void View::dropEvent(QDropEvent *event)
 {
-    // qDebug() << "MyGraphicsView::dropEvent";
+    // qDebug() << "View::dropEvent";
     QGraphicsView::dropEvent(event);
 }
 
-void MyGraphicsView::wheelEvent(QWheelEvent *event)
+void View::wheelEvent(QWheelEvent *event)
 {
     // 滚轮的滚动量
     QPoint scrollAmount = event->angleDelta();
@@ -158,39 +189,40 @@ void MyGraphicsView::wheelEvent(QWheelEvent *event)
     scrollAmount.y() > 0 ? zoomIn() : zoomOut();
 }
 
-void MyGraphicsView::zoomIn()
+void View::zoomIn()
 {
     this->zoom(1 + this->zoomDelta);
 }
 
-void MyGraphicsView::zoomOut()
+void View::zoomOut()
 {
     this->zoom(1 - this->zoomDelta);
 }
 
-void MyGraphicsView::zoomBack()
+void View::zoomBack()
 {
-    scale(1, 1);
-    this->windowScale = 1;
+    this->zoom(1 / this->windowScale);
 }
 
-void MyGraphicsView::zoom(qreal scaleFactor)
+void View::zoom(qreal scaleFactor)
 {
-    // qDebug() << scaleFactor;
     // 防止过小或过大
     qreal factor = transform().scale(scaleFactor, scaleFactor).mapRect(QRectF(0, 0, 1, 1)).width();
-    // qDebug() << factor;
-    if (factor < 0.07 || factor > 100)
+    if (factor < 0.01 || factor > 100)
         return;
     scale(scaleFactor, scaleFactor);
     this->windowScale *= scaleFactor;
+
+    // 发送视图缩放改变的信号
+    emit viewScaleChanged(this->windowScale);
 }
 
-void MyGraphicsView::translate(QPointF delta)
+void View::translate(QPointF delta)
 {
     // 根据当前 zoom 缩放平移数
     delta *= this->windowScale;
     delta *= this->translateSpeed;
+
     // view 根据鼠标下的点作为锚点来定位 scene
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     QPoint newCenter(VIEW_WIDTH / 2 - delta.x(),  VIEW_HEIGHT / 2 - delta.y());

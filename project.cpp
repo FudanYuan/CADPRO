@@ -1,25 +1,13 @@
 #include "project.h"
 #include <QDebug>
 
-Project::Project(QString name, QWidget *parent)
+Project::Project(QWidget *parent) :
+    QWidget(parent),
+    name(""),
+    saved(false),
+    modified(false)
 {
-    this->name = name;
-    this->saved = true;
-    layer_active = new Layer(parent);
-    this->addLayer(layer_active);
-}
 
-bool Project::isSaved()
-{
-    for(int i=0; i<this->layer.length();i++){
-        this->saved &= !this->layer.at(i)->isModified();
-    }
-    return this->saved;
-}
-
-void Project::setSaved(bool saved)
-{
-    this->saved = saved;
 }
 
 QString Project::getName()
@@ -32,130 +20,155 @@ void Project::setName(QString name)
     this->name = name;
 }
 
-void Project::addLayer(Layer *layer)
+void Project::changeName(QString name)
 {
-    this->layer.append(layer);
+    emit projectNameChanged(this->name, name);
+    setName(name);
 }
 
-Layer * Project::addLayer()
+void Project::addScene(Scene *scene)
 {
-    layer_active = new Layer;
-    this->addLayer(layer_active);
-    return layer_active;
+    if(scene->getName() == ""){
+        QString name = getNewSceneName();
+        scene->setName(name);
+    }
+    this->sceneList.append(scene);
 }
 
-QList<Layer *> Project::getLayerList()
+Scene * Project::addScene()
 {
-    return this->layer;
+    sceneActive = new Scene;
+    QString name = getNewSceneName();
+    sceneActive->setName(name);
+    this->addScene(sceneActive);
+    return sceneActive;
 }
 
-Layer *Project::getLayer(int index)
+void Project::setActiveScene(Scene *scene)
 {
-    int length = this->layer.length();
+    this->sceneActive = scene;
+}
+
+QList<Scene *> Project::getSceneList()
+{
+    return this->sceneList;
+}
+
+Scene *Project::getScene(int index)
+{
+    int length = this->sceneList.length();
     if(index > length){
         return NULL;
     }
-    return this->layer.at(index);
+    return this->sceneList.at(index);
 }
 
-Layer *Project::getActiveLayer()
+Scene *Project::getSceneByName(QString name)
 {
-    return this->layer_active;
+    for(int i=0;i<sceneList.length();i++){
+        if(sceneList.at(i)->getName() == name){
+            return sceneList.at(i);
+        }
+    }
+    return NULL;
 }
 
-void Project::setActiveLayer(Layer *layer)
+Scene *Project::getActiveScene()
 {
-    this->layer_active = layer;
+    return this->sceneActive;
+}
+
+void Project::setSaved(bool saved)
+{
+    this->saved = saved;
+}
+
+bool Project::isSaved()
+{
+    return this->saved;
+}
+
+bool Project::isModified()
+{
+    for(int i=0; i<this->sceneList.length();i++){
+        this->modified |= !this->sceneList.at(i)->isModified();
+    }
+    return modified;
 }
 
 bool Project::saveProject()
 {
-    for(int i=0; i<this->layer.length();i++){
-        this->layer.at(i)->setModified(false);
+    for(int i=0; i<this->sceneList.length();i++){
+        this->sceneList.at(i)->setModified(false);
     }
-    this->saved = true;
     qDebug() << this->name << "已保存" <<endl;
     return true;
 }
 
-QString Project::getNewLayerName()
+QString Project::getNewSceneName()
 {
     // 获取图层数目
-    int len_layer = layer.length() + 1;
-    QString str = QString::number(len_layer, 10);
+    int len_scene = sceneList.length() + 1;
+    QString str = QString::number(len_scene, 10);
     char *ch;
     QByteArray ba = str.toLatin1();
     ch = ba.data();
     return tr(ch);
 }
 
-QString Project::getLayerName(Layer *layer)
+QString Project::getSceneName(Scene *scene)
 {
-    return layer->getName();
+    return scene->getName();
 }
 
-QString Project::getLayerName(int i)
+QString Project::getSceneName(int i)
 {
-    return layer.at(i)->getName();
+    return sceneList.at(i)->getName();
 }
 
 void Project::dxfFileParser(QString fileName)
 {
-    //初始化第一个dxf文件
-    if (!dxf.in(fileName.toStdString(), &dxf_filter)) {
+    //初始化dxf文件
+    if (!dxf.in(fileName.toStdString(), &dxfFilter)) {
         qDebug() << "can not read datas";
     }else {
         qDebug() << "success";
-        layer.clear();
-        for(int i=0; i<dxf_filter.layers.length();i++){
-            bool off = dxf_filter.layers.at(i).layer.off;
+        sceneList.clear();
+        for(int i=0; i<dxfFilter.layers.length();i++){
+            bool off = dxfFilter.layers.at(i).layer.off;
             if(!off){
-                QString name = QString::fromStdString(dxf_filter.layers.at(i).layer.name);
+                QString name = QString::fromStdString(dxfFilter.layers.at(i).layer.name);
                 qDebug() << name;
-                qDebug() << dxf_filter.layers.at(i).attribute.getColor();
-                Layer *area = new Layer();
-                area->setName(name);
-                layer.append(area);
+                qDebug() << dxfFilter.layers.at(i).attribute.getColor();
+                Scene *scene = new Scene();
+                scene->setName(name);
+                sceneList.append(scene);
             }
         }
-        qDebug() << layer.length();
-        layer_active = layer.at(0);
-        for(int i=0; i<dxf_filter.points.length();i++){
-            layer_active->setCurShape(Layer::Point);
-//            int x = dxf_filter.points.at(i).point.x;
-//            int y = dxf_filter.points.at(i).point.y;
-//            int z = dxf_filter.points.at(i).point.z;
-//            layer_active->setPoint(Layer::First, x, y, z);
-//            layer_active->paint();
+        qDebug() << sceneList.length();
+        sceneActive = sceneList.at(0);
+        for(int i=0; i<dxfFilter.points.length();i++){
+            sceneActive->setCurShape(Shape::Point);
         }
 
-        for(int i=0; i<dxf_filter.lines.length();i++){
-            layer_active->setCurShape(Layer::Line);
-            int x1 = dxf_filter.lines.at(i).line.x1;
-            int y1 = dxf_filter.lines.at(i).line.y1;
-            int z1 = dxf_filter.lines.at(i).line.z1;
-            int x2 = dxf_filter.lines.at(i).line.x2;
-            int y2 = dxf_filter.lines.at(i).line.y2;
-            int z2 = dxf_filter.lines.at(i).line.z2;
-//            layer_active->setPoint(Layer::First, x1, y1, z1);
-//            layer_active->setPoint(Layer::Second, x2, y2, z2);
+        for(int i=0; i<dxfFilter.lines.length();i++){
+            sceneActive->setCurShape(Shape::Line);
+            int x1 = dxfFilter.lines.at(i).line.x1;
+            int y1 = dxfFilter.lines.at(i).line.y1;
+            int z1 = dxfFilter.lines.at(i).line.z1;
+            int x2 = dxfFilter.lines.at(i).line.x2;
+            int y2 = dxfFilter.lines.at(i).line.y2;
+            int z2 = dxfFilter.lines.at(i).line.z2;
 
-            int color = dxf_filter.lines.at(i).attribute.getColor();
+            int color = dxfFilter.lines.at(i).attribute.getColor();
             qDebug() << "color" << color;
-            int width = dxf_filter.lines.at(i).attribute.getWidth();
+            int width = dxfFilter.lines.at(i).attribute.getWidth();
             if(width == -1){
                 width = 10;
             }
             qDebug() << "width" << width;
-            layer_active->setPenColor(layer_active->transformIntToQColor(color));
-            layer_active->setPenWidth(width);
-//            layer_active->paint();
         }
     }
-//    layer_active->initLayer();
+//    sceneActive->initScene();
 }
 
-//void Project::onActiveProjectChanged(Project *active_project)
-//{
-//    qDebug() << active_project->name;
-//}

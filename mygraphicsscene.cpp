@@ -2,14 +2,44 @@
 #include <QDebug>
 #include <QPainter>
 
-MyGraphicsScene::MyGraphicsScene(QObject *parent)
+MyGraphicsScene::MyGraphicsScene(QObject *parent) :
+    QGraphicsScene(parent),
+    curShape(Shape::Line),
+    isDrawing(false),
+    isMoveable(false)
 {
 
 }
 
 void MyGraphicsScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    qDebug() << "MyGraphicsScene::mousePressEvent";
+    qDebug() << "MyGraphicsScene::mousePressEvent" << endl;
+    if(isDrawing) {
+        isDrawing = false;
+        qDebug() << "结束绘图" << endl;
+    } else {
+        switch(curShape) {
+        case Shape::None:
+        {
+            break;
+        }
+        case Shape::Line:
+        {
+            MyGraphicsLineItem *line = new MyGraphicsLineItem;
+            curItem = line;
+            addItem(line);
+            break;
+        }
+        }
+        if(curItem && !isDrawing && !isMoveable) {
+            curItem->startDraw(event);
+            isDrawing = true;
+        }
+    }
+
+    if(event->button() == Qt::RightButton) {
+        isDrawing = false;
+    }
     QGraphicsScene::mousePressEvent(event);
 }
 
@@ -22,6 +52,9 @@ void MyGraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 void MyGraphicsScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
     qDebug() << "MyGraphicsScene::mouseMoveEvent";
+    if(curItem && isDrawing) {
+        curItem->drawing(event);
+    }
     QGraphicsScene::mouseMoveEvent(event);
     update();
 }
@@ -73,5 +106,10 @@ void MyGraphicsScene::drawBackground(QPainter *painter, const QRectF &rect)
          QLineF line(QPointF(i,0),QPointF(i,h));
          painter->drawLine(line);
      }
-    painter->restore();
+     painter->restore();
+}
+
+void MyGraphicsScene::drawForeground(QPainter *painter, const QRectF &rect)
+{
+
 }

@@ -1,8 +1,6 @@
 #include "mainwindow.h"
 #include <QApplication>
-#include "mygraphicsview.h"
-#include "mygraphicsscene.h"
-#include "mygraphicsitem.h"
+#include <QDebug>
 
 int main(int argc, char *argv[])
 {

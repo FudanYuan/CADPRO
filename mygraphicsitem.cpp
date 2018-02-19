@@ -1,13 +1,14 @@
 #include "mygraphicsitem.h"
-#include <QDebug>
 #include <QCursor>
+#include <QDebug>
 
 MyGraphicsItem::MyGraphicsItem()
 {
-    color = Qt::red;
+    // 设置图元为可焦点的
     setFlag(QGraphicsItem::ItemIsFocusable);
-    //设置图元为可移动的
+    // 设置图元为可移动的
     setFlag(QGraphicsItem::ItemIsMovable);
+    // 设置图元为可接受拖拽事件
     setAcceptDrops(true);
 }
 
@@ -21,15 +22,27 @@ void MyGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     } else {
         painter->setPen(QPen(QColor(100,100,100,100)));
     }
+    QColor color = Qt::red;
     painter->setBrush(color);
     painter->drawRect(-10, -10, 20, 20);
-    painter->drawLine(-10, -10, 20, 20);
 }
 
 QRectF MyGraphicsItem::boundingRect() const
 {
     qreal adjust = 0.5;
     return QRectF(-10 - adjust, -10 - adjust, 20 + adjust, 20 + adjust);
+}
+
+void MyGraphicsItem::startDraw(QGraphicsSceneMouseEvent *event)
+{
+    Q_UNUSED(event);
+    qDebug() << "MyGraphicsItem::startDraw";
+}
+
+void MyGraphicsItem::drawing(QGraphicsSceneMouseEvent *event)
+{
+    Q_UNUSED(event);
+    qDebug() << "MyGraphicsItem::drawing";
 }
 
 void MyGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
