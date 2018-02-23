@@ -10,7 +10,7 @@ class Rect : public Shape, public QGraphicsRectItem
 {
     Q_OBJECT
 public:
-    Rect();
+    Rect(QGraphicsItem *parent=0);
     void startDraw(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 开始绘图
     void drawing(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 绘图开始
     void setStyle(EntityStyle style) Q_DECL_OVERRIDE;  // 设置实体类型

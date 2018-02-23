@@ -37,7 +37,7 @@ void Project::addScene(Scene *scene)
 
 Scene * Project::addScene()
 {
-    sceneActive = new Scene;
+    sceneActive = new Scene(this);
     QString name = getNewSceneName();
     sceneActive->setName(name);
     this->addScene(sceneActive);

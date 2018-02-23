@@ -2,11 +2,12 @@
 #include "ui_mainwindow.h"
 #include "mydocktitlebar.h"
 
+#include "configuredialog.h"
+
 #include <QDockWidget>
 #include <QToolButton>
 #include <QPushButton>
 #include <QVBoxLayout>
-#include <QMdiSubWindow>
 #include <QFrame>
 
 #include <QPixmap>
@@ -33,9 +34,11 @@ MainWindow::MainWindow(QWidget *parent) :
     initMenuBar();      // 初始化菜单栏
     initToolBar();      // 初始化工具栏
     initDockWidget();   // 初始化窗口
-    initProjectView();      // 初始化项目
+    // 初始化配置文件
+    config = new Configure(this);
+    initConfiguration(config);
+    initProjectView();  // 初始化项目
     initStatusBar();    // 初始化状态栏
-    readConfiguration();// 初始化配置文件
 }
 
 MainWindow::~MainWindow()
@@ -986,7 +989,7 @@ void MainWindow::initMenuBar()
     menu_view->addSeparator();
     menu_view->addAction(action_view_lock_layout);
 
-    menu_view_tool_bar = new QMenu(tr("&工具栏"));
+    menu_view_tool_bar = new QMenu(tr("&工具栏"), this);
     menu_view_tool_bar->addActions(action_view_tool_slide->actions());
     menu_view_tool_bar->addSeparator();
     menu_view_tool_bar->addAction(action_view_tool_customize);
@@ -1050,7 +1053,7 @@ void MainWindow::initToolBar()
 {
     if(ui->mainToolBar) delete ui->mainToolBar;
 // ![1] 边栏工具栏
-    tool_slide = new QToolBar(tr("边栏"));
+    tool_slide = new QToolBar(tr("边栏"), this);
     addToolBar(Qt::LeftToolBarArea, tool_slide);
     tool_slide->setMaximumWidth(50);
     tool_slide->setOrientation(Qt::Vertical);
@@ -1062,7 +1065,7 @@ void MainWindow::initToolBar()
 // ![1] 边栏工具栏
 
 // ![2] 标准工具栏
-    tool_standard = new QToolBar(tr("标准"));
+    tool_standard = new QToolBar(tr("标准"), this);
     tool_standard->setOrientation(Qt::Horizontal);
     tool_standard->setAllowedAreas(Qt::AllToolBarAreas);
 
@@ -1083,7 +1086,7 @@ void MainWindow::initToolBar()
 // ![3] 标准工具栏
 
 // ![4] 草图工具栏
-    tool_sketch = new QToolBar(tr("草图"));
+    tool_sketch = new QToolBar(tr("草图"), this);
     tool_sketch->setOrientation(Qt::Horizontal);
     tool_sketch->setAllowedAreas(Qt::AllToolBarAreas);
 
@@ -1106,7 +1109,7 @@ void MainWindow::initToolBar()
 // ![4] 草图工具栏
 
 // ![5] 对象捕捉
-    tool_object_snap = new QToolBar(tr("对象捕捉"));
+    tool_object_snap = new QToolBar(tr("对象捕捉"), this);
     tool_object_snap->setOrientation(Qt::Horizontal);
     tool_object_snap->setAllowedAreas(Qt::AllToolBarAreas);
 
@@ -1120,7 +1123,7 @@ void MainWindow::initToolBar()
 // ![5] 对象捕捉
 
 // ![6] 缩放
-    tool_zoom = new QToolBar(tr("缩放"));
+    tool_zoom = new QToolBar(tr("缩放"), this);
     tool_zoom->setOrientation(Qt::Horizontal);
     tool_zoom->setAllowedAreas(Qt::AllToolBarAreas);
 
@@ -1141,7 +1144,7 @@ void MainWindow::initToolBar()
 // ![6] 缩放
 
 // ![7] 修改
-    tool_modify = new QToolBar(tr("修改"));
+    tool_modify = new QToolBar(tr("修改"), this);
     tool_modify->setOrientation(Qt::Horizontal);
     tool_modify->setAllowedAreas(Qt::AllToolBarAreas);
 
@@ -1175,7 +1178,7 @@ void MainWindow::initToolBar()
 // ![7] 修改
 
 // ![8] 图片
-    tool_image = new QToolBar(tr("图片"));
+    tool_image = new QToolBar(tr("图片"), this);
     tool_image->setOrientation(Qt::Horizontal);
     tool_image->setAllowedAreas(Qt::AllToolBarAreas);
 
@@ -1187,7 +1190,7 @@ void MainWindow::initToolBar()
 // ![8] 图片
 
 // ![9] 数字化仪
-    tool_digitizer = new QToolBar(tr("数字化仪"));
+    tool_digitizer = new QToolBar(tr("数字化仪"), this);
     tool_digitizer->setOrientation(Qt::Horizontal);
     tool_digitizer->setAllowedAreas(Qt::AllToolBarAreas);
 
@@ -1197,7 +1200,7 @@ void MainWindow::initToolBar()
 // ![9] 数字化仪
 
 // ![10] 级放
-    tool_grading = new QToolBar(tr("级放"));
+    tool_grading = new QToolBar(tr("级放"), this);
     tool_grading->setOrientation(Qt::Horizontal);
     tool_grading->setAllowedAreas(Qt::AllToolBarAreas);
 
@@ -1217,7 +1220,7 @@ void MainWindow::initToolBar()
 // ![10] 级放
 
 // ![11] 扫描仪
-    tool_scanner = new QToolBar(tr("扫描仪"));
+    tool_scanner = new QToolBar(tr("扫描仪"), this);
     tool_scanner->setOrientation(Qt::Horizontal);
     tool_scanner->setAllowedAreas(Qt::AllToolBarAreas);
 
@@ -1227,7 +1230,7 @@ void MainWindow::initToolBar()
 // ![11] 扫描仪
 
 // ![12] 插入
-    tool_insert = new QToolBar(tr("插入"));
+    tool_insert = new QToolBar(tr("插入"), this);
     tool_insert->setOrientation(Qt::Horizontal);
     tool_insert->setAllowedAreas(Qt::AllToolBarAreas);
 
@@ -1246,7 +1249,7 @@ void MainWindow::initToolBar()
 // ![12] 插入
 
 // ![13] 图样
-    tool_pattern = new QToolBar(tr("图样"));
+    tool_pattern = new QToolBar(tr("图样"), this);
     tool_pattern->setOrientation(Qt::Horizontal);
     tool_pattern->setAllowedAreas(Qt::AllToolBarAreas);
 
@@ -1285,7 +1288,7 @@ void MainWindow::initStatusBar()
 {
     if(ui->statusBar) delete ui->statusBar;
     statusBar();
-    mousePositionLabel = new QLabel(tr(""));
+    mousePositionLabel = new QLabel(tr(""), this);
     mousePositionLabel->setMargin(1);
     statusBar()->addPermanentWidget(mousePositionLabel);
 }
@@ -1300,9 +1303,9 @@ void MainWindow::initDockWidget()
     setDockNestingEnabled(DockNestingEnabled);
 
     // 新建dock窗口
-    dock_find_style = new QDockWidget(tr("查找款型"));     // 添加find_style浮动窗口
-    dock_project = new QDockWidget(tr("项目"));        // 添加project浮动窗口
-    dock_properties = new QDockWidget(tr("属性"));     // 添加properties浮动窗口
+    dock_find_style = new QDockWidget(tr("查找款型"), this);     // 添加find_style浮动窗口
+    dock_project = new QDockWidget(tr("项目"), this);        // 添加project浮动窗口
+    dock_properties = new QDockWidget(tr("属性"), this);     // 添加properties浮动窗口
     dock_scene= new QDockWidget(this);      // 添加绘图区
 
     dock_find_style->setHidden(!action_view_tool_find_style->isChecked());
@@ -1327,14 +1330,27 @@ void MainWindow::initDockWidget()
     splitDockWidget(dock_project,dock_properties,Qt::Vertical);
 }
 
+void MainWindow::initConfiguration(Configure *config)
+{
+    configCopy = config;
+    connect(this, &MainWindow::configChanged, configCopy, &Configure::onConfigChanged);
+    action_view_xy_axes->setChecked(configCopy->axesGrid.axes.showAxes);
+    action_view_grid->setChecked(configCopy->axesGrid.grid.showGrid);
+    action_view_grading_rules->setChecked(configCopy->view.gradingRules);
+    action_view_filled_patterns->setChecked(configCopy->view.filledPatterns);
+    action_view_tool_find_style->setChecked(configCopy->view.toolFindStyle);
+    action_view_tool_project->setChecked(configCopy->view.toolProject);
+    action_view_tool_properties->setChecked(configCopy->view.toolProperties);
+}
+
 void MainWindow::initProjectView()
 {
-    view = new View;    // 初始化view
+    view = new View(this);    // 初始化view
     connect(view, &View::mousePositionChanged, this, &MainWindow::onMousePositionChanged);
 
     dock_scene->setWidget(view);    // 将给视图加入到dock_scene
 
-    tree_project = new QTreeWidget();
+    tree_project = new QTreeWidget(this);
     tree_project->setColumnCount(1); //设置列数
     tree_project->setHeaderLabel(tr("项目列表")); //设置头的标题
     tree_project->setContextMenuPolicy(Qt::CustomContextMenu);//右键 不可少否则右键无反应
@@ -1361,8 +1377,6 @@ void MainWindow::addProject()
     scene_active->setName(name_scene_new);
 
     connect(scene_active, &Scene::sceneItemsChanged, this, &MainWindow::onSceneItemsChanged);
-    // 设置图层样式
-//    scene_active->setEntityStyle(eStyle);
 
     QTreeWidgetItem *item_project = new QTreeWidgetItem(tree_project,QStringList(name_project_new));
     QTreeWidgetItem *item_scene = new QTreeWidgetItem(item_project,QStringList(name_scene_new)); //子节点1
@@ -1374,57 +1388,6 @@ void MainWindow::addProject()
     item_project->addChild(item_scene); //添加子节点
     tree_project->expandAll(); //结点全部展开
     updateScene();
-}
-
-void MainWindow::writeConfiguration()
-{
-    QSettings settings(CONFG_FILE_PATH,QSettings::IniFormat);
-    settings.beginGroup("view");
-    settings.setValue("view_xy_axes", QVariant(action_view_xy_axes->isChecked()));
-    settings.setValue("view_grid", QVariant(action_view_grid->isChecked()));
-    settings.setValue("view_grading_rules", QVariant(action_view_grading_rules->isChecked()));
-    settings.setValue("view_filled_patterns", QVariant(action_view_filled_patterns->isChecked()));
-    settings.setValue("view_tool_find_style", QVariant(action_view_tool_find_style->isChecked()));
-    settings.setValue("view_tool_project", QVariant(action_view_tool_project->isChecked()));
-    settings.setValue("view_tool_properties",QVariant( action_view_tool_properties->isChecked()));
-    settings.endGroup();
-}
-
-void MainWindow::readConfiguration()
-{
-    QFileInfo file(CONFG_FILE_PATH);
-    // 若配置文件不存在，初始化系统配置
-    if(!file.exists()){
-        qDebug() << "配置文件不存在";
-        writeConfiguration();
-        return;
-    }
-    // 若配置文件存在，读入配置
-    qDebug() << "配置文件已存在";
-    QSettings settings(CONFG_FILE_PATH,QSettings::IniFormat);
-    settings.beginGroup("view");
-    bool view_xy_axes_on = settings.value("view_xy_axes").toBool();
-    bool view_grid_on = settings.value("view_grid").toBool();
-    bool view_grading_rules_on = settings.value("view_grading_rules").toBool();
-    bool view_filled_patterns_on = settings.value("view_filled_patterns").toBool();
-    bool view_tool_find_style_on = settings.value("view_tool_find_style").toBool();
-    bool view_tool_project_on = settings.value("view_tool_project").toBool();
-    bool view_tool_properties_on = settings.value("view_tool_properties").toBool();
-    settings.endGroup();
-    qDebug() << view_xy_axes_on;
-    qDebug() << view_grid_on;
-    qDebug() << view_grading_rules_on;
-    qDebug() << view_filled_patterns_on;
-    qDebug() << view_tool_find_style_on;
-    qDebug() << view_tool_project_on;
-    qDebug() << view_tool_properties_on;
-    action_view_xy_axes->setChecked(view_xy_axes_on);
-    action_view_grid->setChecked(view_grid_on);
-    action_view_grid->setChecked(view_grid_on);
-    action_view_grading_rules->setChecked(view_grading_rules_on);
-    action_view_filled_patterns->setChecked(view_filled_patterns_on);
-    action_view_tool_project->setChecked(view_tool_project_on);
-    action_view_tool_properties->setChecked(view_tool_properties_on);
 }
 
 QString MainWindow::getNewProjectName()
@@ -1453,8 +1416,8 @@ void MainWindow::showTreeMenu(QPoint pos)
     tree_project_scene_active_item = tree_project->itemAt(pos); //可得到右键条目
     if(tree_project_scene_active_item == NULL){  //这种情况是右键的位置不在treeItem的范围内,即在空白位置右击,则显示
         menu_tree = new QMenu(tree_project);
-        action_tree_expand_all = new QAction(tr("展开全部"));
-        action_tree_fold_all = new QAction(tr("折叠全部"));
+        action_tree_expand_all = new QAction(tr("展开全部"), tree_project);
+        action_tree_fold_all = new QAction(tr("折叠全部"), tree_project);
         connect(action_tree_expand_all, &QAction::triggered, this, &MainWindow::onActionTreeExpandAll);
         connect(action_tree_fold_all, &QAction::triggered, this, &MainWindow::onActionTreeFoldAll);
         menu_tree->addAction(action_tree_expand_all);
@@ -1467,11 +1430,11 @@ void MainWindow::showTreeMenu(QPoint pos)
         tree_project_active_item = tree_project_scene_active_item;
         tree_project_scene_active_item = NULL;
         menu_tree_project = new QMenu(tree_project);
-        action_tree_project_add_scene = new QAction(tr("添加图层"));
-        action_tree_project_save = new QAction(tr("保存"));
-        action_tree_project_save_as = new QAction(tr("另存为"));
-        action_tree_project_rename = new QAction(tr("重命名"));
-        action_tree_project_close = new QAction(tr("关闭"));
+        action_tree_project_add_scene = new QAction(tr("添加图层"), tree_project);
+        action_tree_project_save = new QAction(tr("保存"), tree_project);
+        action_tree_project_save_as = new QAction(tr("另存为"), tree_project);
+        action_tree_project_rename = new QAction(tr("重命名"), tree_project);
+        action_tree_project_close = new QAction(tr("关闭"), tree_project);
 
         connect(action_tree_project_add_scene, &QAction::triggered, this, &MainWindow::onActionTreeProjectAddScene);
         connect(action_tree_project_save, &QAction::triggered, this, &MainWindow::onActionTreeProjectSave);
@@ -1487,18 +1450,18 @@ void MainWindow::showTreeMenu(QPoint pos)
         menu_tree_project->exec(QCursor::pos());  //在当前鼠标位置显示
     } else{                 // 图层栏
         menu_tree_project_scene = new QMenu(tree_project);
-        action_tree_project_scene_change_to = new QAction(tr("切换至该图层"));
+        action_tree_project_scene_change_to = new QAction(tr("切换至该图层"), tree_project);
 
-        menu_tree_project_scene_move_up = new QMenu(tr("上移"));
+        menu_tree_project_scene_move_up = new QMenu(tr("上移"), tree_project);
 
-        action_tree_project_scene_move_up_one = new QAction(tr("上移一层"));
-        action_tree_project_scene_move_up_top = new QAction(tr("移至顶部"));
+        action_tree_project_scene_move_up_one = new QAction(tr("上移一层"), tree_project);
+        action_tree_project_scene_move_up_top = new QAction(tr("移至顶部"), tree_project);
         menu_tree_project_scene_move_up->addAction(action_tree_project_scene_move_up_one);
         menu_tree_project_scene_move_up->addAction(action_tree_project_scene_move_up_top);
 
         menu_tree_project_scene_move_down = new QMenu(tr("下移"));
-        action_tree_project_scene_move_down_one = new QAction(tr("下移一层"));
-        action_tree_project_scene_move_down_bottom = new QAction(tr("移至底层"));
+        action_tree_project_scene_move_down_one = new QAction(tr("下移一层"), tree_project);
+        action_tree_project_scene_move_down_bottom = new QAction(tr("移至底层"), tree_project);
         menu_tree_project_scene_move_down->addAction(action_tree_project_scene_move_down_one);
         menu_tree_project_scene_move_down->addAction(action_tree_project_scene_move_down_bottom);
 
@@ -1510,8 +1473,8 @@ void MainWindow::showTreeMenu(QPoint pos)
             action_tree_project_scene_move_down_bottom->setEnabled(false);
         }
 
-        action_tree_project_scene_rename = new QAction(tr("重命名"));
-        action_tree_project_scene_delete = new QAction(tr("删除"));
+        action_tree_project_scene_rename = new QAction(tr("重命名"), tree_project);
+        action_tree_project_scene_delete = new QAction(tr("删除"), tree_project);
 
         connect(action_tree_project_scene_change_to, &QAction::triggered, this, &MainWindow::onActionTreeProjectSceneChangeTo);
         connect(action_tree_project_scene_move_up_one, &QAction::triggered, this, &MainWindow::onActionTreeProjectSceneMoveUpOne);
@@ -1532,6 +1495,10 @@ void MainWindow::showTreeMenu(QPoint pos)
 
 void MainWindow::updateScene()
 {
+    // 设置图层样式
+    scene_active->setEntityStyle(configCopy->eStyle);
+    scene_active->setAxesGrid(configCopy->axesGrid);
+
     // 更新窗口名称
     setWindowTitle("CADPRO-<" + project_active->getName() + "-" + scene_active->getName() + ">");
     // 在视图中更新图层
@@ -1646,22 +1613,23 @@ void MainWindow::onActionFileImportDXF()
     if (!fileName.isEmpty()) {
         QFileInfo new_project = QFileInfo(fileName);
         QString name_project_new = new_project.fileName();
-        project_active = new Project();
+        project_active = new Project(this);
         project_active->setName(name_project_new);
         project_list.append(project_active);
 
         project_active->dxfFileParser(fileName);
-        QTreeWidgetItem *item_project = new QTreeWidgetItem(tree_project,QStringList(name_project_new));
+        QTreeWidgetItem *item_project = new QTreeWidgetItem(tree_project, QStringList(name_project_new));
         tree_project_item_list.append(item_project);
         int count = project_active->getSceneList().length();
 
         for(int i=0;i<count;i++){
             QString name_scene_new = project_active->getSceneName(i);
-            QTreeWidgetItem *item_scene = new QTreeWidgetItem(item_project,QStringList(name_scene_new)); //子节点1
+            QTreeWidgetItem *item_scene = new QTreeWidgetItem(item_project, QStringList(name_scene_new)); //子节点1
             item_project->addChild(item_scene); //添加子节点
             item_scene->setCheckState(0, Qt::Checked);
         }
         scene_active = project_active->getScene(0);
+
         project_active->setActiveScene(scene_active);
         updateScene();
     }
@@ -1694,7 +1662,14 @@ void MainWindow::onActionFileExportTEF()
 
 void MainWindow::onActionFileConfiguration()
 {
-    qDebug() << "系统配置中···";
+    if(config){
+        delete config;
+    }
+    Configure *config = new Configure(this);
+    ConfigureDialog configDialog(config);
+    configDialog.exec();
+
+    initConfiguration(config);
 }
 
 void MainWindow::onActionFileExit()
@@ -1711,7 +1686,6 @@ void MainWindow::onActionDrawLine()
 void MainWindow::onActionDrawEllipse()
 {
     qDebug() << "drawing an ellipse";
-//    scene_active->setCurShape(Shape::Ellipse);
 }
 
 void MainWindow::onActionDrawRect()
@@ -2170,18 +2144,27 @@ void MainWindow::onActionPatternSaveAsWeft()
 
 void MainWindow::onActionViewXYAxes(bool toggled)
 {
-//    scene_active->setCurShape(Shape::None);
-    // 是否显示xy轴
-    QSettings settings(CONFG_FILE_PATH,QSettings::IniFormat);
-    qDebug() << "xy axes about to " << toggled;
-    settings.setValue("view/view_xy_axes", QVariant(toggled));
+    // 更新配置文件
+    config->axesGrid.axes.showAxes = toggled;
+    emit configChanged("axesGrid/axesGrid_showAxes", QVariant(toggled));
+    // 显示坐标
+    for(int i=0; i<project_list.length();i++){
+        for(int j=0; j<project_list.at(i)->getSceneList().length();j++){
+            project_list.at(i)->getScene(j)->onAxesChanged(toggled);
+        }
+    }
 }
 
 void MainWindow::onActionViewGrid(bool toggled)
 {
-    QSettings settings(CONFG_FILE_PATH,QSettings::IniFormat);
-    qDebug() << "grid axes about to " << toggled;
-    settings.setValue("view/view_grid", QVariant(toggled));
+    config->axesGrid.grid.showGrid = toggled;
+    emit configChanged("axesGrid/axesGrid_showGrid", QVariant(toggled));
+    // 显示网格
+    for(int i=0; i<project_list.length();i++){
+        for(int j=0; j<project_list.at(i)->getSceneList().length();j++){
+            project_list.at(i)->getScene(j)->onGridChanged(toggled);
+        }
+    }
 }
 
 void MainWindow::onActionViewKnots(bool toggled)
@@ -2201,16 +2184,14 @@ void MainWindow::onActionViewDesignRules(bool toggled)
 
 void MainWindow::onActionViewGradingRules(bool toggled)
 {
-    QSettings settings(CONFG_FILE_PATH,QSettings::IniFormat);
-    qDebug() << "grading rules axes about to " << toggled;
-    settings.setValue("view/view_grading_rules", QVariant(toggled));
+    config->view.gradingRules = toggled;
+    emit configChanged("view/view_grading_rules", QVariant(toggled));
 }
 
 void MainWindow::onActionViewFilledPatterns(bool toggled)
 {
-    QSettings settings(CONFG_FILE_PATH,QSettings::IniFormat);
-    qDebug() << "filled patterns about to " << toggled;
-    settings.setValue("view/view_filled_patterns", QVariant(toggled));
+    config->view.filledPatterns = toggled;
+    emit configChanged("view/view_filled_patterns", QVariant(toggled));
 }
 
 void MainWindow::onActionViewZoomWindow()
@@ -2271,25 +2252,22 @@ void MainWindow::onActionViewLockLayout(bool toggled)
 void MainWindow::onActionViewToolFindStyleToggled(bool toggled)
 {
     onDockFindStyleVisibilityChanged(toggled);
-    QSettings settings(CONFG_FILE_PATH,QSettings::IniFormat);
-    qDebug() << "find style about to " << toggled;
-    settings.setValue("view/view_tool_find_style", QVariant(toggled));
+    config->view.toolFindStyle = toggled;
+    emit configChanged("view/view_tool_find_style", QVariant(toggled));
 }
 
 void MainWindow::onActionViewToolProjectToggled(bool toggled)
 {
     onDockProjectVisibilityChanged(toggled);
-    QSettings settings(CONFG_FILE_PATH,QSettings::IniFormat);
-    qDebug() << "project about to " << toggled;
-    settings.setValue("view/view_tool_project", QVariant(toggled));
+    config->view.toolProject = toggled;
+    emit configChanged("view/view_tool_project", QVariant(toggled));
 }
 
 void MainWindow::onActionViewToolPropertiesToggled(bool toggled)
 {
     onDockPropertiesVisibilityChanged(toggled);
-    QSettings settings(CONFG_FILE_PATH,QSettings::IniFormat);
-    qDebug() << "propertities about to " << toggled;
-    settings.setValue("view/view_tool_properties", QVariant(toggled));
+    config->view.toolProperties = toggled;
+    emit configChanged("view/view_tool_properties", QVariant(toggled));
 }
 
 
@@ -2417,7 +2395,12 @@ void MainWindow::onActionHelpLicense()
 
 void MainWindow::onActionHelpAbout()
 {
-    qDebug() << "关于";
+    QMessageBox::about(this, tr("关于CADPRO"),
+        tr("The <b>Style Sheet</b> example shows how widgets can be styled "
+           "using <a href=\"http://doc.qt.io/qt-5/stylesheet.html\">Qt "
+           "Style Sheets</a>. Click <b>File|Edit Style Sheet</b> to pop up the "
+           "style editor, and either choose an existing style sheet or design "
+           "your own."));
 }
 
 void MainWindow::onActionObjectSnapEndpoint()

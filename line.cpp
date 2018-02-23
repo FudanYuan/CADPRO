@@ -4,7 +4,8 @@
 #include <QPen>
 #include <QDebug>
 
-Line::Line()
+Line::Line(QGraphicsItem *parent) :
+    QGraphicsLineItem(parent)
 {
     setShapeType(Shape::Line);
     // 设置图元为可焦点的

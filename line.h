@@ -10,7 +10,7 @@ class Line : public Shape, public QGraphicsLineItem
 {
     Q_OBJECT
 public:
-    Line();
+    Line(QGraphicsItem *parent=0);
     void startDraw(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 开始绘图
     void drawing(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 绘图开始
     void setStyle(EntityStyle style) Q_DECL_OVERRIDE;  // 设置实体类型

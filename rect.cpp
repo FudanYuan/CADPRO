@@ -4,7 +4,8 @@
 #include <QPen>
 #include <QDebug>
 
-Rect::Rect()
+Rect::Rect(QGraphicsItem *parent) :
+    QGraphicsRectItem(parent)
 {
     setShapeType(Shape::Rectangle);
     // 设置图元为可焦点的

@@ -9,12 +9,11 @@
 #include <QSettings>
 #include <QLabel>
 
+#include "configure.h"
 #include "view.h"
 #include "shape.h"
 #include "scene.h"
 #include "project.h"
-
-#define CONFG_FILE_PATH  "config.ini"
 
 namespace Ui {
 class MainWindow;
@@ -33,10 +32,9 @@ public:
     void initToolBar();         // 初始化工具栏
     void initStatusBar();       // 初始化状态栏
     void initDockWidget();      // 初始化dock widget
+    void initConfiguration(Configure *config);   // 初始化配置
     void initProjectView();     // 初始化项目
     void addProject();          // 添加项目
-    void writeConfiguration();  // 写配置文件
-    void readConfiguration();   // 加载配置文件
     QString getNewProjectName();// 获取新项目名称
     Project *getProjectByName(QString project_name);  // 根据项目获取对象
 
@@ -50,6 +48,9 @@ protected:
 
 private:
     Ui::MainWindow *ui;
+
+    Configure *config;                   // 配置
+    Configure *configCopy;               // 配置
 
     View *view;                         // 视图
 
@@ -534,8 +535,10 @@ private slots:
     void onActionTreeProjectSceneDelete();
     // TOOL SLIDE
 
-
     void updateViewMenu();
+
+signals:
+    void configChanged(QString name, QVariant value);
 
 public slots:
     void onProjectNameChanged(QString lastName, QString presentName);

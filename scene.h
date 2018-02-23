@@ -33,6 +33,8 @@ public:
     void setEntityStyle(EntityStyle eStyle);  // 设置实体样式
     EntityStyle getEntityStyle();  // 获取实体样式
 
+    void setAxesGrid(AxesGrid axesGrid);  // 设置网格坐标轴
+
     QColor transformIntToQColor(const int &intColor);
 
 protected:
@@ -58,7 +60,10 @@ private:
     bool startFlag;  // 开始标志
     qreal penWidth;  // 画笔
     qreal scaleFactor;  // 缩放因子
+
+    // 配置文件
     EntityStyle eStyle;  // 实体类型
+    AxesGrid axesGrid;  // 坐标网格
 
 signals:
     void sceneScaleChanged(qreal scaleFactor);  // scene缩放事件
@@ -66,6 +71,8 @@ signals:
 
 public slots:
     void onViewScaleChanged(qreal scaleFactor);  // 响应view缩放事件
+    void onAxesChanged(bool show);  // 响应坐标轴是否显示
+    void onGridChanged(bool show);  // 响应网格是否显示
 };
 
 #endif // SCENE_H

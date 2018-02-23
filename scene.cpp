@@ -71,6 +71,11 @@ EntityStyle Scene::getEntityStyle()
     return this->eStyle;
 }
 
+void Scene::setAxesGrid(AxesGrid axesGrid)
+{
+    this->axesGrid = axesGrid;
+}
+
 QColor Scene::transformIntToQColor(const int &intColor)
 {
     //将Color 从int 转换成 QColor
@@ -203,51 +208,56 @@ void Scene::dropEvent(QGraphicsSceneDragDropEvent *event)
 void Scene::drawBackground(QPainter *painter, const QRectF &rect)
 {
     painter->save();
-    painter->setBrush(Qt::white);
+    eStyle.backgroundColor = Qt::white;
+    painter->setBrush(eStyle.backgroundColor);
     painter->drawRect(rect);
 
-    // 获取到当前的线宽，这里的线宽其实还是之前设置的线宽值;
-    // 比如我们之前设置线宽为 2 ，这里返回的线宽还是 2 ，但是当前的缩放比例变了；
-    // 其实当前的线宽就相当于 penWidth * scaleFactor;
-    // 所以如果我们想要让线宽保持不变，那就需要进行转换，即 penWidth = penWidth / scaleFactor;
-    // 重新设置画笔线宽;
-    QPen pen = QPen();
-    pen.setWidthF(penWidth / scaleFactor);
-    pen.setColor(Qt::gray);
-    painter->setPen(pen);
+    if(axesGrid.grid.showGrid){
+        // 画网格
+        // 获取到当前的线宽，这里的线宽其实还是之前设置的线宽值;
+        // 比如我们之前设置线宽为 2 ，这里返回的线宽还是 2 ，但是当前的缩放比例变了；
+        // 其实当前的线宽就相当于 penWidth * scaleFactor;
+        // 所以如果我们想要让线宽保持不变，那就需要进行转换，即 penWidth = penWidth / scaleFactor;
+        // 重新设置画笔线宽;
+        QPen pen = QPen();
+        pen.setWidthF(0);
+        pen.setColor(axesGrid.grid.gridColor);
+        painter->setPen(pen);
 
-    const double w = sceneRect().width();
-    const double h = sceneRect().height();
+        const double w = sceneRect().width();
+        const double h = sceneRect().height();
 
-    // 画网格
-    for(int i=0; i<h; i+=100 / scaleFactor){
-        painter->drawLine(QPointF(-w,i),QPointF(w,i));
-        painter->drawLine(QPointF(-w,-i),QPointF(w,-i));
+        for(int i=0; i<h; i+=axesGrid.grid.yStep / scaleFactor){
+            painter->drawLine(QPointF(-w,i),QPointF(w,i));
+            painter->drawLine(QPointF(-w,-i),QPointF(w,-i));
+        }
+        for(int i=0; i<w; i+=axesGrid.grid.xStep / scaleFactor)
+        {
+            painter->drawLine(QPointF(i,-h),QPointF(i,h));
+            painter->drawLine(QPointF(-i,-h),QPointF(-i,h));
+        }
     }
-    for(int i=0; i<w; i+=100 / scaleFactor)
-    {
-        painter->drawLine(QPointF(i,-h),QPointF(i,h));
-        painter->drawLine(QPointF(-i,-h),QPointF(-i,h));
+
+    if(axesGrid.axes.showAxes){
+        // 画x轴
+        QPen pen = QPen();
+        pen.setWidthF(0);
+        pen.setColor(axesGrid.axes.xAxisColor);
+        painter->setPen(pen);
+
+        QLineF lineX(QPointF(0,0),QPointF(10,0));
+        painter->drawLine(lineX);
+        painter->drawText(10, 0, 20, 20, Qt::AlignLeft | Qt::AlignTop, tr("x"));
+
+        // 画y轴
+        pen.setWidthF(0);
+        pen.setColor(axesGrid.axes.yAxisColor);
+        painter->setPen(pen);
+
+        QLineF lineY(QPointF(0,0),QPointF(0,-10));
+        painter->drawLine(lineY);
+        painter->drawText(-10, -20, 20, 20, Qt::AlignLeft | Qt::AlignTop, tr("y"));
     }
-
-    // 画x轴
-    pen.setWidthF(penWidth / scaleFactor);
-    pen.setColor(Qt::red);
-    painter->setPen(pen);
-
-    QLineF lineX(QPointF(0,0),QPointF(10,0));
-    painter->drawLine(lineX);
-    painter->drawText(10, 0, 20, 20, Qt::AlignLeft | Qt::AlignTop, tr("x"));
-
-    // 画y轴
-    pen.setWidthF(penWidth / scaleFactor);
-    pen.setColor(Qt::blue);
-    painter->setPen(pen);
-
-    QLineF lineY(QPointF(0,0),QPointF(0,-10));
-    painter->drawLine(lineY);
-    painter->drawText(-10, -20, 20, 20, Qt::AlignLeft | Qt::AlignTop, tr("y"));
-
     painter->restore();
 }
 
@@ -258,4 +268,16 @@ void Scene::onViewScaleChanged(qreal scaleFactor)
     this->scaleFactor = scaleFactor;
     update();
     emit sceneScaleChanged(scaleFactor);
+}
+
+void Scene::onAxesChanged(bool show)
+{
+    axesGrid.axes.showAxes = show;
+    update();
+}
+
+void Scene::onGridChanged(bool show)
+{
+    axesGrid.grid.showGrid = show;
+    update();
 }

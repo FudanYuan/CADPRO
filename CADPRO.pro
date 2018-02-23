@@ -32,17 +32,15 @@ SOURCES += \
     dxflib/dl_writer_ascii.cpp \
     dxflib/dl_dxf.cpp \
     dxffilter.cpp \
-#    layer.cpp \
-#    mygraphicsview.cpp \
-#    mygraphicsscene.cpp \
-#    mygraphicsitem.cpp \
-#    mygraphicslineitem.cpp \
-    shape.cpp \
-    scene.cpp \
-    line.cpp \
     view.cpp \
+    scene.cpp \
+    shape.cpp \
+    line.cpp \
+    rect.cpp \
     configure.cpp \
-    rect.cpp
+    colorcombobox.cpp \
+    linestylecombobox.cpp \
+    configuredialog.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -61,18 +59,16 @@ HEADERS += \
     dxflib/dl_attributes.h \
     dxffilter.h \
     mydxfentities.h \
-#    layer.h \
-#    mygraphicsview.h \
-#    mygraphicsscene.h \
-#    mygraphicsitem.h \
-#    mygraphicslineitem.h \
-    shape.h \
-    scene.h \
-    line.h \
     view.h \
+    scene.h \
+    shape.h \
+    line.h \
+    rect.h \
     configure.h \
-    rect.h
-
+    colorcombobox.h \
+    linestylecombobox.h \
+    configuredialog.h
 
 FORMS += \
-        mainwindow.ui
+        mainwindow.ui \
+    configuredialog.ui
