@@ -32,7 +32,7 @@ public:
     void initToolBar();         // 初始化工具栏
     void initStatusBar();       // 初始化状态栏
     void initDockWidget();      // 初始化dock widget
-    void initConfiguration(Configure *config);   // 初始化配置
+    void initConfiguration();   // 初始化配置
     void initProjectView();     // 初始化项目
     void addProject();          // 添加项目
     QString getNewProjectName();// 获取新项目名称
@@ -49,7 +49,6 @@ protected:
 private:
     Ui::MainWindow *ui;
 
-    Configure *config;                   // 配置
     Configure *configCopy;               // 配置
 
     View *view;                         // 视图

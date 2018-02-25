@@ -38,11 +38,11 @@ SOURCES += \
     line.cpp \
     rect.cpp \
     configure.cpp \
-    colorcombobox.cpp \
-    linestylecombobox.cpp \
-    configuredialog.cpp
+    configuredialog.cpp \
+    customwidget.cpp
 
 HEADERS += \
+        debug.h \
         mainwindow.h \
     mydocktitlebar.h \
     project.h \
@@ -65,9 +65,8 @@ HEADERS += \
     line.h \
     rect.h \
     configure.h \
-    colorcombobox.h \
-    linestylecombobox.h \
-    configuredialog.h
+    configuredialog.h \
+    customwidget.h
 
 FORMS += \
         mainwindow.ui \

@@ -10,17 +10,18 @@
 #include <QColor>
 #include <QSettings>
 #include <QList>
+#include <debug.h>
 
 #define CONFG_FILE_PATH "config.ini"
 
 // 内线类型
-enum InterLineStyle{noInterLine,mark,cut,stitch,generic};
+enum InterLineStyle{mark,cut,stitch,generic};
 
 // 轴类型
-enum AxesType{noAxes, small, large};
+enum AxesType{small, large};
 
 // 网格类型
-enum GridType{noGrid, across, node};
+enum GridType{rectangular, across, node};
 
 // 语言
 enum Language{Chinese, English, Spanish, Italian, French, Russian, Portuguese, Deutsch, Ukrainian, Japanese};
@@ -46,10 +47,10 @@ struct PenStyle
 
     QColor color;  // 实体颜色, 默认为黑色
     Qt::PenStyle style;  // 实体样式，默认为实线
-    int width;  // 实体宽度，默认为1
+    qreal width;  // 实体宽度，默认为1
 
     // 设置画笔属性
-    void setPenStyle(QColor color, Qt::PenStyle style, int width)
+    void setPenStyle(QColor color, Qt::PenStyle style, double width)
     {
         this->color = color;
         this->style = style;
@@ -167,6 +168,7 @@ struct Grid
 {
     Grid() :
         showGrid(false),
+        gridType(GridType::rectangular),
         gridColor(Qt::gray),
         xStep(100),
         yStep(100)
@@ -174,11 +176,13 @@ struct Grid
 
     }
     bool showGrid; // 是否显示网格
+    GridType gridType;  // 网格类型
     QColor gridColor; // 网格颜色
     double xStep; // x步长
     double yStep; // y步长
 
-    void setGrid(QColor gridColor, int xStep, int yStep){
+    void setGrid(GridType gridType, QColor gridColor, int xStep, int yStep){
+        this->gridType = gridType;
         this->gridColor = gridColor;
         this->xStep = xStep;
         this->yStep = yStep;
@@ -233,6 +237,24 @@ struct WorkView
     bool toolProperties;
 };
 
+
+// 配置键值对
+struct KeyValue
+{
+    KeyValue(QString key, QVariant value) {
+        this->key = key;
+        this->value = value;
+    }
+
+    QString key;
+    QVariant value;
+
+    void setValue(const QVariant &v){
+        this->value = v;
+    }
+};
+
+
 // 配置类，此配置类用于整个软件的配置
 class Configure : public QWidget
 {
@@ -265,6 +287,9 @@ public:
     void readConfigView(QSettings *settings);
 
     QColor intToColor(int rgb);  // 将int转化为QColor
+
+    static void updateConfig(QList<KeyValue> keyValue);
+
 signals:
     void axesChanged(bool show);
     void gridChanged(bool show);

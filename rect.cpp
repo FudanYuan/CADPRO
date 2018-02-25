@@ -15,11 +15,18 @@ Rect::Rect(QGraphicsItem *parent) :
     // 设置图元为可接受拖拽事件
     setAcceptDrops(true);
     // 设置图元为可接受hover事件
-//    setAcceptHoverEvents(true);
+    setAcceptHoverEvents(true);
 }
 
 void Rect::startDraw(QGraphicsSceneMouseEvent *event)
 {
+    QPen pen = QPen();
+    pen.setColor(penStyle.color);
+    pen.setStyle(penStyle.style);
+    pen.setWidthF(penStyle.width);
+    setPen(pen);
+
+    qDebug() << penStyle.color;
     topLeftPoint = event->scenePos();
     setRect(QRectF(event->scenePos(), QSizeF(0, 0)));
 }
@@ -32,21 +39,40 @@ void Rect::drawing(QGraphicsSceneMouseEvent *event)
     setRect(r);
 }
 
-void Rect::setStyle(EntityStyle style)
+void Rect::setPenStyle(PenStyle penStyle)
 {
-    QPen pen = QPen();
-    pen.setColor(style.perimeterLine.color);
-    pen.setStyle(style.perimeterLine.style);
-    qDebug() << " new width " << style.perimeterLine.width / this->scaleFactor;
-    pen.setWidth(style.perimeterLine.width / this->scaleFactor);
-    setPen(pen);
+    this->penStyle = penStyle;
+}
+
+void Rect::setEntityUnderCursorStyle(PenStyle underCursorStyle)
+{
+    this->underCursorStyle = underCursorStyle;
+}
+
+void Rect::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+    Q_UNUSED(option);
+    Q_UNUSED(widget);
+    scaleFactor =  painter->matrix().m11();
+    // 获取到当前的线宽，这里的线宽其实还是之前设置的线宽值;
+    // 比如我们之前设置线宽为 2 ，这里返回的线宽还是 2 ，但是当前的缩放比例变了；
+    // 其实当前的线宽就相当于 penWidth * scaleFactor;
+    // 所以如果我们想要让线宽保持不变，那就需要进行转换，即 penWidth = penWidth / scaleFactor;
+    QPen myPen = this->pen();
+    // 重新设置画笔线宽;
+    myPen.setWidthF(myPen.widthF() / scaleFactor);
+    painter->setPen(myPen);
+    painter->drawRect(this->rect());
 }
 
 void Rect::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    qDebug() << "type: " << getShapeType();
-    qDebug() << "id: " << getShapeId();
-    setCursor(Qt::OpenHandCursor);
+    Q_UNUSED(event);
+    if(overFlag){
+        qDebug() << "type: " << getShapeType();
+        qDebug() << "id: " << getShapeId();
+        setCursor(Qt::ClosedHandCursor);
+    }
 }
 
 void Rect::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
@@ -87,31 +113,35 @@ void Rect::dropEvent(QGraphicsSceneDragDropEvent *event)
 
 void Rect::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
-    qDebug() << "Rect::hoverEnterEvent";
-//    QPen pen = QPen();
-//    pen.setColor(Qt::blue);
-//    pen.setWidth(2 / this->scaleFactor);
-//    setPen(pen);
-    QGraphicsItem::hoverEnterEvent(event);
+    if(overFlag){
+        QPen pen = QPen();
+        pen.setColor(underCursorStyle.color);
+        pen.setStyle(underCursorStyle.style);
+        pen.setWidthF(underCursorStyle.width);
+        setPen(pen);
+        setCursor(Qt::OpenHandCursor);
+        QGraphicsItem::hoverEnterEvent(event);
+    }
 }
 
 void Rect::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
-    qDebug() << "Rect::hoverMoveEvent";
-    QGraphicsItem::hoverMoveEvent(event);
+    if(overFlag){
+        setCursor(Qt::OpenHandCursor);
+        QGraphicsItem::hoverMoveEvent(event);
+    }
 }
 
 void Rect::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
-    qDebug() << "Rect::hoverLeaveEvent";
-    QGraphicsItem::hoverLeaveEvent(event);
-}
-
-void Rect::onSceneScaleChanged(qreal scaleFactor)
-{
-    this->scaleFactor = scaleFactor;
-    qDebug() << "rect on view scale changed: " << this->scaleFactor;
-    update();
+    if(overFlag){
+        QPen pen = QPen();
+        pen.setColor(penStyle.color);
+        pen.setStyle(penStyle.style);
+        pen.setWidthF(penStyle.width);
+        setPen(pen);
+        QGraphicsItem::hoverLeaveEvent(event);
+    }
 }
 
 void Rect::onSceneMoveableChanged(bool moveable)

@@ -61,6 +61,11 @@ bool Scene::isMoveable() const
     return this->moveable;
 }
 
+void Scene::setStartFlag(bool flag)
+{
+    this->startFlag = flag;
+}
+
 void Scene::setEntityStyle(EntityStyle eStyle)
 {
     this->eStyle = eStyle;
@@ -74,15 +79,6 @@ EntityStyle Scene::getEntityStyle()
 void Scene::setAxesGrid(AxesGrid axesGrid)
 {
     this->axesGrid = axesGrid;
-}
-
-QColor Scene::transformIntToQColor(const int &intColor)
-{
-    //将Color 从int 转换成 QColor
-    int blue = intColor & 255;
-    int green = intColor >> 8 & 255;
-    int red = intColor >> 16 & 255;
-    return QColor(red, green, blue);
 }
 
 void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
@@ -117,27 +113,24 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     case Shape::Line:
                     {
                         Line *line = new Line;
-                        eStyle.perimeterLine.width /= this->scaleFactor;
-                        line->setStyle(eStyle);
                         line->setShapeId(id);
+                        line->setPenStyle(eStyle.perimeterLine);
+                        line->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
                         curItem = line;
                         addItem(line);
-
                         connect(line, &Shape::sceneMoveableChanged, line, &Line::onSceneMoveableChanged);
-                        connect(this, &Scene::sceneScaleChanged, line, &Line::onSceneScaleChanged);
                         break;
                     }
                     case Shape::Rectangle:
                     {
                         Rect *rect = new Rect;
                         rect->setShapeId(id);
-                        eStyle.perimeterLine.width /= this->scaleFactor;
-                        rect->setStyle(eStyle);
+                        qDebug() << eStyle.cut.color << " " << eStyle.cut.style << " " << eStyle.cut.width;
+                        rect->setPenStyle(eStyle.cut);
+                        rect->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
                         curItem = rect;
                         addItem(rect);
-
                         connect(rect, &Shape::sceneMoveableChanged, rect, &Rect::onSceneMoveableChanged);
-                        connect(this, &Scene::sceneScaleChanged, rect, &Rect::onSceneScaleChanged);
                         break;
                     }
                     }
@@ -156,9 +149,12 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
     }
 
     if(event->button() == Qt::RightButton) {
-        startFlag = false;
+        qDebug() << "点击右键";
+        moveable = false;
+        startFlag = !startFlag;
         for(int i=0; i<itemList.length();i++){
-            itemList.at(i)->setOverFlag(true);
+            itemList.at(i)->setOverFlag(!startFlag);
+            itemList.at(i)->setMoveable(moveable);
         }
     }
 
@@ -263,11 +259,8 @@ void Scene::drawBackground(QPainter *painter, const QRectF &rect)
 
 void Scene::onViewScaleChanged(qreal scaleFactor)
 {
-    qDebug() << "scene on view scale changed: " << scaleFactor;
-    qDebug() << "to do : 重画drawBackground";
     this->scaleFactor = scaleFactor;
     update();
-    emit sceneScaleChanged(scaleFactor);
 }
 
 void Scene::onAxesChanged(bool show)

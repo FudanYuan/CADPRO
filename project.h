@@ -53,6 +53,7 @@ protected:
 
 signals:
     void projectNameChanged(QString, QString);
+
 public slots:
 };
 

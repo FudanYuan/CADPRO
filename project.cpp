@@ -17,12 +17,16 @@ QString Project::getName()
 
 void Project::setName(QString name)
 {
+#ifdef DEBUG
+    qDebug() << name;
+#endif
     this->name = name;
 }
 
 void Project::changeName(QString name)
 {
     emit projectNameChanged(this->name, name);
+    modified = true;
     setName(name);
 }
 
@@ -91,7 +95,7 @@ bool Project::isSaved()
 bool Project::isModified()
 {
     for(int i=0; i<this->sceneList.length();i++){
-        this->modified |= !this->sceneList.at(i)->isModified();
+        this->modified |= this->sceneList.at(i)->isModified();
     }
     return modified;
 }

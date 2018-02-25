@@ -20,6 +20,11 @@ Line::Line(QGraphicsItem *parent) :
 
 void Line::startDraw(QGraphicsSceneMouseEvent *event)
 {
+    QPen pen = QPen();
+    pen.setColor(penStyle.color);
+    pen.setStyle(penStyle.style);
+    pen.setWidthF(penStyle.width);
+    setPen(pen);
     sPoint = event->scenePos();
 }
 
@@ -30,14 +35,30 @@ void Line::drawing(QGraphicsSceneMouseEvent *event)
     setLine(newLine);
 }
 
-void Line::setStyle(EntityStyle style)
+void Line::setPenStyle(PenStyle penStyle)
 {
-    QPen pen = QPen();
-    pen.setColor(style.perimeterLine.color);
-    pen.setStyle(style.perimeterLine.style);
-    qDebug() << " new width " << style.perimeterLine.width / this->scaleFactor;
-    pen.setWidth(style.perimeterLine.width / this->scaleFactor);
-    setPen(pen);
+    this->penStyle = penStyle;
+}
+
+void Line::setEntityUnderCursorStyle(PenStyle underCursorStyle)
+{
+    this->underCursorStyle = underCursorStyle;
+}
+
+void Line::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+    Q_UNUSED(option);
+    Q_UNUSED(widget);
+    scaleFactor =  painter->matrix().m11();
+    // 获取到当前的线宽，这里的线宽其实还是之前设置的线宽值;
+    // 比如我们之前设置线宽为 2 ，这里返回的线宽还是 2 ，但是当前的缩放比例变了；
+    // 其实当前的线宽就相当于 penWidth * scaleFactor;
+    // 所以如果我们想要让线宽保持不变，那就需要进行转换，即 penWidth = penWidth / scaleFactor;
+    QPen myPen = this->pen();
+    // 重新设置画笔线宽;
+    myPen.setWidthF(myPen.widthF() / scaleFactor);
+    painter->setPen(myPen);
+    painter->drawLine(this->line());
 }
 
 void Line::mousePressEvent(QGraphicsSceneMouseEvent *event)
@@ -51,19 +72,19 @@ void Line::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
 void Line::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-    qDebug() << "Line::mouseMoveEvent";
+    // qDebug() << "Line::mouseMoveEvent";
     QGraphicsItem::mouseMoveEvent(event);
 }
 
 void Line::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-    qDebug() << "Line::mouseReleaseEvent";
+    // qDebug() << "Line::mouseReleaseEvent";
     QGraphicsItem::mouseReleaseEvent(event);
 }
 
 void Line::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
 {
-    qDebug() << "Line::dragEnterEvent";
+    // qDebug() << "Line::dragEnterEvent";
     QGraphicsItem::dragEnterEvent(event);
 }
 
@@ -89,8 +110,9 @@ void Line::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
     if(overFlag){
         QPen pen = QPen();
-        pen.setColor(Qt::blue);
-        pen.setWidth(2 / this->scaleFactor);
+        pen.setColor(underCursorStyle.color);
+        pen.setStyle(underCursorStyle.style);
+        pen.setWidthF(underCursorStyle.width);
         setPen(pen);
         setCursor(Qt::OpenHandCursor);
         QGraphicsItem::hoverEnterEvent(event);
@@ -109,18 +131,12 @@ void Line::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
     if(overFlag){
         QPen pen = QPen();
-        pen.setColor(Qt::red);
-        pen.setWidth(1 / this->scaleFactor);
+        pen.setColor(penStyle.color);
+        pen.setStyle(penStyle.style);
+        pen.setWidthF(penStyle.width);
         setPen(pen);
         QGraphicsItem::hoverLeaveEvent(event);
     }
-}
-
-void Line::onSceneScaleChanged(qreal scaleFactor)
-{
-    this->scaleFactor = scaleFactor;
-    qDebug() << "line on view scale changed: " << this->scaleFactor;
-    update();
 }
 
 void Line::onSceneMoveableChanged(bool moveable)

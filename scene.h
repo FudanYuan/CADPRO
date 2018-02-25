@@ -30,12 +30,12 @@ public:
     void setMoveable(bool moveable);  // 设置图元是否可移动
     bool isMoveable() const;  // 返回图元是否可移动
 
+    void setStartFlag(bool flag);  // 设置开始标识
+
     void setEntityStyle(EntityStyle eStyle);  // 设置实体样式
     EntityStyle getEntityStyle();  // 获取实体样式
 
     void setAxesGrid(AxesGrid axesGrid);  // 设置网格坐标轴
-
-    QColor transformIntToQColor(const int &intColor);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
@@ -68,6 +68,7 @@ private:
 signals:
     void sceneScaleChanged(qreal scaleFactor);  // scene缩放事件
     void sceneItemsChanged();  // scene图元改变
+    void sceneNameChanged(QString, QString); // scene名称改变
 
 public slots:
     void onViewScaleChanged(qreal scaleFactor);  // 响应view缩放事件

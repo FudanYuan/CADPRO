@@ -12,11 +12,12 @@ public:
     // 枚举变量，几个图形的选择
     enum ShapeType {None,Point,Line,Rectangle,Ellipse};
     Shape();
+    void setScaleFactor(qreal scaleFactor);
     void setMoveable(bool moveable);  // 设置可移动性
     virtual void startDraw(QGraphicsSceneMouseEvent * event) = 0;
     virtual void drawing(QGraphicsSceneMouseEvent * event) = 0;
-    virtual void setStyle(EntityStyle style) = 0;
-
+    virtual void setPenStyle(PenStyle penstyle) = 0;  // 设置实体类型
+    virtual void setEntityUnderCursorStyle(PenStyle underCursorStyle) = 0;  // 设置光标下类型
     void setShapeId(int id);  // 设置实体id
     int getShapeId();  // 获取实体id
 
@@ -33,7 +34,8 @@ protected:
     bool moveable;  // 是否可移动
 
     int id;  // 编号
-    PenStyle style;  // 属性
+    PenStyle penStyle;  // 属性
+    PenStyle underCursorStyle;  // 光标下属性
     QString layer;  // 图层名称
     ShapeType shape;  // 类型
 
@@ -43,7 +45,6 @@ signals:
     void sceneMoveableChanged(bool moveable);  // 场景可移动性信号
 
 public slots:
-    virtual void onSceneScaleChanged(qreal scaleFactor) = 0;  // 响应view缩放事件
     virtual void onSceneMoveableChanged(bool moveable) = 0;  //  响应场景可移动性改变
 
 };

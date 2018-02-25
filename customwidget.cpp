@@ -1,8 +1,10 @@
-#include "colorcombobox.h"
+#include "customwidget.h"
 #include <QHeaderView>
 #include <QPixmap>
 #include <QIcon>
 #include <QSize>
+#include <QImage>
+#include <QPainter>
 #include <QDebug>
 
 #define ROWS 4
@@ -85,4 +87,106 @@ QString ColorButton::getColor()
 void ColorButton::onPressed()
 {
     emit clicked(this->color);
+}
+
+LineEdit::LineEdit(QString name, QWidget *parent) :
+    QLineEdit(parent)
+{
+    this->name = name;
+    connect(this, &LineEdit::textEdited, this, &LineEdit::onTextEdited);
+}
+
+QString LineEdit::getName()
+{
+    return this->name;
+}
+
+void LineEdit::onTextEdited(const QString &value)
+{
+    emit customTextEdited(this->name, value);
+}
+
+CheckBox::CheckBox(QString name, QWidget *parent) :
+    QCheckBox(parent)
+{
+    this->name = name;
+    connect(this, &CheckBox::stateChanged, this, &CheckBox::onStateChanged);
+}
+
+QString CheckBox::getName()
+{
+    return this->name;
+}
+
+void CheckBox::onStateChanged(int value)
+{
+    emit customStateChanged(this->name, value);
+}
+
+lineStyleComboBox::lineStyleComboBox(QString name, QWidget *parent) :
+    QComboBox(parent)
+{
+    this->name = name;
+
+    QPixmap pixmap(width(), height());  //设置图像
+    pixmap.fill(Qt::white);
+    QPainter p(&pixmap);
+    p.setPen(Qt::SolidLine);
+    p.drawLine(0, height()/2, width(), height()/2);
+
+    addItem(QIcon(pixmap), NULL, (int)Qt::SolidLine);
+
+    QPixmap pixmap1(width(), height());  //设置图像
+    pixmap1.fill(Qt::white);
+    QPainter p1(&pixmap1);
+    p1.setPen(Qt::DashLine);
+    p1.drawLine(0, height()/2, width(), height()/2);
+
+    addItem(QIcon(pixmap1), NULL, (int)Qt::DashLine);
+
+    QPixmap pixmap2(width(), height());  //设置图像
+    QPainter p2(&pixmap2);
+    pixmap2.fill(Qt::white);
+    p2.setPen(Qt::DotLine);
+    p2.drawLine(0, height()/2, width(), height()/2);
+
+    addItem(QIcon(pixmap2), NULL, (int)Qt::DotLine);
+
+    QPixmap pixmap3(width(), height());  //设置图像
+    QPainter p3(&pixmap3);
+    pixmap3.fill(Qt::white);
+    p3.setPen(Qt::DashDotLine);
+    p3.drawLine(0, height()/2, width(), height()/2);
+
+    addItem(QIcon(pixmap3), NULL, (int)Qt::DashDotLine);
+
+    QPixmap pixmap4(width(), height());  //设置图像
+    QPainter p4(&pixmap4);
+    pixmap4.fill(Qt::white);
+    p4.setPen(Qt::DashDotDotLine);
+    p4.drawLine(0, height()/2, width(), height()/2);
+
+    addItem(QIcon(pixmap4), NULL, (int)Qt::DashDotDotLine);
+    setIconSize(pixmap4.size());
+
+    setSizeAdjustPolicy(QComboBox::AdjustToContents);  //设置下拉列表的尺寸符合内容的大小
+
+    connect(this, SIGNAL(activated(int)), this, SLOT(onActivated(int)));
+}
+
+void lineStyleComboBox::onActivated(int index)
+{
+    emit customActivated(this->name, index + 1);
+}
+
+ComboBox::ComboBox(QString name, QWidget *parent) :
+    QComboBox(parent)
+{
+    this->name = name;
+    connect(this, SIGNAL(activated(int)), this, SLOT(onActivated(int)));
+}
+
+void ComboBox::onActivated(int index)
+{
+    emit customActivated(this->name, index);
 }

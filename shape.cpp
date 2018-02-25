@@ -7,6 +7,11 @@ Shape::Shape() :
 {
 }
 
+void Shape::setScaleFactor(qreal scaleFactor)
+{
+    this->scaleFactor = scaleFactor;
+}
+
 void Shape::setMoveable(bool moveable)
 {
     this->moveable = moveable;

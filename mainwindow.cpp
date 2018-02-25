@@ -34,11 +34,16 @@ MainWindow::MainWindow(QWidget *parent) :
     initMenuBar();      // 初始化菜单栏
     initToolBar();      // 初始化工具栏
     initDockWidget();   // 初始化窗口
-    // 初始化配置文件
-    config = new Configure(this);
-    initConfiguration(config);
+    initConfiguration();
     initProjectView();  // 初始化项目
     initStatusBar();    // 初始化状态栏
+
+    //!
+    //! \brief configDialog
+    //! \return
+    //!
+    ConfigureDialog *configDialog = new ConfigureDialog(configCopy);
+    configDialog->exec();
 }
 
 MainWindow::~MainWindow()
@@ -1330,9 +1335,11 @@ void MainWindow::initDockWidget()
     splitDockWidget(dock_project,dock_properties,Qt::Vertical);
 }
 
-void MainWindow::initConfiguration(Configure *config)
+void MainWindow::initConfiguration()
 {
-    configCopy = config;
+    qDebug() << "初始化配置文件";
+    if(configCopy) delete configCopy;
+    configCopy = new Configure(this);
     connect(this, &MainWindow::configChanged, configCopy, &Configure::onConfigChanged);
     action_view_xy_axes->setChecked(configCopy->axesGrid.axes.showAxes);
     action_view_grid->setChecked(configCopy->axesGrid.grid.showGrid);
@@ -1341,6 +1348,14 @@ void MainWindow::initConfiguration(Configure *config)
     action_view_tool_find_style->setChecked(configCopy->view.toolFindStyle);
     action_view_tool_project->setChecked(configCopy->view.toolProject);
     action_view_tool_properties->setChecked(configCopy->view.toolProperties);
+
+    for(int i=0; i<project_list.length();i++){
+        for(int j=0; j<project_list.at(i)->getSceneList().length();j++){
+            project_list.at(i)->getScene(j)->setCurShape(Shape::None);
+            project_list.at(i)->getScene(j)->setEntityStyle(configCopy->eStyle);
+            project_list.at(i)->getScene(j)->setAxesGrid(configCopy->axesGrid);
+        }
+    }
 }
 
 void MainWindow::initProjectView()
@@ -1510,9 +1525,7 @@ bool MainWindow::maybeSave()
 {
     while(project_list.length() != 0){
         project_active = project_list.front();
-        qDebug() << project_list.length();
-        qDebug() << project_active->getName();
-        if(project_active->isModified() || !project_active->isSaved()){
+        if(project_active->isModified()){
             QMessageBox::StandardButton box;
             box = QMessageBox::warning(this,tr("保存项目"),tr("您要存储对“") + project_active->getName() + tr("”所做的更改吗？"),
             QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
@@ -1526,6 +1539,8 @@ bool MainWindow::maybeSave()
             } else if(box == QMessageBox::Cancel) {
                 return false;
             }
+        }else{
+            project_list.pop_front();
         }
     }
     return true;
@@ -1580,6 +1595,8 @@ bool MainWindow::onActionFileSaveAs()
         if(fileName != project_active->getName()){
             project_active->changeName(fileName);
         }
+        // 保存逻辑
+        project_active->saveProject();
         bool res = saveFile(fileName);
         project_active->setSaved(res);
         return res;
@@ -1662,14 +1679,10 @@ void MainWindow::onActionFileExportTEF()
 
 void MainWindow::onActionFileConfiguration()
 {
-    if(config){
-        delete config;
-    }
-    Configure *config = new Configure(this);
-    ConfigureDialog configDialog(config);
+    ConfigureDialog configDialog(configCopy);
     configDialog.exec();
 
-    initConfiguration(config);
+    initConfiguration();
 }
 
 void MainWindow::onActionFileExit()
@@ -1680,73 +1693,87 @@ void MainWindow::onActionFileExit()
 void MainWindow::onActionDrawLine()
 {
     qDebug() << "drawing a line";
+    scene_active->setStartFlag(true);
     scene_active->setCurShape(Shape::Line);
 }
 
 void MainWindow::onActionDrawEllipse()
 {
     qDebug() << "drawing an ellipse";
+    scene_active->setStartFlag(true);
 }
 
 void MainWindow::onActionDrawRect()
 {
     qDebug() << "drawing a rectangle";
+    scene_active->setStartFlag(true);
     scene_active->setCurShape(Shape::Rectangle);
 }
 
 void MainWindow::onActionDrawMiddleAxis()
 {
     qDebug() << "draw  middle axis";
+    scene_active->setStartFlag(true);
 }
 
 void MainWindow::onActionDrawCircle()
 {
     qDebug() << "draw a circle";
+    scene_active->setStartFlag(true);
 }
 
 void MainWindow::onActionDrawPolyline()
 {
     qDebug() << "draw a polyline";
+    scene_active->setStartFlag(true);
 }
 
 void MainWindow::onActionDrawArcBy3Pnts()
 {
     qDebug() << "draw a tripoint arc ";
+    scene_active->setStartFlag(true);
 }
 
 void MainWindow::onActionDrawEyelet()
 {
     qDebug() << "draw an eyelet";
+    scene_active->setStartFlag(true);
 }
 
 void MainWindow::onActionDrawPatternDirection()
 {
     qDebug() << "draw pattern direction";
+    scene_active->setStartFlag(true);
 }
 
 void MainWindow::onActionDrawArcBy3Pnts2()
 {
     qDebug() << "draw tripoin arc 2";
+    scene_active->setStartFlag(true);
 }
 
 void MainWindow::onActionDrawTrapezium()
 {
     qDebug() << "draw a trapezium";
+    scene_active->setStartFlag(true);
 }
 
 void MainWindow::onActionDrawPolygon()
 {
     qDebug() << "draw a polygon";
+    scene_active->setStartFlag(true);
 }
 
 void MainWindow::onActionDrawStabHole()
 {
     qDebug() << "draw a stabhole";
+    scene_active->setStartFlag(true);
 }
 
 void MainWindow::onActionDrawReference()
 {
     qDebug() << "draw a refer point";
+    scene_active->setStartFlag(true);
 }
 
 void MainWindow::onActionDrawShankLine()
@@ -2145,7 +2172,7 @@ void MainWindow::onActionPatternSaveAsWeft()
 void MainWindow::onActionViewXYAxes(bool toggled)
 {
     // 更新配置文件
-    config->axesGrid.axes.showAxes = toggled;
+    configCopy->axesGrid.axes.showAxes = toggled;
     emit configChanged("axesGrid/axesGrid_showAxes", QVariant(toggled));
     // 显示坐标
     for(int i=0; i<project_list.length();i++){
@@ -2157,7 +2184,7 @@ void MainWindow::onActionViewXYAxes(bool toggled)
 
 void MainWindow::onActionViewGrid(bool toggled)
 {
-    config->axesGrid.grid.showGrid = toggled;
+    configCopy->axesGrid.grid.showGrid = toggled;
     emit configChanged("axesGrid/axesGrid_showGrid", QVariant(toggled));
     // 显示网格
     for(int i=0; i<project_list.length();i++){
@@ -2184,13 +2211,13 @@ void MainWindow::onActionViewDesignRules(bool toggled)
 
 void MainWindow::onActionViewGradingRules(bool toggled)
 {
-    config->view.gradingRules = toggled;
+    configCopy->view.gradingRules = toggled;
     emit configChanged("view/view_grading_rules", QVariant(toggled));
 }
 
 void MainWindow::onActionViewFilledPatterns(bool toggled)
 {
-    config->view.filledPatterns = toggled;
+    configCopy->view.filledPatterns = toggled;
     emit configChanged("view/view_filled_patterns", QVariant(toggled));
 }
 
@@ -2252,21 +2279,21 @@ void MainWindow::onActionViewLockLayout(bool toggled)
 void MainWindow::onActionViewToolFindStyleToggled(bool toggled)
 {
     onDockFindStyleVisibilityChanged(toggled);
-    config->view.toolFindStyle = toggled;
+    configCopy->view.toolFindStyle = toggled;
     emit configChanged("view/view_tool_find_style", QVariant(toggled));
 }
 
 void MainWindow::onActionViewToolProjectToggled(bool toggled)
 {
     onDockProjectVisibilityChanged(toggled);
-    config->view.toolProject = toggled;
+    configCopy->view.toolProject = toggled;
     emit configChanged("view/view_tool_project", QVariant(toggled));
 }
 
 void MainWindow::onActionViewToolPropertiesToggled(bool toggled)
 {
     onDockPropertiesVisibilityChanged(toggled);
-    config->view.toolProperties = toggled;
+    configCopy->view.toolProperties = toggled;
     emit configChanged("view/view_tool_properties", QVariant(toggled));
 }
 
@@ -2514,7 +2541,8 @@ void MainWindow::onActionTreeProjectRename()
                                          project->getName(), &ok);
     if (ok && !text.isEmpty()){
         tree_project_active_item->setText(0, text);
-        project->setName(text);
+        project->changeName(text);
+        updateScene();
     }
 }
 
@@ -2562,6 +2590,7 @@ void MainWindow::onActionTreeProjectSceneRename()
     if (ok && !text.isEmpty()){
         tree_project_scene_active_item->setText(0, text);
         scene->setName(text);
+        updateScene();
     }
 }
 
@@ -2671,5 +2700,6 @@ void MainWindow::onSceneItemsChanged()
     action_modify_change_to->setDisabled(flag);
     action_modify_make_master_line->setDisabled(flag);
     action_modify_style->setDisabled(flag);
-
 }
+
+
