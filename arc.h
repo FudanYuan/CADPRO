@@ -1,16 +1,16 @@
-#ifndef RECT_H
-#define RECT_H
+#ifndef ARC_H
+#define ARC_H
 
-#include <QGraphicsRectItem>
+#include <QGraphicsEllipseItem>
 #include <QGraphicsSceneMouseEvent>
 #include "shape.h"
 #include <QPointF>
 
-class Rect : public Shape, public QGraphicsRectItem
+class Arc : public Shape, public QGraphicsEllipseItem
 {
     Q_OBJECT
 public:
-    Rect(QGraphicsItem *parent=0);
+    Arc(QGraphicsItem *parent=0);
     void startDraw(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 开始绘图
     void drawing(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 绘图开始
     bool updateFlag(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
@@ -32,10 +32,21 @@ protected:
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) Q_DECL_OVERRIDE;
 
 private:
-    QPointF topLeftPoint, bottomRightPoint;  // 顶点
+    QPointF cPoint;  // 圆心
+    qreal r; // 半径
+    qreal sAngle;  // 开始角度
+    qreal eAngle;  // 结束角度
+    QPointF fPoint, sPoint, tPoint; // 圆心, 第一点
+    bool fFlag;  // 第一点确定
+    bool sFlag;  // 第二点确定
+    bool tFlag;  // 第三点确定
+
+    QPointF getArcCenter(QPointF p1, QPointF p2, QPointF p3, qreal &r);
+    bool isClockWise(QPointF pc, QPointF p1, QPointF p2, QPointF p3);
+    qreal getLineAngle(QPointF sPoint, QPointF ePoint);
 
 public slots:
     void onSceneMoveableChanged(bool moveable) Q_DECL_OVERRIDE;  //  响应场景可移动性改变
 };
 
-#endif // RECT_H
+#endif // ARC_H

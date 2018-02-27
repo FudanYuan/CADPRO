@@ -5,10 +5,13 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QPaintEvent>
 #include <QList>
+#include "configure.h"
 #include "shape.h"
 #include "line.h"
 #include "rect.h"
-#include "configure.h"
+#include "ellipse.h"
+#include "circle.h"
+#include "arc.h"
 
 class Scene : public QGraphicsScene
 {
@@ -30,7 +33,7 @@ public:
     void setMoveable(bool moveable);  // 设置图元是否可移动
     bool isMoveable() const;  // 返回图元是否可移动
 
-    void setStartFlag(bool flag);  // 设置开始标识
+    void setDrawable(bool flag);  // 设置开始标识
 
     void setEntityStyle(EntityStyle eStyle);  // 设置实体样式
     EntityStyle getEntityStyle();  // 获取实体样式
@@ -54,10 +57,12 @@ private:
     QList<Shape *> itemList;  // 图元列表
     Shape *curItem;  // 设置当前图形
     bool modified;  // 标志图层是否被更改过
-    bool drawing;  // 是否在绘制特殊图形
+
+    bool drawable;  // 可画标识, 不可画时即可选中
     bool moveable;  // 设置图元是否可移动
 
-    bool startFlag;  // 开始标志
+    bool drawing;  // 是否在绘制特殊图形
+
     qreal penWidth;  // 画笔
     qreal scaleFactor;  // 缩放因子
 

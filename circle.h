@@ -1,16 +1,16 @@
-#ifndef RECT_H
-#define RECT_H
+#ifndef CIRCLE_H
+#define CIRCLE_H
 
-#include <QGraphicsRectItem>
+#include <QGraphicsEllipseItem>
 #include <QGraphicsSceneMouseEvent>
 #include "shape.h"
 #include <QPointF>
 
-class Rect : public Shape, public QGraphicsRectItem
+class Circle : public Shape, public QGraphicsEllipseItem
 {
     Q_OBJECT
 public:
-    Rect(QGraphicsItem *parent=0);
+    Circle(QGraphicsItem *parent=0);
     void startDraw(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 开始绘图
     void drawing(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 绘图开始
     bool updateFlag(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
@@ -32,10 +32,10 @@ protected:
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) Q_DECL_OVERRIDE;
 
 private:
-    QPointF topLeftPoint, bottomRightPoint;  // 顶点
-
+    QPointF cPoint, sPoint; // 圆心
+    qreal r; // 半径
 public slots:
     void onSceneMoveableChanged(bool moveable) Q_DECL_OVERRIDE;  //  响应场景可移动性改变
 };
 
-#endif // RECT_H
+#endif // CIRCLE_H

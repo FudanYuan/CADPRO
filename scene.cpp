@@ -7,9 +7,9 @@ Scene::Scene(QObject *parent) :
     name(""),
     curShape(Shape::None),
     modified(false),
-    drawing(false),
+    drawable(true),
     moveable(false),
-    startFlag(true),
+    drawing(false),
     penWidth(1),
     scaleFactor(1)
 {
@@ -61,9 +61,9 @@ bool Scene::isMoveable() const
     return this->moveable;
 }
 
-void Scene::setStartFlag(bool flag)
+void Scene::setDrawable(bool flag)
 {
-    this->startFlag = flag;
+    this->drawable = flag;
 }
 
 void Scene::setEntityStyle(EntityStyle eStyle)
@@ -83,6 +83,7 @@ void Scene::setAxesGrid(AxesGrid axesGrid)
 
 void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+    // 左键可控制 画图、选择、移动、
     if(event->button() == Qt::LeftButton){
         if(moveable){
             qDebug() << "移动...";
@@ -93,13 +94,16 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                 itemList.at(i)->setMoveable(true);
             }
         } else{
-            if(startFlag){
+            if(drawable){
                 if(drawing) {
-                    drawing = false;
-                    qDebug() << "结束绘图";
+                    // 对于需要不止两个条件就可确定的图形，
+                    // 还需要继续进行执行drawing函数
+                    if(curItem && curItem->updateFlag(event)) {
+                        drawing = false;
+                        qDebug() << "结束绘图";
+                    }
                 } else {
-                    startFlag = true;
-                    int id = itemList.length() + 1;
+                    int id = itemList.length();
                     switch(curShape) {
                     case Shape::None:
                     {
@@ -113,9 +117,22 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     case Shape::Line:
                     {
                         Line *line = new Line;
-                        line->setShapeId(id);
+                        line->setShapeId(id+1);
                         line->setPenStyle(eStyle.perimeterLine);
                         line->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
+                        line->setSelectStyle(eStyle.selectedEntity);
+                        curItem = line;
+                        addItem(line);
+                        connect(line, &Shape::sceneMoveableChanged, line, &Line::onSceneMoveableChanged);
+                        break;
+                    }
+                    case Shape::MiddleAxis:
+                    {
+                        Line *line = new Line;
+                        line->setShapeId(id+1);
+                        line->setPenStyle(eStyle.middleAxis);
+                        line->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
+                        line->setSelectStyle(eStyle.selectedEntity);
                         curItem = line;
                         addItem(line);
                         connect(line, &Shape::sceneMoveableChanged, line, &Line::onSceneMoveableChanged);
@@ -124,13 +141,61 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     case Shape::Rectangle:
                     {
                         Rect *rect = new Rect;
-                        rect->setShapeId(id);
-                        qDebug() << eStyle.cut.color << " " << eStyle.cut.style << " " << eStyle.cut.width;
+                        rect->setShapeId(id+1);
                         rect->setPenStyle(eStyle.cut);
                         rect->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
+                        rect->setSelectStyle(eStyle.selectedEntity);
                         curItem = rect;
                         addItem(rect);
                         connect(rect, &Shape::sceneMoveableChanged, rect, &Rect::onSceneMoveableChanged);
+                        break;
+                    }
+                    case Shape::Ellipse:
+                    {
+                        Ellipse *ellipse = new Ellipse;
+                        ellipse->setShapeId(id+1);
+                        ellipse->setPenStyle(eStyle.cut);
+                        ellipse->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
+                        ellipse->setSelectStyle(eStyle.selectedEntity);
+                        curItem = ellipse;
+                        addItem(ellipse);
+                        connect(ellipse, &Shape::sceneMoveableChanged, ellipse, &Ellipse::onSceneMoveableChanged);
+                        break;
+                    }
+                    case Shape::Circle:
+                    {
+                        Circle *circle = new Circle;
+                        circle->setShapeId(id+1);
+                        circle->setPenStyle(eStyle.cut);
+                        circle->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
+                        circle->setSelectStyle(eStyle.selectedEntity);
+                        curItem = circle;
+                        addItem(circle);
+                        connect(circle, &Shape::sceneMoveableChanged, circle, &Circle::onSceneMoveableChanged);
+                        break;
+                    }
+                    case Shape::Arc:
+                    {
+                        Arc *arc = new Arc;
+                        arc->setShapeId(id+1);
+                        arc->setPenStyle(eStyle.cut);
+                        arc->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
+                        arc->setSelectStyle(eStyle.selectedEntity);
+                        curItem = arc;
+                        addItem(arc);
+                        connect(arc, &Shape::sceneMoveableChanged, arc, &Arc::onSceneMoveableChanged);
+                        break;
+                    }
+                    case Shape::Arc2:
+                    {
+                        Arc *arc = new Arc;
+                        arc->setShapeId(id+1);
+                        arc->setPenStyle(eStyle.cut);
+                        arc->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
+                        arc->setSelectStyle(eStyle.selectedEntity);
+                        curItem = arc;
+                        addItem(arc);
+                        connect(arc, &Shape::sceneMoveableChanged, arc, &Arc::onSceneMoveableChanged);
                         break;
                     }
                     }
@@ -140,20 +205,33 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                         curItem->startDraw(event);
                         drawing = true;
                         modified = true;
+                        emit sceneItemsChanged();
                     }
-
-                    emit sceneItemsChanged();
                 }
             }
         }
     }
 
+    // 右键进行 取消及恢复操作：
+    // 取消作图、取消选择、取消移动
+    // 恢复作图、
+
     if(event->button() == Qt::RightButton) {
         qDebug() << "点击右键";
-        moveable = false;
-        startFlag = !startFlag;
+        if(drawing){
+            drawing = false;
+        }
+        if(curItem){
+            curItem->setOverFlag(true);
+        }
+        if(moveable){
+            moveable = false;
+        }
+
+        drawable = !drawable;
         for(int i=0; i<itemList.length();i++){
-            itemList.at(i)->setOverFlag(!startFlag);
+            itemList.at(i)->setSelectable(!drawable);
+            itemList.at(i)->setSelected(false);
             itemList.at(i)->setMoveable(moveable);
         }
     }
@@ -163,13 +241,11 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
 void Scene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-    // qDebug() << "Scene::mouseReleaseEvent";
     QGraphicsScene::mouseReleaseEvent(event);
 }
 
 void Scene::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-    // qDebug() << "Scene::mouseMoveEvent";
     if(curItem && drawing) {
         curItem->drawing(event);
     }
@@ -179,25 +255,21 @@ void Scene::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
 void Scene::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
 {
-    // qDebug() << "Scene::dragEnterEvent";
     QGraphicsScene::dragEnterEvent(event);
 }
 
 void Scene::dragLeaveEvent(QGraphicsSceneDragDropEvent *event)
 {
-    // qDebug() << "Scene::dragLeaveEvent";
     QGraphicsScene::dragLeaveEvent(event);
 }
 
 void Scene::dragMoveEvent(QGraphicsSceneDragDropEvent *event)
 {
-    // qDebug() << "Scene::dragMoveEvent";
     QGraphicsScene::dragMoveEvent(event);
 }
 
 void Scene::dropEvent(QGraphicsSceneDragDropEvent *event)
 {
-    // qDebug() << "Scene::dropEvent";
     QGraphicsScene::dropEvent(event);
 }
 

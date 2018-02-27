@@ -1,13 +1,14 @@
-#include "line.h"
+#include "circle.h"
 #include <QCursor>
 #include <QPainter>
 #include <QPen>
+#include <QtCore/qmath.h>
 #include <QDebug>
 
-Line::Line(QGraphicsItem *parent) :
-    QGraphicsLineItem(parent)
+Circle::Circle(QGraphicsItem *parent) :
+    QGraphicsEllipseItem(parent)
 {
-    setShapeType(Shape::Line);
+    setShapeType(Shape::Circle);
     // 设置图元为可焦点的
     setFlag(QGraphicsItem::ItemIsFocusable);
     // 设置图元为可移动的
@@ -18,31 +19,33 @@ Line::Line(QGraphicsItem *parent) :
     setAcceptHoverEvents(true);
 }
 
-void Line::startDraw(QGraphicsSceneMouseEvent *event)
+void Circle::startDraw(QGraphicsSceneMouseEvent *event)
 {
     QPen pen = QPen();
     pen.setColor(penStyle.color);
     pen.setStyle(penStyle.style);
     pen.setWidthF(penStyle.width);
     setPen(pen);
-    sPoint = event->scenePos();
-    overFlag = true;  // 马上就要结束
+    cPoint = event->scenePos();
+    overFlag = true;
 }
 
-void Line::drawing(QGraphicsSceneMouseEvent *event)
+void Circle::drawing(QGraphicsSceneMouseEvent *event)
 {
-    ePoint = event->scenePos();
-    QLineF newLine(sPoint, ePoint);
-    setLine(newLine);
+    sPoint = event->scenePos();
+    r = qSqrt((sPoint.rx() - cPoint.rx()) * (sPoint.rx() - cPoint.rx())
+            + (sPoint.ry() - cPoint.ry()) * (sPoint.ry() - cPoint.ry()));
+    setRect(cPoint.rx()-r, cPoint.ry()-r, r*2, r*2);
+    update();
 }
 
-bool Line::updateFlag(QGraphicsSceneMouseEvent *event)
+bool Circle::updateFlag(QGraphicsSceneMouseEvent *event)
 {
     Q_UNUSED(event);
     return overFlag;
 }
 
-void Line::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void Circle::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     Q_UNUSED(option);
     Q_UNUSED(widget);
@@ -54,11 +57,14 @@ void Line::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     QPen myPen = this->pen();
     // 重新设置画笔线宽;
     myPen.setWidthF(myPen.widthF() / scaleFactor);
+
     painter->setPen(myPen);
-    painter->drawLine(this->line());
+    painter->drawEllipse(cPoint, r, r);
+    painter->setPen(myPen);
+    painter->drawPoint(cPoint);
 }
 
-void Line::mousePressEvent(QGraphicsSceneMouseEvent *event)
+void Circle::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(selectable){
         selected = true;
@@ -74,43 +80,43 @@ void Line::mousePressEvent(QGraphicsSceneMouseEvent *event)
     QGraphicsItem::mousePressEvent(event);
 }
 
-void Line::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
+void Circle::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-    // qDebug() << "Line::mouseMoveEvent";
+    // qDebug() << "Circle::mouseMoveEvent";
     QGraphicsItem::mouseMoveEvent(event);
 }
 
-void Line::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+void Circle::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-    // qDebug() << "Line::mouseReleaseEvent";
+    // qDebug() << "Circle::mouseReleaseEvent";
     QGraphicsItem::mouseReleaseEvent(event);
 }
 
-void Line::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
+void Circle::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
 {
-    // qDebug() << "Line::dragEnterEvent";
+    // qDebug() << "Circle::dragEnterEvent";
     QGraphicsItem::dragEnterEvent(event);
 }
 
-void Line::dragLeaveEvent(QGraphicsSceneDragDropEvent *event)
+void Circle::dragLeaveEvent(QGraphicsSceneDragDropEvent *event)
 {
-    // qDebug() << "Line::dragLeaveEvent";
+    // qDebug() << "Circle::dragLeaveEvent";
     QGraphicsItem::dragLeaveEvent(event);
 }
 
-void Line::dragMoveEvent(QGraphicsSceneDragDropEvent *event)
+void Circle::dragMoveEvent(QGraphicsSceneDragDropEvent *event)
 {
-    // qDebug() << "Line::dragMoveEvent";
+    // qDebug() << "Circle::dragMoveEvent";
     QGraphicsItem::dragMoveEvent(event);
 }
 
-void Line::dropEvent(QGraphicsSceneDragDropEvent *event)
+void Circle::dropEvent(QGraphicsSceneDragDropEvent *event)
 {
-    // qDebug() << "Line::dropEvent";
+    // qDebug() << "Circle::dropEvent";
     QGraphicsItem::dropEvent(event);
 }
 
-void Line::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
+void Circle::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
     if(selectable){
         QPen pen = QPen();
@@ -129,7 +135,7 @@ void Line::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
     }
 }
 
-void Line::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
+void Circle::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
     if(selectable){
         setCursor(Qt::OpenHandCursor);
@@ -137,7 +143,7 @@ void Line::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
     }
 }
 
-void Line::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
+void Circle::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
     if(selectable){
         QPen pen = QPen();
@@ -155,9 +161,8 @@ void Line::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
     }
 }
 
-void Line::onSceneMoveableChanged(bool moveable)
+void Circle::onSceneMoveableChanged(bool moveable)
 {
     this->moveable = moveable;
     setFlag(QGraphicsItem::ItemIsMovable, moveable);
 }
-

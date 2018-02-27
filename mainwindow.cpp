@@ -37,13 +37,6 @@ MainWindow::MainWindow(QWidget *parent) :
     initConfiguration();
     initProjectView();  // 初始化项目
     initStatusBar();    // 初始化状态栏
-
-    //!
-    //! \brief configDialog
-    //! \return
-    //!
-    ConfigureDialog *configDialog = new ConfigureDialog(configCopy);
-    configDialog->exec();
 }
 
 MainWindow::~MainWindow()
@@ -1693,87 +1686,92 @@ void MainWindow::onActionFileExit()
 void MainWindow::onActionDrawLine()
 {
     qDebug() << "drawing a line";
-    scene_active->setStartFlag(true);
+    scene_active->setDrawable(true);
     scene_active->setCurShape(Shape::Line);
 }
 
 void MainWindow::onActionDrawEllipse()
 {
     qDebug() << "drawing an ellipse";
-    scene_active->setStartFlag(true);
+    scene_active->setDrawable(true);
+    scene_active->setCurShape(Shape::Ellipse);
 }
 
 void MainWindow::onActionDrawRect()
 {
     qDebug() << "drawing a rectangle";
-    scene_active->setStartFlag(true);
+    scene_active->setDrawable(true);
     scene_active->setCurShape(Shape::Rectangle);
 }
 
 void MainWindow::onActionDrawMiddleAxis()
 {
     qDebug() << "draw  middle axis";
-    scene_active->setStartFlag(true);
+    scene_active->setDrawable(true);
+    scene_active->setCurShape(Shape::MiddleAxis);
 }
 
 void MainWindow::onActionDrawCircle()
 {
     qDebug() << "draw a circle";
-    scene_active->setStartFlag(true);
+    scene_active->setDrawable(true);
+    scene_active->setCurShape(Shape::Circle);
 }
 
 void MainWindow::onActionDrawPolyline()
 {
     qDebug() << "draw a polyline";
-    scene_active->setStartFlag(true);
+    scene_active->setDrawable(true);
 }
 
 void MainWindow::onActionDrawArcBy3Pnts()
 {
     qDebug() << "draw a tripoint arc ";
-    scene_active->setStartFlag(true);
-}
-
-void MainWindow::onActionDrawEyelet()
-{
-    qDebug() << "draw an eyelet";
-    scene_active->setStartFlag(true);
-}
-
-void MainWindow::onActionDrawPatternDirection()
-{
-    qDebug() << "draw pattern direction";
-    scene_active->setStartFlag(true);
+    scene_active->setDrawable(true);
+    scene_active->setCurShape(Shape::Arc);
 }
 
 void MainWindow::onActionDrawArcBy3Pnts2()
 {
     qDebug() << "draw tripoin arc 2";
-    scene_active->setStartFlag(true);
+    scene_active->setDrawable(true);
+//    scene_active->setCurShape(Shape::Arc2);
 }
 
 void MainWindow::onActionDrawTrapezium()
 {
     qDebug() << "draw a trapezium";
-    scene_active->setStartFlag(true);
+    scene_active->setDrawable(true);
 }
 
 void MainWindow::onActionDrawPolygon()
 {
     qDebug() << "draw a polygon";
-    scene_active->setStartFlag(true);
+    scene_active->setDrawable(true);
 }
 
 void MainWindow::onActionDrawStabHole()
 {
     qDebug() << "draw a stabhole";
-    scene_active->setStartFlag(true);
+    scene_active->setDrawable(true);
 }
 
 void MainWindow::onActionDrawReference()
 {
     qDebug() << "draw a refer point";
-    scene_active->setStartFlag(true);
+    scene_active->setDrawable(true);
+}
+
+void MainWindow::onActionDrawEyelet()
+{
+    qDebug() << "draw an eyelet";
+    scene_active->setDrawable(true);
+}
+
+void MainWindow::onActionDrawPatternDirection()
+{
+    qDebug() << "draw pattern direction";
+    scene_active->setDrawable(true);
 }
 
 void MainWindow::onActionDrawShankLine()

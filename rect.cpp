@@ -25,10 +25,9 @@ void Rect::startDraw(QGraphicsSceneMouseEvent *event)
     pen.setStyle(penStyle.style);
     pen.setWidthF(penStyle.width);
     setPen(pen);
-
-    qDebug() << penStyle.color;
     topLeftPoint = event->scenePos();
     setRect(QRectF(event->scenePos(), QSizeF(0, 0)));
+    overFlag = true;
 }
 
 void Rect::drawing(QGraphicsSceneMouseEvent *event)
@@ -39,14 +38,10 @@ void Rect::drawing(QGraphicsSceneMouseEvent *event)
     setRect(r);
 }
 
-void Rect::setPenStyle(PenStyle penStyle)
+bool Rect::updateFlag(QGraphicsSceneMouseEvent *event)
 {
-    this->penStyle = penStyle;
-}
-
-void Rect::setEntityUnderCursorStyle(PenStyle underCursorStyle)
-{
-    this->underCursorStyle = underCursorStyle;
+    Q_UNUSED(event);
+    return overFlag;
 }
 
 void Rect::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -67,12 +62,18 @@ void Rect::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
 
 void Rect::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    Q_UNUSED(event);
-    if(overFlag){
+    if(selectable){
+        selected = true;
         qDebug() << "type: " << getShapeType();
         qDebug() << "id: " << getShapeId();
         setCursor(Qt::ClosedHandCursor);
+        QPen pen = QPen();
+        pen.setColor(selectedEntity.color);
+        pen.setStyle(selectedEntity.style);
+        pen.setWidthF(selectedEntity.width);
+        setPen(pen);
     }
+    QGraphicsItem::mousePressEvent(event);
 }
 
 void Rect::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
@@ -113,11 +114,17 @@ void Rect::dropEvent(QGraphicsSceneDragDropEvent *event)
 
 void Rect::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
-    if(overFlag){
+    if(selectable){
         QPen pen = QPen();
-        pen.setColor(underCursorStyle.color);
-        pen.setStyle(underCursorStyle.style);
-        pen.setWidthF(underCursorStyle.width);
+        if(!selected){
+            pen.setColor(underCursorStyle.color);
+            pen.setStyle(underCursorStyle.style);
+            pen.setWidthF(underCursorStyle.width);
+        } else{
+            pen.setColor(selectedEntity.color);
+            pen.setStyle(selectedEntity.style);
+            pen.setWidthF(selectedEntity.width);
+        }
         setPen(pen);
         setCursor(Qt::OpenHandCursor);
         QGraphicsItem::hoverEnterEvent(event);
@@ -126,7 +133,7 @@ void Rect::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 
 void Rect::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
-    if(overFlag){
+    if(selectable){
         setCursor(Qt::OpenHandCursor);
         QGraphicsItem::hoverMoveEvent(event);
     }
@@ -134,12 +141,17 @@ void Rect::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 
 void Rect::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
-    if(overFlag){
+    if(selectable){
         QPen pen = QPen();
-        pen.setColor(penStyle.color);
-        pen.setStyle(penStyle.style);
-        pen.setWidthF(penStyle.width);
-        setPen(pen);
+        if(!selected){
+            pen.setColor(penStyle.color);
+            pen.setStyle(penStyle.style);
+            pen.setWidthF(penStyle.width);
+        } else{
+            pen.setColor(selectedEntity.color);
+            pen.setStyle(selectedEntity.style);
+            pen.setWidthF(selectedEntity.width);
+        }
         QGraphicsItem::hoverLeaveEvent(event);
     }
 }

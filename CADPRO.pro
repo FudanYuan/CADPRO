@@ -32,14 +32,17 @@ SOURCES += \
     dxflib/dl_writer_ascii.cpp \
     dxflib/dl_dxf.cpp \
     dxffilter.cpp \
+    configure.cpp \
+    configuredialog.cpp \
+    customwidget.cpp \
     view.cpp \
     scene.cpp \
     shape.cpp \
     line.cpp \
     rect.cpp \
-    configure.cpp \
-    configuredialog.cpp \
-    customwidget.cpp
+    ellipse.cpp \
+    circle.cpp \
+    arc.cpp
 
 HEADERS += \
         debug.h \
@@ -59,14 +62,17 @@ HEADERS += \
     dxflib/dl_attributes.h \
     dxffilter.h \
     mydxfentities.h \
+    configure.h \
+    configuredialog.h \
+    customwidget.h \
     view.h \
     scene.h \
     shape.h \
     line.h \
     rect.h \
-    configure.h \
-    configuredialog.h \
-    customwidget.h
+    ellipse.h \
+    circle.h \
+    arc.h
 
 FORMS += \
         mainwindow.ui \

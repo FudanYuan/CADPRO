@@ -13,8 +13,7 @@ public:
     Line(QGraphicsItem *parent=0);
     void startDraw(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 开始绘图
     void drawing(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 绘图开始
-    void setPenStyle(PenStyle penStyle) Q_DECL_OVERRIDE;  // 设置实体类型
-    void setEntityUnderCursorStyle(PenStyle underCursorStyle) Q_DECL_OVERRIDE;  // 设置光标下类型
+    bool updateFlag(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
 
 protected:
