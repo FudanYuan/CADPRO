@@ -224,7 +224,7 @@ void Configure::readConfigOffset(QSettings *settings)
 
 void Configure::writeConfigLanguage(QSettings *settings)
 {
-    settings->setValue("language", QVariant(Language::Chinese));
+    settings->setValue("language", QVariant(Chinese));
 }
 
 void Configure::readConfigLanguage(QSettings *settings)

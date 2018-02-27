@@ -275,7 +275,7 @@ QPointF Arc::getArcCenter(QPointF p1, QPointF p2, QPointF p3, qreal &r)
     if (qAbs(xy)<0.000001)
     {
         qDebug() << "qAbs(xy)<0.000001";
-        //QMessageBox::warning(this,"错误", "r<0.00001");
+        QMessageBox::warning(NULL, tr("错误"), "qAbs(xy)<0.000001", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
         overFlag = true;
         return QPointF(0, 0);
     }
@@ -287,7 +287,7 @@ QPointF Arc::getArcCenter(QPointF p1, QPointF p2, QPointF p3, qreal &r)
     if (r<0.000001)
     {
         qDebug() << "r<0.000001";
-        //QMessageBox::warning(this,"错误", "r<0.00001");
+        QMessageBox::warning(NULL, tr("错误"), "r<0.000001", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
         overFlag = true;
         return QPointF(0, 0);
     }

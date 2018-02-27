@@ -93,18 +93,18 @@ void ConfigureDialog::onChanged(QString key, QVariant value)
     qDebug() << res << " " << key << " " << value;
 #endif
     if(res == -1){
-        KeyValue keyValue(key, value);
+        Configure::KeyValue keyValue(key, value);
         keyValueList.append(keyValue);
     } else{
         //keyValueList.at(res).setValue(value);
 
         // 暂时以这种方式解决
-        KeyValue keyValue(key, value);
+        Configure::KeyValue keyValue(key, value);
         keyValueList.append(keyValue);
     }
 }
 
-EntityStyleTab::EntityStyleTab(EntityStyle &eStyle, QWidget *parent) :
+EntityStyleTab::EntityStyleTab(Configure::EntityStyle &eStyle, QWidget *parent) :
     CustomTabWidget(parent)
 {
     // group box
@@ -369,10 +369,10 @@ EntityStyleTab::EntityStyleTab(EntityStyle &eStyle, QWidget *parent) :
     QLabel *labelInterLineStyle = new QLabel(tr("内线类型"));
 
     ComboBox *interLineStyle = new ComboBox(tr("eStyle/eStyle_interLineStyle"), this);
-    interLineStyle->addItem(tr("标记"), QVariant((int)InterLineStyle::mark));
-    interLineStyle->addItem(tr("切割"), QVariant((int)InterLineStyle::cut));
-    interLineStyle->addItem(tr("缝线"), QVariant((int)InterLineStyle::stitch));
-    interLineStyle->addItem(tr("通用"), QVariant((int)InterLineStyle::generic));
+    interLineStyle->addItem(tr("标记"), QVariant((int)Configure::mark));
+    interLineStyle->addItem(tr("切割"), QVariant((int)Configure::cut));
+    interLineStyle->addItem(tr("缝线"), QVariant((int)Configure::stitch));
+    interLineStyle->addItem(tr("通用"), QVariant((int)Configure::generic));
     interLineStyle->setCurrentIndex((int)eStyle.interLineStyle);
     connect(interLineStyle, &ComboBox::customActivated, this, &EntityStyleTab::onComboBoxChanged);
 
@@ -431,7 +431,7 @@ EntityStyleTab::EntityStyleTab(EntityStyle &eStyle, QWidget *parent) :
     setLayout(mainLayout);
 }
 
-AxesGridTab::AxesGridTab(AxesGrid &axesGrid, QWidget *parent) :
+AxesGridTab::AxesGridTab(Configure::AxesGrid &axesGrid, QWidget *parent) :
     CustomTabWidget(parent)
 {
     // group box
@@ -454,8 +454,8 @@ AxesGridTab::AxesGridTab(AxesGrid &axesGrid, QWidget *parent) :
     connect(showAxes, &CheckBox::customStateChanged, this, &AxesGridTab::onCheckChanged);
 
     ComboBox *axesType = new ComboBox(tr("axesGrid/axesGrid_axesType"), this);
-    axesType->addItem(tr("小"), QVariant((int)AxesType::small));
-    axesType->addItem(tr("大"), QVariant((int)AxesType::large));
+    axesType->addItem(tr("小"), QVariant((int)Configure::small));
+    axesType->addItem(tr("大"), QVariant((int)Configure::large));
     axesType->setCurrentIndex(axesGrid.axes.axesType);
     connect(axesType, &ComboBox::customActivated, this, &AxesGridTab::onComboBoxChanged);
 
@@ -510,9 +510,9 @@ AxesGridTab::AxesGridTab(AxesGrid &axesGrid, QWidget *parent) :
     connect(showGrid, &CheckBox::customStateChanged, this, &AxesGridTab::onCheckChanged);
 
     ComboBox *gridType = new ComboBox(tr("axesGrid/axesGrid_gridType"), this);
-    gridType->addItem(tr("矩形"), QVariant((int)GridType::rectangular));
-    gridType->addItem(tr("交叉"), QVariant((int)GridType::across));
-    gridType->addItem(tr("节点"), QVariant((int)GridType::node));
+    gridType->addItem(tr("矩形"), QVariant((int)Configure::rectangular));
+    gridType->addItem(tr("交叉"), QVariant((int)Configure::across));
+    gridType->addItem(tr("节点"), QVariant((int)Configure::node));
     gridType->setCurrentIndex(axesGrid.grid.gridType);
     connect(gridType, &ComboBox::customActivated, this, &AxesGridTab::onComboBoxChanged);
 
@@ -570,13 +570,13 @@ AxesGridTab::AxesGridTab(AxesGrid &axesGrid, QWidget *parent) :
     setLayout(mainLayout);
 }
 
-OffsetTab::OffsetTab(QList<Offset> &offset, QWidget *parent) :
+OffsetTab::OffsetTab(QList<Configure::Offset> &offset, QWidget *parent) :
     CustomTabWidget(parent)
 {
 
 }
 
-LanguageTab::LanguageTab(Language &language, QWidget *parent) :
+LanguageTab::LanguageTab(Configure::Language &language, QWidget *parent) :
     CustomTabWidget(parent)
 {
 

@@ -35,10 +35,10 @@ public:
 
     void setDrawable(bool flag);  // 设置开始标识
 
-    void setEntityStyle(EntityStyle eStyle);  // 设置实体样式
-    EntityStyle getEntityStyle();  // 获取实体样式
+    void setEntityStyle(Configure::EntityStyle eStyle);  // 设置实体样式
+    Configure::EntityStyle getEntityStyle();  // 获取实体样式
 
-    void setAxesGrid(AxesGrid axesGrid);  // 设置网格坐标轴
+    void setAxesGrid(Configure::AxesGrid axesGrid);  // 设置网格坐标轴
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
@@ -67,8 +67,8 @@ private:
     qreal scaleFactor;  // 缩放因子
 
     // 配置文件
-    EntityStyle eStyle;  // 实体类型
-    AxesGrid axesGrid;  // 坐标网格
+    Configure::EntityStyle eStyle;  // 实体类型
+    Configure::AxesGrid axesGrid;  // 坐标网格
 
 signals:
     void sceneScaleChanged(qreal scaleFactor);  // scene缩放事件

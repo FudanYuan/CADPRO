@@ -20,17 +20,17 @@ void Shape::setMoveable(bool moveable)
     emit sceneMoveableChanged(moveable);
 }
 
-void Shape::setPenStyle(PenStyle penStyle)
+void Shape::setPenStyle(Configure::PenStyle penStyle)
 {
     this->penStyle = penStyle;
 }
 
-void Shape::setEntityUnderCursorStyle(PenStyle underCursorStyle)
+void Shape::setEntityUnderCursorStyle(Configure::PenStyle underCursorStyle)
 {
     this->underCursorStyle = underCursorStyle;
 }
 
-void Shape::setSelectStyle(PenStyle selectedEntity)
+void Shape::setSelectStyle(Configure::PenStyle selectedEntity)
 {
     this->selectedEntity = selectedEntity;
 }

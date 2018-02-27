@@ -30,7 +30,7 @@ class EntityStyleTab : public CustomTabWidget
 {
     Q_OBJECT
 public:
-    explicit EntityStyleTab(EntityStyle &eStyle, QWidget *parent = 0);
+    explicit EntityStyleTab(Configure::EntityStyle &eStyle, QWidget *parent = 0);
 };
 //! [0]
 
@@ -40,7 +40,7 @@ class AxesGridTab : public CustomTabWidget
 {
     Q_OBJECT
 public:
-    explicit AxesGridTab(AxesGrid &axesGrid, QWidget *parent = 0);
+    explicit AxesGridTab(Configure::AxesGrid &axesGrid, QWidget *parent = 0);
 };
 //! [1]
 
@@ -50,7 +50,7 @@ class OffsetTab : public CustomTabWidget
 {
     Q_OBJECT
 public:
-    explicit OffsetTab(QList<Offset> &offset, QWidget *parent = 0);
+    explicit OffsetTab(QList<Configure::Offset> &offset, QWidget *parent = 0);
 };
 //! [2]
 
@@ -60,7 +60,7 @@ class LanguageTab : public CustomTabWidget
 {
     Q_OBJECT
 public:
-    explicit LanguageTab(Language &language, QWidget *parent = 0);
+    explicit LanguageTab(Configure::Language &language, QWidget *parent = 0);
 };
 //! [3]
 
@@ -76,11 +76,11 @@ public:
 private:
     Ui::ConfigureDialog *ui;
     QTabWidget *tabWidget;
-    QList<KeyValue> keyValueList;
+    QList<Configure::KeyValue> keyValueList;
     QDialogButtonBox *buttonBox;
 
 signals:
-    void changed(QList<KeyValue>);
+    void changed(QList<Configure::KeyValue>);
 public slots:
     void accept();
     void reject();

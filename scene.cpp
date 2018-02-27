@@ -66,17 +66,17 @@ void Scene::setDrawable(bool flag)
     this->drawable = flag;
 }
 
-void Scene::setEntityStyle(EntityStyle eStyle)
+void Scene::setEntityStyle(Configure::EntityStyle eStyle)
 {
     this->eStyle = eStyle;
 }
 
-EntityStyle Scene::getEntityStyle()
+Configure::EntityStyle Scene::getEntityStyle()
 {
     return this->eStyle;
 }
 
-void Scene::setAxesGrid(AxesGrid axesGrid)
+void Scene::setAxesGrid(Configure::AxesGrid axesGrid)
 {
     this->axesGrid = axesGrid;
 }

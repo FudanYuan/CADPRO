@@ -1331,7 +1331,7 @@ void MainWindow::initDockWidget()
 void MainWindow::initConfiguration()
 {
     qDebug() << "初始化配置文件";
-    if(configCopy) delete configCopy;
+//    if(configCopy) delete configCopy;
     configCopy = new Configure(this);
     connect(this, &MainWindow::configChanged, configCopy, &Configure::onConfigChanged);
     action_view_xy_axes->setChecked(configCopy->axesGrid.axes.showAxes);

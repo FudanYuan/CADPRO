@@ -29,9 +29,9 @@ public:
     virtual void startDraw(QGraphicsSceneMouseEvent * event) = 0;
     virtual void drawing(QGraphicsSceneMouseEvent * event) = 0;
     virtual bool updateFlag(QGraphicsSceneMouseEvent *event) = 0;  // 更新标识
-    void setPenStyle(PenStyle penStyle);  // 设置实体类型
-    void setEntityUnderCursorStyle(PenStyle underCursorStyle);  // 设置光标下类型
-    void setSelectStyle(PenStyle selectedEntity);  // 选择实体类型
+    void setPenStyle(Configure::PenStyle penStyle);  // 设置实体类型
+    void setEntityUnderCursorStyle(Configure::PenStyle underCursorStyle);  // 设置光标下类型
+    void setSelectStyle(Configure::PenStyle selectedEntity);  // 选择实体类型
 
     void setShapeId(int id);  // 设置实体id
     int getShapeId();  // 获取实体id
@@ -58,9 +58,9 @@ protected:
     bool selected;  // 选中标识
 
     int id;  // 编号
-    PenStyle penStyle;  // 属性
-    PenStyle underCursorStyle;  // 光标下属性
-    PenStyle selectedEntity;  // 选中属性
+    Configure::PenStyle penStyle;  // 属性
+    Configure::PenStyle underCursorStyle;  // 光标下属性
+    Configure::PenStyle selectedEntity;  // 选中属性
 
     QString layer;  // 图层名称
     ShapeType shape;  // 类型
