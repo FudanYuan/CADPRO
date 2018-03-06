@@ -8,11 +8,11 @@
 #include <QString>
 #include <QList>
 
-class Project : public QWidget
+class Project : public QObject
 {
     Q_OBJECT
 public:
-    explicit Project(QWidget *parent = 0);
+    explicit Project(QObject *parent = 0);
 
     void setName(QString name);  // 设置项目名称
     void changeName(QString name);  // 更改项目名称

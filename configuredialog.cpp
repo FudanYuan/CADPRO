@@ -245,6 +245,12 @@ EntityStyleTab::EntityStyleTab(Configure::EntityStyle &eStyle, QWidget *parent) 
 
     entityLayout->addWidget(labelNotchColor, 7, 0, 1, 2);
     entityLayout->addWidget(notchColor, 7, 2, 1, 2);
+
+    entityLayout->addItem(new QSpacerItem(entityGroupBox->width(),
+                                             entityGroupBox->height(),
+                                             QSizePolicy::Expanding,
+                                             QSizePolicy::Expanding),
+                             7, 0, 1, 4);
     entityGroupBox->setLayout(entityLayout);
     //! [实体]
 
@@ -307,6 +313,11 @@ EntityStyleTab::EntityStyleTab(Configure::EntityStyle &eStyle, QWidget *parent) 
     moreColorLayout->addWidget(labelHiddenEntity, 4, 0, 1, 2);
     moreColorLayout->addWidget(hiddenEntityColor, 4, 2, 1, 2);
 
+    moreColorLayout->addItem(new QSpacerItem(moreColorGroupBox->width(),
+                                             moreColorGroupBox->height(),
+                                             QSizePolicy::Expanding,
+                                             QSizePolicy::Expanding),
+                             5, 0, 1, 4);
     moreColorGroupBox->setLayout(moreColorLayout);
     //! [更多颜色]
 
@@ -329,6 +340,11 @@ EntityStyleTab::EntityStyleTab(Configure::EntityStyle &eStyle, QWidget *parent) 
 
     objectLayout->addWidget(labelSnap, 1, 0, 1, 3);
     objectLayout->addWidget(snapLineEdit, 1, 3, 1, 1);
+    objectLayout->addItem(new QSpacerItem(objectSizeGroupBox->width(),
+                                             objectSizeGroupBox->height(),
+                                             QSizePolicy::Expanding,
+                                             QSizePolicy::Expanding),
+                             2, 0, 1, 4);
     objectSizeGroupBox->setLayout(objectLayout);
     //! [对象大小]
 
@@ -360,6 +376,11 @@ EntityStyleTab::EntityStyleTab(Configure::EntityStyle &eStyle, QWidget *parent) 
     referencePointLayout->addWidget(labelReferenceTextHeightInPix, 2, 0, 1, 3);
     referencePointLayout->addWidget(referenceTextHeightInPix, 2, 3, 1, 1);
 
+    referencePointLayout->addItem(new QSpacerItem(referencePointGroupBox->width(),
+                                             referencePointGroupBox->height(),
+                                             QSizePolicy::Expanding,
+                                             QSizePolicy::Expanding),
+                             3, 0, 1, 4);
     referencePointGroupBox->setLayout(referencePointLayout);
     //! [参考点]
 
@@ -379,6 +400,12 @@ EntityStyleTab::EntityStyleTab(Configure::EntityStyle &eStyle, QWidget *parent) 
     interLineStyleLayout->addWidget(labelInterLineStyle, 0, 0, 1, 2);
     interLineStyleLayout->addWidget(interLineStyle, 0, 2, 1, 1);
 
+    interLineStyleLayout->addItem(new QSpacerItem(findPerimeterLineGroupBox->width(),
+                                             findPerimeterLineGroupBox->height(),
+                                             QSizePolicy::Expanding,
+                                             QSizePolicy::Expanding),
+                             1, 0, 1, 4);
+
     findPerimeterLineGroupBox->setLayout(interLineStyleLayout);
     //! [查找周长线]
 
@@ -393,6 +420,12 @@ EntityStyleTab::EntityStyleTab(Configure::EntityStyle &eStyle, QWidget *parent) 
 
     lineTypeLayout->addWidget(labelLineType, 0, 0, 1, 3);
     lineTypeLayout->addWidget(lineTypeCheck, 0, 3, 1, 1);
+
+    lineTypeLayout->addItem(new QSpacerItem(lineStyleGroupBox->width(),
+                                             lineStyleGroupBox->height(),
+                                             QSizePolicy::Expanding,
+                                             QSizePolicy::Expanding),
+                             1, 0, 1, 4);
 
     lineStyleGroupBox->setLayout(lineTypeLayout);
     //! [线型]
@@ -417,6 +450,12 @@ EntityStyleTab::EntityStyleTab(Configure::EntityStyle &eStyle, QWidget *parent) 
     projectWindowLayout->addWidget(labelBasicSize, 1, 0, 1, 2);
     projectWindowLayout->addWidget(basicSizeColor, 1, 2, 1, 1);
 
+    projectWindowLayout->addItem(new QSpacerItem(projectWindowGroupBox->width(),
+                                             projectWindowGroupBox->height(),
+                                             QSizePolicy::Expanding,
+                                             QSizePolicy::Expanding),
+                             2, 0, 1, 4);
+
     projectWindowGroupBox->setLayout(projectWindowLayout);
     //! [项目窗口颜色]
 
@@ -428,6 +467,12 @@ EntityStyleTab::EntityStyleTab(Configure::EntityStyle &eStyle, QWidget *parent) 
     mainLayout->addWidget(findPerimeterLineGroupBox, 7, 4, 3, 2);
     mainLayout->addWidget(lineStyleGroupBox, 10, 4, 2, 2);
     mainLayout->addWidget(projectWindowGroupBox, 12, 4, 4, 2);
+//    mainLayout->addItem(new QSpacerItem(parent->width()/12, parent->height(),
+//                                        QSizePolicy::Expanding, QSizePolicy::Expanding),
+//                        0, 7, 16, 1);
+    mainLayout->addItem(new QSpacerItem(parent->width(), parent->height()/16,
+                                        QSizePolicy::Expanding, QSizePolicy::Expanding),
+                        17, 0, 1, 6);
     setLayout(mainLayout);
 }
 
@@ -493,6 +538,12 @@ AxesGridTab::AxesGridTab(Configure::AxesGrid &axesGrid, QWidget *parent) :
     axesStyleLayout->addWidget(labelAxesSize, 5, 0, 1, 2);
     axesStyleLayout->addWidget(axesSize, 5, 2, 1, 1);
 
+    axesStyleLayout->addItem(new QSpacerItem(axesStyleGroupBox->width(),
+                                             axesStyleGroupBox->height(),
+                                             QSizePolicy::Expanding,
+                                             QSizePolicy::Expanding),
+                             6, 0, 1, 3);
+
     axesStyleGroupBox->setLayout(axesStyleLayout);
     //! [轴样式]
 
@@ -543,7 +594,11 @@ AxesGridTab::AxesGridTab(Configure::AxesGrid &axesGrid, QWidget *parent) :
     gridStyleLayout->addWidget(labelGridYStep, 4, 0, 1, 2);
     gridStyleLayout->addWidget(gridYStep, 4, 2, 1, 1);
 
-    gridStyleLayout->addItem(new QSpacerItem(gridStyleGroupBox->width(), gridStyleGroupBox->height(), QSizePolicy::Expanding, QSizePolicy::Expanding), 5, 0, 1, 3);
+    gridStyleLayout->addItem(new QSpacerItem(gridStyleGroupBox->width(),
+                                             gridStyleGroupBox->height(),
+                                             QSizePolicy::Expanding,
+                                             QSizePolicy::Expanding),
+                             5, 0, 1, 3);
     gridStyleGroupBox->setLayout(gridStyleLayout);
     //! [网格]
 
@@ -558,6 +613,11 @@ AxesGridTab::AxesGridTab(Configure::AxesGrid &axesGrid, QWidget *parent) :
     antiAliaisingLayout->addWidget(labelAntiAliaising, 0, 0, 1, 2);
     antiAliaisingLayout->addWidget(antiAliaising, 0, 2, 1, 1);
 
+    antiAliaisingLayout->addItem(new QSpacerItem(antiAliaisingGroupBox->width(),
+                                             antiAliaisingGroupBox->height(),
+                                             QSizePolicy::Expanding,
+                                             QSizePolicy::Expanding),
+                             1, 0, 1, 3);
     antiAliaisingGroupBox->setLayout(antiAliaisingLayout);
     //! [图形效果]
 

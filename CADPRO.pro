@@ -42,7 +42,11 @@ SOURCES += \
     rect.cpp \
     ellipse.cpp \
     circle.cpp \
-    arc.cpp
+    arc.cpp \
+    common.cpp \
+    point.cpp \
+    polyline.cpp \
+    painter.cpp
 
 HEADERS += \
         debug.h \
@@ -72,7 +76,11 @@ HEADERS += \
     rect.h \
     ellipse.h \
     circle.h \
-    arc.h
+    arc.h \
+    common.h \
+    point.h \
+    polyline.h \
+    painter.h
 
 FORMS += \
         mainwindow.ui \

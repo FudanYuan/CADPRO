@@ -51,10 +51,10 @@ void Line::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     // 比如我们之前设置线宽为 2 ，这里返回的线宽还是 2 ，但是当前的缩放比例变了；
     // 其实当前的线宽就相当于 penWidth * scaleFactor;
     // 所以如果我们想要让线宽保持不变，那就需要进行转换，即 penWidth = penWidth / scaleFactor;
-    QPen myPen = this->pen();
+    QPen pen = this->pen();
     // 重新设置画笔线宽;
-    myPen.setWidthF(myPen.widthF() / scaleFactor);
-    painter->setPen(myPen);
+    pen.setWidthF(pen.widthF() / scaleFactor);
+    painter->setPen(pen);
     painter->drawLine(this->line());
 }
 

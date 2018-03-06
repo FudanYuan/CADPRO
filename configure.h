@@ -15,7 +15,7 @@
 #define CONFG_FILE_PATH "config.ini"
 
 // 配置类，此配置类用于整个软件的配置
-class Configure : public QWidget
+class Configure : public QObject
 {
     Q_OBJECT
 public:
@@ -266,7 +266,7 @@ public:
         }
     };
 
-    explicit Configure(QWidget *parent=0);
+    explicit Configure(QObject *parent=0);
     ~Configure();
 
     EntityStyle eStyle;  // 实体样式
@@ -291,7 +291,9 @@ public:
     void writeConfigView(QSettings *settings);
     void readConfigView(QSettings *settings);
 
-    QColor intToColor(int rgb);  // 将int转化为QColor
+    static QColor intToColor(int rgb);  // 将int转化为QColor
+
+    static QColor intToColor(int rgb, bool a); // 将int转华为color
 
     static void updateConfig(QList<KeyValue> keyValue);
 

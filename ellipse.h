@@ -15,7 +15,7 @@ public:
     void drawing(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 绘图开始
     bool updateFlag(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
-
+    qreal getLineAngle(QPointF sPoint, QPointF ePoint);
 protected:
     //鼠标事件
     void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
@@ -34,6 +34,7 @@ protected:
 private:
     QPointF cPoint, sPoint, ePoint; // 圆心
     qreal r1, r2; // 半径1，2
+    qreal alpha;  // 旋转角度
     bool cFlag;  // 确定圆心
     bool r1Flag;  // 确定r1
     bool r2Flag;  // 确定r2

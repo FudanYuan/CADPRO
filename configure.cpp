@@ -4,8 +4,8 @@
 #include <QDebug>
 #include <debug.h>
 
-Configure::Configure(QWidget *parent) :
-    QWidget(parent)
+Configure::Configure(QObject *parent) :
+    QObject(parent)
 {
     settings = new QSettings(CONFG_FILE_PATH, QSettings::IniFormat);
     readConfig(settings);
@@ -261,6 +261,19 @@ QColor Configure::intToColor(int rgb)
     int green = rgb >> 8 & 255;
     int red = rgb >> 16 & 255;
     int alpha = rgb >> 24 & 255;
+    return QColor(red, green, blue, alpha);
+}
+
+QColor Configure::intToColor(int rgb, bool a)
+{
+    //将Color 从int 转换成 QColor
+    int blue = rgb & 255;
+    int green = rgb >> 8 & 255;
+    int red = rgb >> 16 & 255;
+    int alpha = 255;
+    if(a){
+        alpha = rgb >> 24 & 255;
+    }
     return QColor(red, green, blue, alpha);
 }
 

@@ -6,7 +6,8 @@
 #include <QDebug>
 
 Circle::Circle(QGraphicsItem *parent) :
-    QGraphicsEllipseItem(parent)
+    QGraphicsEllipseItem(parent),
+    filled(false)
 {
     setShapeType(Shape::Circle);
     // 设置图元为可焦点的
@@ -54,14 +55,20 @@ void Circle::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QW
     // 比如我们之前设置线宽为 2 ，这里返回的线宽还是 2 ，但是当前的缩放比例变了；
     // 其实当前的线宽就相当于 penWidth * scaleFactor;
     // 所以如果我们想要让线宽保持不变，那就需要进行转换，即 penWidth = penWidth / scaleFactor;
-    QPen myPen = this->pen();
+    QPen pen = this->pen();
     // 重新设置画笔线宽;
-    myPen.setWidthF(myPen.widthF() / scaleFactor);
-
-    painter->setPen(myPen);
+    pen.setWidthF(pen.widthF() / scaleFactor);
+    if(this->filled){
+        painter->setBrush(QBrush(penStyle.color, Qt::SolidPattern));
+    }
+    painter->setPen(pen);
     painter->drawEllipse(cPoint, r, r);
-    painter->setPen(myPen);
-    painter->drawPoint(cPoint);
+    drawCrossPoint(painter, cPoint, 5, upright);
+}
+
+void Circle::setFilled(bool filled)
+{
+    this->filled = filled;
 }
 
 void Circle::mousePressEvent(QGraphicsSceneMouseEvent *event)
@@ -75,6 +82,9 @@ void Circle::mousePressEvent(QGraphicsSceneMouseEvent *event)
         pen.setColor(selectedEntity.color);
         pen.setStyle(selectedEntity.style);
         pen.setWidthF(selectedEntity.width);
+        if(this->filled){
+            setBrush(QBrush(selectedEntity.color, Qt::SolidPattern));
+        }
         setPen(pen);
     }
     QGraphicsItem::mousePressEvent(event);
@@ -124,10 +134,16 @@ void Circle::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
             pen.setColor(underCursorStyle.color);
             pen.setStyle(underCursorStyle.style);
             pen.setWidthF(underCursorStyle.width);
+            if(this->filled){
+                setBrush(QBrush(underCursorStyle.color, Qt::SolidPattern));
+            }
         } else{
             pen.setColor(selectedEntity.color);
             pen.setStyle(selectedEntity.style);
             pen.setWidthF(selectedEntity.width);
+            if(this->filled){
+                setBrush(QBrush(selectedEntity.color, Qt::SolidPattern));
+            }
         }
         setPen(pen);
         setCursor(Qt::OpenHandCursor);
@@ -151,10 +167,16 @@ void Circle::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
             pen.setColor(penStyle.color);
             pen.setStyle(penStyle.style);
             pen.setWidthF(penStyle.width);
+            if(this->filled){
+                setBrush(QBrush(penStyle.color, Qt::SolidPattern));
+            }
         } else{
             pen.setColor(selectedEntity.color);
             pen.setStyle(selectedEntity.style);
             pen.setWidthF(selectedEntity.width);
+            if(this->filled){
+                setBrush(QBrush(selectedEntity.color, Qt::SolidPattern));
+            }
         }
         setPen(pen);
         QGraphicsItem::hoverLeaveEvent(event);

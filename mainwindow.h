@@ -290,7 +290,7 @@ private:
     QToolBar *tool_pattern;
 
     QLabel *mousePositionLabel;  //  鼠标坐标
-    bool DockNestingEnabled = true;
+    bool DockNestingEnabled;
     QDockWidget *dock_find_style;    // 浮动窗口1
     QDockWidget *dock_project;       // 浮动窗口2
     QDockWidget *dock_properties;    // 浮动窗口3

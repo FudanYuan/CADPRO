@@ -6,7 +6,11 @@
 #include <QDebug>
 
 Ellipse::Ellipse(QGraphicsItem *parent) :
-    QGraphicsEllipseItem(parent)
+    QGraphicsEllipseItem(parent),
+    alpha(0),
+    cFlag(false),
+    r1Flag(false),
+    r2Flag(false)
 {
     setShapeType(Shape::Ellipse);
     // 设置图元为可焦点的
@@ -33,11 +37,6 @@ void Ellipse::startDraw(QGraphicsSceneMouseEvent *event)
 
 void Ellipse::drawing(QGraphicsSceneMouseEvent *event)
 {
-    if(r2Flag){
-        Q_UNUSED(event);
-        update();
-        return;
-    }
     if(r1Flag){
         ePoint = event->scenePos();
         r2 = qSqrt((ePoint.rx() - cPoint.rx()) * (ePoint.rx() - cPoint.rx())
@@ -55,6 +54,7 @@ bool Ellipse::updateFlag(QGraphicsSceneMouseEvent *event)
 {
     if(!r1Flag){ // 确定r1
         sPoint = event->scenePos();
+        alpha = getLineAngle(cPoint, sPoint);
         r1 = qSqrt((sPoint.rx() - cPoint.rx()) * (sPoint.rx() - cPoint.rx())
                 + (sPoint.ry() - cPoint.ry()) * (sPoint.ry() - cPoint.ry()));
         r1Flag = true;
@@ -82,34 +82,106 @@ void Ellipse::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
     // 比如我们之前设置线宽为 2 ，这里返回的线宽还是 2 ，但是当前的缩放比例变了；
     // 其实当前的线宽就相当于 penWidth * scaleFactor;
     // 所以如果我们想要让线宽保持不变，那就需要进行转换，即 penWidth = penWidth / scaleFactor;
-    QPen myPen = this->pen();
+    QPen pen = this->pen();
     // 重新设置画笔线宽;
-    myPen.setWidthF(myPen.widthF() / scaleFactor);
+    pen.setWidthF(pen.widthF() / scaleFactor);
     if(r2Flag){
-        painter->setPen(myPen);
-        painter->drawPoint(cPoint);
-        painter->drawEllipse(cPoint, r1, r2);
+        painter->setPen(pen);
+        drawCrossPoint(painter, cPoint, 2, upright);
+
+        // 准圆半径：R = sqrt(r1*r1+r2*r2)；
+        // 准圆圆心：cPoint
+        // 外切矩形（旋转前, 绕椭圆中心旋转）
+        // topLeft: (cPoint.rx(), R)
+        // w: R*cos(theta)  0 <= theta <=  90
+        // h: R*sin(theta)
+        qreal R = qSqrt(qPow(r1, 2) + qPow(r2, 2));
+
+        qreal W = qAbs(R * qSin(alpha));
+        qreal H = qAbs(R * qCos(alpha));
+
+        if(alpha == 0){
+            W = 2 * r1;
+            H = 2 * r2;
+        } else if(alpha < 90){
+            W = 2 * R * qCos(alpha);
+            H = 2 * R * qSin(alpha);
+        } else if(alpha == 90){
+            W = 2 * r2;
+            H = 2 * r1;
+        }
+        painter->save();
+        painter->translate(cPoint);
+        painter->rotate(-alpha); //以中心点为中心，顺时针旋转alpha
+        painter->drawEllipse(QRect(-r1, -r2, 2*r1, 2*r2));
+        painter->restore();
+
+        setRect(QRect(cPoint.rx()-W/2, cPoint.ry()-H/2, W, H));
+//        painter->drawRect(QRect(cPoint.rx()-W/2, cPoint.ry()-H/2, W, H));
         return;
     }
     if(r1Flag){
-        painter->setPen(myPen);
-        painter->drawEllipse(cPoint, r1, r2);
-        myPen.setColor(Qt::black);
-        myPen.setStyle(Qt::DashLine);
-        painter->setPen(myPen);
-        painter->drawPoint(cPoint);
+        painter->setPen(pen);
+        drawCrossPoint(painter, cPoint, 2, upright);
+
+        if(r1 > r2){
+            qDebug() << "r1 > r2" << alpha;
+        } else{
+            qDebug() << "r1 < r2" << alpha;
+        }
+        painter->save();
+        painter->translate(cPoint);
+        painter->rotate(-alpha); //以原点为中心，顺时针旋转alpha度
+        painter->drawEllipse(QRect(-r1, -r2, 2*r1, 2*r2));
+        painter->restore();
+
+        pen.setColor(Qt::black);
+        pen.setStyle(Qt::DashLine);
+        painter->setPen(pen);
         painter->drawLine(cPoint, sPoint);
         painter->drawLine(cPoint, ePoint);
         return;
     }
     if(cFlag){ // 画直线
-        myPen.setColor(Qt::black);
-        myPen.setStyle(Qt::DashLine);
-        painter->setPen(myPen);
+        pen.setColor(Qt::black);
+        pen.setStyle(Qt::DashLine);
+        painter->setPen(pen);
         painter->drawPoint(cPoint);
         painter->drawLine(cPoint, sPoint);
         return;
     }
+}
+
+qreal Ellipse::getLineAngle(QPointF sPoint, QPointF ePoint)
+{
+    qreal X, Y;
+    qreal lineAngle = 0.0;
+    sPoint = transformY(sPoint);
+    ePoint = transformY(ePoint);
+    X = ePoint.rx() - sPoint.rx();
+    Y = ePoint.ry() - sPoint.ry();
+    if (X > 0 && Y >= 0)  // 第一象限
+    {
+        lineAngle = qAtan(Y / X);
+    }
+    else if (X < 0 && Y >= 0) // 第二象限
+    {
+        lineAngle = M_PI + qAtan(Y / X);
+    }
+    else if (X < 0 && Y <= 0) // 第三象限
+    {
+        lineAngle = M_PI + qAtan(Y / X);
+    }
+    else if (X > 0 && Y <= 0)  // 第四象限
+    {
+        lineAngle = 2 * M_PI + qAtan(Y / X);
+    }
+    else if (X == 0)
+    {
+        lineAngle = M_PI_2;
+    }
+    // 返回degree
+    return lineAngle * 180.0 / M_PI;
 }
 
 void Ellipse::mousePressEvent(QGraphicsSceneMouseEvent *event)

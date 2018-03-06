@@ -1,27 +1,32 @@
-#ifndef ARC_H
-#define ARC_H
+#ifndef POLYLINE_H
+#define POLYLINE_H
 
-#include <QGraphicsEllipseItem>
+#include <QGraphicsPathItem>
 #include <QGraphicsSceneMouseEvent>
 #include "shape.h"
 #include <QPointF>
 
-class Arc : public Shape, public QGraphicsEllipseItem
+//!
+//! 折线类，所有的多边形、曲线、
+//! \brief The PolyLine class
+//!
+class PolyLine : public Shape, public QGraphicsPathItem
 {
     Q_OBJECT
 public:
-    enum ArcType{
-        normal,
-        updated
+    enum Type{
+        line,
+        curve,
+        cubic
     };
-    Arc(QGraphicsItem *parent=0);
+    PolyLine(QGraphicsItem *parent=0);
     void startDraw(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 开始绘图
     void drawing(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 绘图开始
     bool updateFlag(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
 
-    void setType(ArcType type);
-    ArcType getType();
+    void setType(Type type);
+    Type getType();
 protected:
     //鼠标事件
     void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
@@ -38,25 +43,11 @@ protected:
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) Q_DECL_OVERRIDE;
 
 private:
-    QPointF cPoint;  // 圆心
-    qreal r; // 半径
-    qreal sAngle;  // 开始角度
-    qreal eAngle;  // 结束角度
-    qreal angleRange;  // 跨度
-    QPointF fPoint, sPoint, tPoint; // 圆心, 第一点
-    ArcType type;
-    bool fFlag;  // 第一点确定
-    bool sFlag;  // 第二点确定
-    bool tFlag;  // 第三点确定
-    bool eFlag;  // 出错，三点同直线，画直线
-    QPointF getArcCenter(QPointF p1, QPointF p2, QPointF p3, qreal &r);
-    bool isClockWise(QPointF p1, QPointF p2, QPointF p3);
-    bool isClockWise(QPointF pc, QPointF p1, QPointF p2, QPointF p3);
-    QLineF getLine(QPointF p1, QPointF p2, QPointF p0);  // 判断是否在线段内
-    qreal getLineAngle(QPointF sPoint, QPointF ePoint);
-
+    QList<QPointF> points;  // 各个点的坐标
+    QPointF newPoint;  // 最后一个点
+    Type type;  // 类型
 public slots:
     void onSceneMoveableChanged(bool moveable) Q_DECL_OVERRIDE;  //  响应场景可移动性改变
 };
 
-#endif // ARC_H
+#endif // POLYLINE_H

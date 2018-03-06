@@ -27,7 +27,9 @@ QString Scene::getName()
 }
 
 void Scene::setCurShape(Shape::ShapeType curShape)
-{
+{  
+    this->setDrawable(true);
+    this->setMoveable(false);
     this->curShape = curShape;
 }
 
@@ -36,7 +38,7 @@ Shape::ShapeType Scene::getCurShape()
     return this->curShape;
 }
 
-int Scene::getitemListLength()
+int Scene::getitemListLength() const
 {
     return this->itemList.length();
 }
@@ -81,6 +83,14 @@ void Scene::setAxesGrid(Configure::AxesGrid axesGrid)
     this->axesGrid = axesGrid;
 }
 
+void Scene::addCustomLineItem(Line *line)
+{
+    line->setShapeId(getitemListLength()+1);
+    addItem(line);
+    itemList.append(line);
+    connect(line, &Shape::sceneMoveableChanged, line, &Line::onSceneMoveableChanged);
+}
+
 void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     // 左键可控制 画图、选择、移动、
@@ -111,7 +121,19 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                         break;
                     }
                     case Shape::Point:{
-                        curItem = NULL;
+                        Point *point = new Point;
+                        point->setShapeId(id+1);
+                        QPen pen = QPen();
+                        pen.setColor(eStyle.referPoint.color);
+                        pen.setStyle(Qt::SolidLine);
+                        pen.setWidthF(1);
+                        point->setPen(pen);
+                        point->setOffset(eStyle.referPoint.sizeInPix);
+                        point->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
+                        point->setSelectStyle(eStyle.selectedEntity);
+                        curItem = point;
+                        addItem(point);
+                        connect(point, &Shape::sceneMoveableChanged, point, &Point::onSceneMoveableChanged);
                         break;
                     }
                     case Shape::Line:
@@ -129,6 +151,7 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     case Shape::MiddleAxis:
                     {
                         Line *line = new Line;
+                        line->setShapeType(Shape::MiddleAxis);
                         line->setShapeId(id+1);
                         line->setPenStyle(eStyle.middleAxis);
                         line->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
@@ -136,6 +159,19 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                         curItem = line;
                         addItem(line);
                         connect(line, &Shape::sceneMoveableChanged, line, &Line::onSceneMoveableChanged);
+                        break;
+                    }
+                    case Shape::PolyLine:
+                    {
+                        PolyLine *polyLine = new PolyLine;
+                        polyLine->setType(PolyLine::cubic);
+                        polyLine->setShapeId(id+1);
+                        polyLine->setPenStyle(eStyle.perimeterLine);
+                        polyLine->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
+                        polyLine->setSelectStyle(eStyle.selectedEntity);
+                        curItem = polyLine;
+                        addItem(polyLine);
+                        connect(polyLine, &Shape::sceneMoveableChanged, polyLine, &PolyLine::onSceneMoveableChanged);
                         break;
                     }
                     case Shape::Rectangle:
@@ -166,6 +202,20 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     {
                         Circle *circle = new Circle;
                         circle->setShapeId(id+1);
+                        circle->setFilled(false);
+                        circle->setPenStyle(eStyle.cut);
+                        circle->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
+                        circle->setSelectStyle(eStyle.selectedEntity);
+                        curItem = circle;
+                        addItem(circle);
+                        connect(circle, &Shape::sceneMoveableChanged, circle, &Circle::onSceneMoveableChanged);
+                        break;
+                    }
+                    case Shape::Hole:
+                    {
+                        Circle *circle = new Circle;
+                        circle->setShapeId(id+1);
+                        circle->setFilled(true);
                         circle->setPenStyle(eStyle.cut);
                         circle->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
                         circle->setSelectStyle(eStyle.selectedEntity);
@@ -189,6 +239,7 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     case Shape::Arc2:
                     {
                         Arc *arc = new Arc;
+                        arc->setType(Arc::updated);
                         arc->setShapeId(id+1);
                         arc->setPenStyle(eStyle.cut);
                         arc->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
@@ -203,7 +254,12 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     if(curItem && !drawing && !moveable) {
                         itemList.append(curItem);
                         curItem->startDraw(event);
-                        drawing = true;
+                        if(getCurShape() == Shape::Point){
+                            drawing = false;
+                            update();
+                        } else {
+                            drawing = true;
+                        }
                         modified = true;
                         emit sceneItemsChanged();
                     }
@@ -221,13 +277,18 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
         if(drawing){
             drawing = false;
         }
+
         if(curItem){
-            curItem->setOverFlag(true);
+            if(getCurShape() == Shape::PolyLine && !curItem->getOverFlag()){
+                curItem->setOverFlag(true);
+                return;
+            } else{
+                curItem->setOverFlag(true);
+            }
         }
         if(moveable){
             moveable = false;
         }
-
         drawable = !drawable;
         for(int i=0; i<itemList.length();i++){
             itemList.at(i)->setSelectable(!drawable);
@@ -249,8 +310,8 @@ void Scene::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     if(curItem && drawing) {
         curItem->drawing(event);
     }
-    QGraphicsScene::mouseMoveEvent(event);
     update();
+    QGraphicsScene::mouseMoveEvent(event);
 }
 
 void Scene::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
@@ -311,19 +372,32 @@ void Scene::drawBackground(QPainter *painter, const QRectF &rect)
         QPen pen = QPen();
         pen.setWidthF(0);
         pen.setColor(axesGrid.axes.xAxisColor);
+        pen.setJoinStyle(Qt::MiterJoin);
         painter->setPen(pen);
 
-        QLineF lineX(QPointF(0,0),QPointF(10,0));
-        painter->drawLine(lineX);
+        QBrush brush = QBrush();
+        brush.setColor(axesGrid.axes.xAxisColor);
+        brush.setStyle(Qt::SolidPattern);
+        painter->setBrush(brush);
+
+        QPointF xPos = QPointF(axesGrid.axes.axisSizeInPix,0);
+        QLineF lineX(QPointF(0,0), xPos);
+        drawLineWithArrow(painter, lineX, axesGrid.axes.arrowSizeInPix);
         painter->drawText(10, 0, 20, 20, Qt::AlignLeft | Qt::AlignTop, tr("x"));
 
         // 画y轴
         pen.setWidthF(0);
         pen.setColor(axesGrid.axes.yAxisColor);
+        pen.setJoinStyle(Qt::MiterJoin);
         painter->setPen(pen);
 
-        QLineF lineY(QPointF(0,0),QPointF(0,-10));
-        painter->drawLine(lineY);
+        brush.setColor(axesGrid.axes.yAxisColor);
+        brush.setStyle(Qt::SolidPattern);
+        painter->setBrush(brush);
+
+        QPointF yPos = QPointF(0,-axesGrid.axes.axisSizeInPix);
+        QLineF lineY(QPointF(0,0), yPos);
+        drawLineWithArrow(painter, lineY, axesGrid.axes.arrowSizeInPix);
         painter->drawText(-10, -20, 20, 20, Qt::AlignLeft | Qt::AlignTop, tr("y"));
     }
     painter->restore();

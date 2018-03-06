@@ -16,6 +16,8 @@ public:
     bool updateFlag(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
 
+    void setFilled(bool filled);  // 设置填充
+    bool isFilled() const;  // 是否填充
 protected:
     //鼠标事件
     void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
@@ -34,6 +36,7 @@ protected:
 private:
     QPointF cPoint, sPoint; // 圆心
     qreal r; // 半径
+    bool filled;  // 设置填充
 public slots:
     void onSceneMoveableChanged(bool moveable) Q_DECL_OVERRIDE;  //  响应场景可移动性改变
 };

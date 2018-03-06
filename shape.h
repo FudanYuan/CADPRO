@@ -3,6 +3,9 @@
 
 #include <QObject>
 #include <QGraphicsSceneMouseEvent>
+#include <QPainter>
+#include <QPointF>
+#include "common.h"
 #include "configure.h"
 
 class Shape : public QObject
@@ -12,16 +15,21 @@ public:
     // 枚举变量，几个图形的选择
     enum ShapeType {
         None,
-        Point,
-        Line,
-        MiddleAxis,
-        PolyLine,
-        Rectangle,
-        Ellipse,
-        Circle,
-        Arc,
-        Arc2,
-        Polygon
+        Point, // 点
+        Line,  // 线
+        Direction,  // 方向轴
+        MiddleAxis, // 中心轴
+        PolyLine,   // 中心轴
+        Rectangle,  // 矩形
+        Ellipse,    // 椭圆
+        Circle,     // 圆
+        Arc,        // 弧1
+        Arc2,       // 弧2
+        Polygon,    // 多边形
+        Hole,       // 冲孔
+        Eyelet,     // 鸡眼（形似操场）
+        Text,       // 文本
+        image,      // 图像
     };
     Shape();
     void setScaleFactor(qreal scaleFactor);
@@ -50,6 +58,7 @@ public:
 
     void setSelected(bool selected);  // 设置选中
     bool isSelected() const;  // 是否选中
+
 protected:
     qreal scaleFactor;  // 缩放因子
     bool moveable;  // 是否可移动

@@ -1,14 +1,19 @@
-#include "arc.h"
+﻿#include "arc.h"
 #include <QCursor>
 #include <QPainter>
 #include <QPainterPath>
 #include <QPen>
 #include <QtCore/qmath.h>
 #include <QDebug>
-#include <QMessageBox>
 
 Arc::Arc(QGraphicsItem *parent) :
-    QGraphicsEllipseItem(parent)
+    QGraphicsEllipseItem(parent),
+    type(normal),
+    fFlag(false),
+    sFlag(false),
+    tFlag(false),
+    eFlag(false)
+
 {
     setShapeType(Shape::Ellipse);
     // 设置图元为可焦点的
@@ -35,47 +40,50 @@ void Arc::startDraw(QGraphicsSceneMouseEvent *event)
 
 void Arc::drawing(QGraphicsSceneMouseEvent *event)
 {
-    if(tFlag){
-        Q_UNUSED(event);
-        // 计算圆心、半径
-        cPoint = getArcCenter(fPoint, tPoint, sPoint, r);
-        if(cPoint.isNull()){
-            qDebug() << "QPointF(0,0)";
-            return;
-        }
-        setRect(cPoint.rx()-r, cPoint.ry()-r, r*2, r*2);
-        // 计算起点角度和终点角度
-        if (isClockWise(cPoint, fPoint, tPoint, sPoint)){
-            qDebug() << "顺时针";
-            sAngle = getLineAngle(cPoint, sPoint) - 360.0;
-            eAngle = getLineAngle(cPoint, fPoint);
-        } else {
-            qDebug() << "逆时针";
-            sAngle = getLineAngle(cPoint, fPoint);
-            eAngle = getLineAngle(cPoint, sPoint);
-        }
-        update();
-        return;
-    }
     if(sFlag){
+        eFlag = false;
         tPoint = event->scenePos();
         // 计算圆心、半径
         cPoint = getArcCenter(fPoint, tPoint, sPoint, r);
-        if(cPoint.isNull()){
-            qDebug() << "QPointF(0,0)";
+
+        // 如果三点共线，则画直线
+        if(r == -1){
+            eFlag = true;
+            qDebug() << "三点共线";
+            update();
             return;
         }
         setRect(cPoint.rx()-r, cPoint.ry()-r, r*2, r*2);
         // 计算起点角度和终点角度
-        if (isClockWise(cPoint, fPoint, tPoint, sPoint)){
-            qDebug() << "顺时针";
-            sAngle = getLineAngle(cPoint, sPoint) - 360.0;
-            eAngle = getLineAngle(cPoint, fPoint);
-        } else {
-            qDebug() << "逆时针";
-            sAngle = getLineAngle(cPoint, fPoint);
-            eAngle = getLineAngle(cPoint, sPoint);
+        switch (type) {
+        case normal:
+            if (isClockWise(fPoint, tPoint, sPoint)){
+                // 顺时针
+                sAngle = getLineAngle(cPoint, sPoint);
+                eAngle = getLineAngle(cPoint, fPoint);
+            } else {
+                // 逆时针
+                sAngle = getLineAngle(cPoint, fPoint);
+                eAngle = getLineAngle(cPoint, sPoint);
+            }
+            break;
+        case updated:
+            if (isClockWise(fPoint, sPoint, tPoint)){
+                // 顺时针
+                sAngle = getLineAngle(cPoint, tPoint);
+                eAngle = getLineAngle(cPoint, fPoint);
+            } else {
+                // 逆时针
+                sAngle = getLineAngle(cPoint, fPoint);
+                eAngle = getLineAngle(cPoint, tPoint);
+            }
+            break;
         }
+
+        if(eAngle - sAngle < 0){
+            eAngle += 360;
+        }
+        angleRange = eAngle - sAngle;
         update();
         return;
     }
@@ -89,7 +97,6 @@ bool Arc::updateFlag(QGraphicsSceneMouseEvent *event)
 {
     if(!sFlag){ // 确定第2个点
         sPoint = event->scenePos();
-        // 此处就可确定
         sFlag = true;
         update();
         return false;
@@ -112,58 +119,74 @@ void Arc::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidg
     // 比如我们之前设置线宽为 2 ，这里返回的线宽还是 2 ，但是当前的缩放比例变了；
     // 其实当前的线宽就相当于 penWidth * scaleFactor;
     // 所以如果我们想要让线宽保持不变，那就需要进行转换，即 penWidth = penWidth / scaleFactor;
-    QPen myPen = this->pen();
+    QPen pen = this->pen();
     // 重新设置画笔线宽;
-    myPen.setWidthF(myPen.widthF() / scaleFactor);
+    pen.setWidthF(pen.widthF() / scaleFactor);
+
     if(tFlag){
-        if(!overFlag){
-            qDebug() << cPoint << " " << sAngle << "   " << eAngle;
+        if(eFlag){
+            painter->setPen(pen);
+
+            QLineF line = getLine(fPoint, sPoint, tPoint);
+            if(line.isNull()){
+                qDebug() << "line.isNull";
+                return;
+            }
+            painter->drawLine(line);
+
+            painter->setBrush(QBrush(penStyle.color));
+            drawRectPoint(painter, line.p1(), 2);
+            drawRectPoint(painter, line.p2(), 2);
         }
-        painter->setPen(myPen);
-        painter->drawPoint(cPoint);
+        else{
+            painter->setPen(pen);
+            painter->drawPoint(cPoint);
+            drawCrossPoint(painter, cPoint, 5, upright);
+            painter->drawArc(rect(), sAngle*16, angleRange*16);
 
-        qreal x0 = cPoint.rx();
-        qreal y0 = cPoint.ry();
-        qreal x1 = cPoint.rx() - 5;
-        qreal x2 = cPoint.rx() + 5;
-        qreal y1 = cPoint.ry() - 5;
-        qreal y2 = cPoint.ry() + 5;
-        painter->drawLine(QPointF(x1, y0), QPointF(x2, y0));
-        painter->drawLine(QPointF(x0, y1), QPointF(x0, y2));
-
-        painter->drawArc(rect(), sAngle*16, (eAngle - sAngle)*16);
+//            drawRectPoint(painter, tPoint, 2);
+        }
         return;
     }
     if(sFlag){
-        if(!overFlag){
-            qDebug() << cPoint << " " << sAngle << "   " << eAngle;
+        // no error, draw arc
+        if(!eFlag){
+            painter->setPen(pen);
+            painter->drawArc(rect(), sAngle*16, angleRange*16);
+            drawCrossPoint(painter, cPoint, 5, upright);
         }
-        painter->setPen(myPen);
-        painter->drawPoint(cPoint);
-
-        qreal x0 = cPoint.rx();
-        qreal y0 = cPoint.ry();
-        qreal x1 = cPoint.rx() - 5;
-        qreal x2 = cPoint.rx() + 5;
-        qreal y1 = cPoint.ry() - 5;
-        qreal y2 = cPoint.ry() + 5;
-        painter->drawLine(QPointF(x1, y0), QPointF(x2, y0));
-        painter->drawLine(QPointF(x0, y1), QPointF(x0, y2));
-
-        painter->drawArc(rect(), sAngle*16, (eAngle - sAngle)*16);
-        myPen.setColor(Qt::black);
-        myPen.setStyle(Qt::DashLine);
-        painter->setPen(myPen);
+        // 画直线
+        pen.setColor(Qt::black);
+        pen.setStyle(Qt::DashLine);
+        painter->setPen(pen);
         painter->drawLine(fPoint, sPoint);
+
+        if(type == updated){
+            qDebug() << "updated";
+            pen.setColor(Qt::black);
+            pen.setStyle(Qt::DashLine);
+            painter->setPen(pen);
+            painter->drawLine(sPoint, tPoint);
+        }
         return;
     }
     if(fFlag){ // 画直线
-        myPen.setColor(Qt::black);
-        myPen.setStyle(Qt::DashLine);
-        painter->setPen(myPen);
+        pen.setColor(Qt::black);
+        pen.setStyle(Qt::DashLine);
+        painter->setPen(pen);
         painter->drawLine(fPoint, sPoint);
         return;
     }
+}
+
+void Arc::setType(Arc::ArcType type)
+{
+    this->type = type;
+}
+
+Arc::ArcType Arc::getType()
+{
+    return this->type;
 }
 
 void Arc::mousePressEvent(QGraphicsSceneMouseEvent *event)
@@ -220,6 +243,7 @@ void Arc::dropEvent(QGraphicsSceneDragDropEvent *event)
 
 void Arc::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
+    setCursor(Qt::ArrowCursor);
     if(selectable){
         QPen pen = QPen();
         if(!selected){
@@ -239,6 +263,7 @@ void Arc::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 
 void Arc::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
+    setCursor(Qt::ArrowCursor);
     if(selectable){
         setCursor(Qt::OpenHandCursor);
         QGraphicsItem::hoverMoveEvent(event);
@@ -247,6 +272,7 @@ void Arc::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 
 void Arc::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
+    setCursor(Qt::ArrowCursor);
     if(selectable){
         QPen pen = QPen();
         if(!selected){
@@ -274,9 +300,7 @@ QPointF Arc::getArcCenter(QPointF p1, QPointF p2, QPointF p3, qreal &r)
     // 判断参数有效性
     if (qAbs(xy)<0.000001)
     {
-        qDebug() << "qAbs(xy)<0.000001";
-        QMessageBox::warning(NULL, tr("错误"), "qAbs(xy)<0.000001", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
-        overFlag = true;
+        r = -1;
         return QPointF(0, 0);
     }
 
@@ -286,9 +310,7 @@ QPointF Arc::getArcCenter(QPointF p1, QPointF p2, QPointF p3, qreal &r)
     r = qSqrt((p1.rx() - cPointX) * (p1.rx() - cPointX) + (p1.ry() - cPointY) * (p1.ry() - cPointY));
     if (r<0.000001)
     {
-        qDebug() << "r<0.000001";
-        QMessageBox::warning(NULL, tr("错误"), "r<0.000001", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
-        overFlag = true;
+        r = -1;
         return QPointF(0, 0);
     }
 
@@ -296,23 +318,65 @@ QPointF Arc::getArcCenter(QPointF p1, QPointF p2, QPointF p3, qreal &r)
     return QPointF(cPointX, cPointY);
 }
 
-bool Arc::isClockWise(QPointF pc, QPointF p1, QPointF p2, QPointF p3)
+//!
+//! 判断是否顺时针方向
+//! \brief Arc::isClockWise
+//! \param pc
+//! \param p1
+//! \param p2
+//! \param p3
+//! \return
+//!
+bool Arc::isClockWise(QPointF p1, QPointF p2, QPointF p3)
 {
-//    qreal a1, a2, a3;
-//    a1 = getLineAngle(pc, p1);
-//    a2 = getLineAngle(pc, p2);
-//    a3 = getLineAngle(pc, p3);
-//    bool isClock = (a1 < a2) | (a2 < a3) | (a1 < a3);
-
     qreal res = (p2.rx() - p1.rx()) * (p3.ry() - p2.ry()) - (p2.ry() - p1.ry()) * (p3.rx() - p2.rx());
     bool isClock = res > 0;
     return isClock;
 }
 
+bool Arc::isClockWise(QPointF pc, QPointF p1, QPointF p2, QPointF p3)
+{
+    qreal a1, a2, a3;
+    a1 = getLineAngle(pc, p1);
+    a2 = getLineAngle(pc, p2);
+    a3 = getLineAngle(pc, p3);
+    bool isClock = (a1 < a2) | (a2 < a3) | (a1 < a3);
+    return isClock;
+}
+
+QLineF Arc::getLine(QPointF p1, QPointF p2, QPointF p3)
+{
+    int i = 0;
+    while(i++ < 3){
+        if (qMin(p1.rx() , p2.rx()) <= p3.rx()
+                && p3.rx() <= qMax(p1.rx() , p2.rx())
+                && qMin(p1.ry() , p2.ry()) <= p3.ry()
+                && p3.ry() <= qMax(p1.ry() , p2.ry())){
+            return QLineF(p1, p2);
+        }
+        else{
+            QPointF p = p1;
+            p1 = p2;
+            p2 = p3;
+            p3 = p;
+        }
+    }
+    return QLineF();
+}
+
+//!
+//! 返回两点的夹角[0, 360]
+//! \brief Arc::getLineAngle
+//! \param sPoint
+//! \param ePoint
+//! \return
+//!
 qreal Arc::getLineAngle(QPointF sPoint, QPointF ePoint)
 {
     qreal X, Y;
     qreal lineAngle = 0.0;
+    sPoint = transformY(sPoint);
+    ePoint = transformY(ePoint);
     X = ePoint.rx() - sPoint.rx();
     Y = ePoint.ry() - sPoint.ry();
     if (X > 0 && Y >= 0)  // 第一象限

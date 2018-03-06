@@ -1,13 +1,14 @@
-#include "rect.h"
+#include "point.h"
 #include <QCursor>
 #include <QPainter>
 #include <QPen>
+#include "qmath.h"
 #include <QDebug>
 
-Rect::Rect(QGraphicsItem *parent) :
-    QGraphicsRectItem(parent)
+Point::Point(QGraphicsItem *parent) :
+    QGraphicsItem(parent)
 {
-    setShapeType(Shape::Rectangle);
+    setShapeType(Shape::Point);
     // 设置图元为可焦点的
     setFlag(QGraphicsItem::ItemIsFocusable);
     // 设置图元为可移动的
@@ -18,33 +19,25 @@ Rect::Rect(QGraphicsItem *parent) :
     setAcceptHoverEvents(true);
 }
 
-void Rect::startDraw(QGraphicsSceneMouseEvent *event)
+void Point::startDraw(QGraphicsSceneMouseEvent *event)
 {
-    QPen pen = QPen();
-    pen.setColor(penStyle.color);
-    pen.setStyle(penStyle.style);
-    pen.setWidthF(penStyle.width);
-    setPen(pen);
-    topLeftPoint = event->scenePos();
-    setRect(QRectF(event->scenePos(), QSizeF(0, 0)));
-    overFlag = true;
+    pos = event->scenePos();
+    update();
+    overFlag = true;  // 马上就要结束
 }
 
-void Rect::drawing(QGraphicsSceneMouseEvent *event)
+void Point::drawing(QGraphicsSceneMouseEvent *event)
 {
-    bottomRightPoint = event->scenePos();
-    QRectF r(rect().topLeft(), QSizeF((event->scenePos().x() - rect().topLeft().x()),
-                                      (event->scenePos().y() - rect().topLeft().y())));
-    setRect(r);
+    Q_UNUSED(event);
 }
 
-bool Rect::updateFlag(QGraphicsSceneMouseEvent *event)
+bool Point::updateFlag(QGraphicsSceneMouseEvent *event)
 {
     Q_UNUSED(event);
     return overFlag;
 }
 
-void Rect::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void Point::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     Q_UNUSED(option);
     Q_UNUSED(widget);
@@ -57,36 +50,70 @@ void Rect::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     // 重新设置画笔线宽;
     pen.setWidthF(pen.widthF() / scaleFactor);
     painter->setPen(pen);
-    painter->drawRect(this->rect());
-/*
-//    QRect rect1(100, 100, 100, 100);
-//    QRect rect2(300, 100, 100, 100);
-
-//    painter->drawRect(rect1);
-//    rotateAndPaintRect(painter, rect1, 45);
-
-//    painter->drawRect(rect2);
-//    rotateAndPaintRect(painter, rect2, 15);
-//    rotateAndPaintRect(painter, rect2, 30);
-//    rotateAndPaintRect(painter, rect2, 45);
-//    rotateAndPaintRect(painter, rect2, 60);
-//    rotateAndPaintRect(painter, rect2, 75);
-*/
+    drawCrossPoint(painter, pos, offset, normal);
 }
 
-void Rect::rotateAndPaintRect(QPainter *painter, const QRect &rect, int angle) {
-
-    QRect rotatedRect(-rect.width()/2, -rect.height()/2, rect.width(), rect.height());
-    int cx = rect.x() + rect.width() / 2;
-    int cy = rect.y() + rect.height() / 2;
-    painter->save();
-    painter->translate(cx, cy);
-    painter->rotate(angle);
-    painter->drawRect(rotatedRect);
-    painter->restore();
+QRectF Point::boundingRect() const
+{
+    QPointF p = this->pos;
+    qDebug() << p.rx() << "   " << p.ry();
+    return QRectF(p.rx()-offset,
+                  p.ry()-offset,
+                  offset * 2,
+                  offset * 2);
 }
 
-void Rect::mousePressEvent(QGraphicsSceneMouseEvent *event)
+void Point::setOffset(int offset)
+{
+    this->offset = offset;
+}
+
+QPen Point::pen() const
+{
+    return pen_style;
+}
+
+void Point::setPen(const QPen &pen)
+{
+    this->pen_style = pen;
+}
+
+QPointF Point::point() const
+{
+    return this->pos;
+}
+
+void Point::setPoint(const QPointF &point)
+{
+    this->pos = point;
+}
+
+QPainterPath Point::shape() const
+{
+    QPainterPath path;
+    QPointF p = this->pos;
+    qDebug() << p.rx() << "   " << p.ry();
+    path.addRect(QRectF(p.rx()-offset,
+                        p.ry()-offset,
+                        offset * 2,
+                        offset * 2));
+    return path;
+}
+
+bool Point::contains(const QPointF &point) const
+{
+    bool res = false;
+    if (point == this->pos)
+        res = true;
+    return res;
+}
+
+int Point::type() const
+{
+    return Type;
+}
+
+void Point::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(selectable){
         selected = true;
@@ -102,43 +129,43 @@ void Rect::mousePressEvent(QGraphicsSceneMouseEvent *event)
     QGraphicsItem::mousePressEvent(event);
 }
 
-void Rect::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
+void Point::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-    qDebug() << "Rect::mouseMoveEvent";
+    // qDebug() << "Point::mouseMoveEvent";
     QGraphicsItem::mouseMoveEvent(event);
 }
 
-void Rect::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+void Point::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-    qDebug() << "Rect::mouseReleaseEvent";
+    // qDebug() << "Point::mouseReleaseEvent";
     QGraphicsItem::mouseReleaseEvent(event);
 }
 
-void Rect::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
+void Point::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
 {
-    qDebug() << "Rect::dragEnterEvent";
+    // qDebug() << "Point::dragEnterEvent";
     QGraphicsItem::dragEnterEvent(event);
 }
 
-void Rect::dragLeaveEvent(QGraphicsSceneDragDropEvent *event)
+void Point::dragLeaveEvent(QGraphicsSceneDragDropEvent *event)
 {
-    // qDebug() << "Rect::dragLeaveEvent";
+    // qDebug() << "Point::dragLeaveEvent";
     QGraphicsItem::dragLeaveEvent(event);
 }
 
-void Rect::dragMoveEvent(QGraphicsSceneDragDropEvent *event)
+void Point::dragMoveEvent(QGraphicsSceneDragDropEvent *event)
 {
-    // qDebug() << "Rect::dragMoveEvent";
+    // qDebug() << "Point::dragMoveEvent";
     QGraphicsItem::dragMoveEvent(event);
 }
 
-void Rect::dropEvent(QGraphicsSceneDragDropEvent *event)
+void Point::dropEvent(QGraphicsSceneDragDropEvent *event)
 {
-    // qDebug() << "Rect::dropEvent";
+    // qDebug() << "Point::dropEvent";
     QGraphicsItem::dropEvent(event);
 }
 
-void Rect::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
+void Point::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
     if(selectable){
         QPen pen = QPen();
@@ -157,7 +184,7 @@ void Rect::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
     }
 }
 
-void Rect::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
+void Point::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
     if(selectable){
         setCursor(Qt::OpenHandCursor);
@@ -165,7 +192,7 @@ void Rect::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
     }
 }
 
-void Rect::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
+void Point::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
     if(selectable){
         QPen pen = QPen();
@@ -178,12 +205,14 @@ void Rect::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
             pen.setStyle(selectedEntity.style);
             pen.setWidthF(selectedEntity.width);
         }
+        setPen(pen);
         QGraphicsItem::hoverLeaveEvent(event);
     }
 }
 
-void Rect::onSceneMoveableChanged(bool moveable)
+void Point::onSceneMoveableChanged(bool moveable)
 {
     this->moveable = moveable;
     setFlag(QGraphicsItem::ItemIsMovable, moveable);
 }
+

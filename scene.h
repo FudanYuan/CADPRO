@@ -5,9 +5,12 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QPaintEvent>
 #include <QList>
+#include <QLine>
 #include "configure.h"
 #include "shape.h"
+#include "point.h"
 #include "line.h"
+#include "polyline.h"
 #include "rect.h"
 #include "ellipse.h"
 #include "circle.h"
@@ -25,7 +28,7 @@ public:
     void setCurShape(Shape::ShapeType curShape);  // 设置当前图形
     Shape::ShapeType getCurShape();  // 获取当前图形
 
-    int getitemListLength();  // 获取item列表长度
+    int getitemListLength() const;  // 获取item列表长度
 
     void setModified(bool modified);  // 设置画布是否被更改
     bool isModified() const;  // 返回画布内容是否被更改过
@@ -40,6 +43,7 @@ public:
 
     void setAxesGrid(Configure::AxesGrid axesGrid);  // 设置网格坐标轴
 
+    void addCustomLineItem(Line *line);
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;

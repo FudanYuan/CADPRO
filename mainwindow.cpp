@@ -22,7 +22,8 @@
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    DockNestingEnabled(true)
 {
     ui->setupUi(this);
     setWindowTitle("CADPRO");
@@ -34,7 +35,7 @@ MainWindow::MainWindow(QWidget *parent) :
     initMenuBar();      // 初始化菜单栏
     initToolBar();      // 初始化工具栏
     initDockWidget();   // 初始化窗口
-    initConfiguration();
+    initConfiguration();// 初始化配置
     initProjectView();  // 初始化项目
     initStatusBar();    // 初始化状态栏
 }
@@ -42,6 +43,9 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
+    for(int i=0; i<project_list.length();i++){
+        if(project_list.at(i)) delete project_list.at(i);
+    }
 }
 
 void MainWindow::initActions()
@@ -1053,7 +1057,6 @@ void MainWindow::initToolBar()
 // ![1] 边栏工具栏
     tool_slide = new QToolBar(tr("边栏"), this);
     addToolBar(Qt::LeftToolBarArea, tool_slide);
-    tool_slide->setMaximumWidth(50);
     tool_slide->setOrientation(Qt::Vertical);
     tool_slide->setAllowedAreas(Qt::LeftToolBarArea);
     tool_slide->setFloatable(false);
@@ -1293,10 +1296,6 @@ void MainWindow::initStatusBar()
 
 void MainWindow::initDockWidget()
 {
-    //删除中央窗体
-    QWidget* p = takeCentralWidget();
-    if(p) delete p;
-
     // 设置dock窗口嵌套
     setDockNestingEnabled(DockNestingEnabled);
 
@@ -1304,7 +1303,7 @@ void MainWindow::initDockWidget()
     dock_find_style = new QDockWidget(tr("查找款型"), this);     // 添加find_style浮动窗口
     dock_project = new QDockWidget(tr("项目"), this);        // 添加project浮动窗口
     dock_properties = new QDockWidget(tr("属性"), this);     // 添加properties浮动窗口
-    dock_scene= new QDockWidget(this);      // 添加绘图区
+    dock_scene= new QDockWidget(tr("绘图区"), this);      // 添加绘图区
 
     dock_find_style->setHidden(!action_view_tool_find_style->isChecked());
     dock_project->setHidden(!action_view_tool_project->isChecked());
@@ -1322,17 +1321,17 @@ void MainWindow::initDockWidget()
     dock_scene->setFeatures(QDockWidget::NoDockWidgetFeatures);
 
     // 将窗口添加至主窗口
-    addDockWidget(Qt::LeftDockWidgetArea,dock_find_style);
-    splitDockWidget(dock_find_style,dock_project,Qt::Horizontal);
+    addDockWidget(Qt::LeftDockWidgetArea, dock_find_style);
+    splitDockWidget(dock_find_style, dock_project, Qt::Horizontal);
     splitDockWidget(dock_project, dock_scene, Qt::Horizontal);
-    splitDockWidget(dock_project,dock_properties,Qt::Vertical);
+    splitDockWidget(dock_project, dock_properties, Qt::Vertical);
 }
 
 void MainWindow::initConfiguration()
 {
     qDebug() << "初始化配置文件";
 //    if(configCopy) delete configCopy;
-    configCopy = new Configure(this);
+    configCopy = new Configure();
     connect(this, &MainWindow::configChanged, configCopy, &Configure::onConfigChanged);
     action_view_xy_axes->setChecked(configCopy->axesGrid.axes.showAxes);
     action_view_grid->setChecked(configCopy->axesGrid.grid.showGrid);
@@ -1353,12 +1352,15 @@ void MainWindow::initConfiguration()
 
 void MainWindow::initProjectView()
 {
-    view = new View(this);    // 初始化view
+    //删除中央窗体
+    QWidget* p = takeCentralWidget();
+    if(p) delete p;
+
+    view = new View;    // 初始化view
+    dock_scene->setWidget(view);    // 将该视图加入到central widget
     connect(view, &View::mousePositionChanged, this, &MainWindow::onMousePositionChanged);
 
-    dock_scene->setWidget(view);    // 将给视图加入到dock_scene
-
-    tree_project = new QTreeWidget(this);
+    tree_project = new QTreeWidget(dock_project);
     tree_project->setColumnCount(1); //设置列数
     tree_project->setHeaderLabel(tr("项目列表")); //设置头的标题
     tree_project->setContextMenuPolicy(Qt::CustomContextMenu);//右键 不可少否则右键无反应
@@ -1374,7 +1376,7 @@ void MainWindow::addProject()
 {
     // 初始化项目名称
     QString name_project_new = getNewProjectName();
-    project_active = new Project(this);
+    project_active = new Project();
     project_active->setName(name_project_new);
     // 在项目列表中加入该项目
     project_list.append(project_active);
@@ -1599,6 +1601,7 @@ bool MainWindow::onActionFileSaveAs()
 bool MainWindow::onActionFileSaveAll()
 {
     qDebug() << "saving all files";
+    return true;
 }
 
 void MainWindow::onActionFilePrint()
@@ -1686,92 +1689,83 @@ void MainWindow::onActionFileExit()
 void MainWindow::onActionDrawLine()
 {
     qDebug() << "drawing a line";
-    scene_active->setDrawable(true);
     scene_active->setCurShape(Shape::Line);
 }
 
 void MainWindow::onActionDrawEllipse()
 {
     qDebug() << "drawing an ellipse";
-    scene_active->setDrawable(true);
     scene_active->setCurShape(Shape::Ellipse);
 }
 
 void MainWindow::onActionDrawRect()
 {
     qDebug() << "drawing a rectangle";
-    scene_active->setDrawable(true);
     scene_active->setCurShape(Shape::Rectangle);
 }
 
 void MainWindow::onActionDrawMiddleAxis()
 {
     qDebug() << "draw  middle axis";
-    scene_active->setDrawable(true);
     scene_active->setCurShape(Shape::MiddleAxis);
 }
 
 void MainWindow::onActionDrawCircle()
 {
     qDebug() << "draw a circle";
-    scene_active->setDrawable(true);
     scene_active->setCurShape(Shape::Circle);
 }
 
 void MainWindow::onActionDrawPolyline()
 {
     qDebug() << "draw a polyline";
-    scene_active->setDrawable(true);
+    scene_active->setCurShape(Shape::PolyLine);
 }
 
 void MainWindow::onActionDrawArcBy3Pnts()
 {
     qDebug() << "draw a tripoint arc ";
-    scene_active->setDrawable(true);
     scene_active->setCurShape(Shape::Arc);
 }
 
 void MainWindow::onActionDrawArcBy3Pnts2()
 {
     qDebug() << "draw tripoin arc 2";
-    scene_active->setDrawable(true);
-//    scene_active->setCurShape(Shape::Arc2);
+    scene_active->setCurShape(Shape::Arc2);
 }
 
 void MainWindow::onActionDrawTrapezium()
 {
     qDebug() << "draw a trapezium";
-    scene_active->setDrawable(true);
 }
 
 void MainWindow::onActionDrawPolygon()
 {
     qDebug() << "draw a polygon";
-    scene_active->setDrawable(true);
 }
 
 void MainWindow::onActionDrawStabHole()
 {
     qDebug() << "draw a stabhole";
-    scene_active->setDrawable(true);
+    scene_active->setCurShape(Shape::Hole);
 }
 
 void MainWindow::onActionDrawReference()
 {
     qDebug() << "draw a refer point";
-    scene_active->setDrawable(true);
+    scene_active->setCurShape(Shape::Point);
 }
 
 void MainWindow::onActionDrawEyelet()
 {
     qDebug() << "draw an eyelet";
-    scene_active->setDrawable(true);
+    scene_active->setCurShape(Shape::Eyelet);
 }
 
 void MainWindow::onActionDrawPatternDirection()
 {
     qDebug() << "draw pattern direction";
-    scene_active->setDrawable(true);
+    scene_active->setCurShape(Shape::Direction);
 }
 
 void MainWindow::onActionDrawShankLine()

@@ -1,8 +1,8 @@
 #include "project.h"
 #include <QDebug>
 
-Project::Project(QWidget *parent) :
-    QWidget(parent),
+Project::Project(QObject *parent) :
+    QObject(parent),
     name(""),
     saved(false),
     modified(false)
@@ -153,26 +153,33 @@ void Project::dxfFileParser(QString fileName)
         sceneActive = sceneList.at(0);
         for(int i=0; i<dxfFilter.points.length();i++){
             sceneActive->setCurShape(Shape::Point);
+
         }
 
         for(int i=0; i<dxfFilter.lines.length();i++){
-            sceneActive->setCurShape(Shape::Line);
+
             int x1 = dxfFilter.lines.at(i).line.x1;
             int y1 = dxfFilter.lines.at(i).line.y1;
-            int z1 = dxfFilter.lines.at(i).line.z1;
             int x2 = dxfFilter.lines.at(i).line.x2;
             int y2 = dxfFilter.lines.at(i).line.y2;
-            int z2 = dxfFilter.lines.at(i).line.z2;
 
-            int color = dxfFilter.lines.at(i).attribute.getColor();
+            QColor color = Configure::intToColor(dxfFilter.lines.at(i).attribute.getColor());
             qDebug() << "color" << color;
             int width = dxfFilter.lines.at(i).attribute.getWidth();
             if(width == -1){
-                width = 10;
+                width = 1;
             }
             qDebug() << "width" << width;
+
+            Line *line = new Line;
+            Configure::PenStyle pen;
+            pen.setPenStyle(Qt::red, Qt::SolidLine, width);
+            line->setPenStyle(pen);
+            qDebug() << x1 << " " << y1 << " " << x2 << " " << y2;
+            line->setLine(QLineF(x1, y1, x2, y2));
+            sceneActive->addCustomLineItem(line);
         }
+        sceneActive->setModified(true);
     }
-//    sceneActive->initScene();
 }
 
