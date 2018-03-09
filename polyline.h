@@ -46,6 +46,10 @@ private:
     QList<QPointF> points;  // 各个点的坐标
     QPointF newPoint;  // 最后一个点
     Type type;  // 类型
+
+signals:
+    void select(PolyLine *polyline);  // 图形被选择
+
 public slots:
     void onSceneMoveableChanged(bool moveable) Q_DECL_OVERRIDE;  //  响应场景可移动性改变
 };

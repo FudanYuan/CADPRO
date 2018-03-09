@@ -45,6 +45,9 @@ void drawRectPoint(QPainter *painter, QPointF point, int length=2)
 
 void drawLineWithArrow(QPainter *painter, QLineF line, int offset)
 {
+    if(line.dx() == line.dy()){
+        return;
+    }
     QLineF v = line.unitVector();
     v.setLength(offset);
     v.translate(QPointF(line.dx(), line.dy()));

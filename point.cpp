@@ -125,6 +125,7 @@ void Point::mousePressEvent(QGraphicsSceneMouseEvent *event)
         pen.setStyle(selectedEntity.style);
         pen.setWidthF(selectedEntity.width);
         setPen(pen);
+        emit select(this);
     }
     QGraphicsItem::mousePressEvent(event);
 }

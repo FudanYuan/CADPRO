@@ -16,6 +16,7 @@ public:
     bool updateFlag(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
 
+    qreal getPerimeter();  // 获取周长
 protected:
     //鼠标事件
     void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
@@ -33,7 +34,10 @@ protected:
 
 private:
     QPointF sPoint, ePoint;  // 起止点
+    qreal perimeter;  // 周长
 
+signals:
+    void select(Line *line);  // 图形被选择
 public slots:
     void onSceneMoveableChanged(bool moveable) Q_DECL_OVERRIDE;  //  响应场景可移动性改变
 };

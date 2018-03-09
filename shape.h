@@ -31,12 +31,21 @@ public:
         Text,       // 文本
         image,      // 图像
     };
+    struct Common{
+        ShapeType shape;
+        int id;
+        QString layer;
+        Configure::PenStyle penStyle;
+    };
+
     Shape();
     void setScaleFactor(qreal scaleFactor);
     void setMoveable(bool moveable);  // 设置可移动性
+
     virtual void startDraw(QGraphicsSceneMouseEvent * event) = 0;
     virtual void drawing(QGraphicsSceneMouseEvent * event) = 0;
     virtual bool updateFlag(QGraphicsSceneMouseEvent *event) = 0;  // 更新标识
+
     void setPenStyle(Configure::PenStyle penStyle);  // 设置实体类型
     void setEntityUnderCursorStyle(Configure::PenStyle underCursorStyle);  // 设置光标下类型
     void setSelectStyle(Configure::PenStyle selectedEntity);  // 选择实体类型
@@ -59,6 +68,7 @@ public:
     void setSelected(bool selected);  // 设置选中
     bool isSelected() const;  // 是否选中
 
+//    virtual Attribute getLineAttribute();  // 获取直线属性
 protected:
     qreal scaleFactor;  // 缩放因子
     bool moveable;  // 是否可移动
@@ -77,8 +87,7 @@ signals:
     void sceneMoveableChanged(bool moveable);  // 场景可移动性信号
 
 public slots:
-    virtual void onSceneMoveableChanged(bool moveable) = 0;  //  响应场景可移动性改变
-
+    virtual void onSceneMoveableChanged(bool moveable) = 0;  // 响应场景可移动性改变
 };
 
 #endif // SHAPE_H

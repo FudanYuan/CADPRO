@@ -15,7 +15,7 @@ Arc::Arc(QGraphicsItem *parent) :
     eFlag(false)
 
 {
-    setShapeType(Shape::Ellipse);
+    setShapeType(Shape::Arc);
     // 设置图元为可焦点的
     setFlag(QGraphicsItem::ItemIsFocusable, false);
     // 设置图元为可移动的
@@ -201,6 +201,7 @@ void Arc::mousePressEvent(QGraphicsSceneMouseEvent *event)
         pen.setStyle(selectedEntity.style);
         pen.setWidthF(selectedEntity.width);
         setPen(pen);
+        emit select(this);
     }
     QGraphicsItem::mousePressEvent(event);
 }

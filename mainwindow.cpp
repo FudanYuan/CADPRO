@@ -1387,6 +1387,13 @@ void MainWindow::addProject()
     scene_active->setName(name_scene_new);
 
     connect(scene_active, &Scene::sceneItemsChanged, this, &MainWindow::onSceneItemsChanged);
+    connect(scene_active, &Scene::pointSelected, this, &MainWindow::onPointSelected);
+    connect(scene_active, &Scene::lineSelected, this, &MainWindow::onLineSelected);
+    connect(scene_active, &Scene::ellipseSelected, this, &MainWindow::onEllipseSelected);
+    connect(scene_active, &Scene::circleSelected, this, &MainWindow::onCircleSelected);
+    connect(scene_active, &Scene::arcSelected, this, &MainWindow::onArcSelected);
+    connect(scene_active, &Scene::rectSelected, this, &MainWindow::onRectSelected);
+
 
     QTreeWidgetItem *item_project = new QTreeWidgetItem(tree_project,QStringList(name_project_new));
     QTreeWidgetItem *item_scene = new QTreeWidgetItem(item_project,QStringList(name_scene_new)); //子节点1
@@ -2693,5 +2700,48 @@ void MainWindow::onSceneItemsChanged()
     action_modify_make_master_line->setDisabled(flag);
     action_modify_style->setDisabled(flag);
 }
+
+void MainWindow::onPointSelected(Point *point)
+{
+    qDebug() << point->getShapeId();
+    qDebug() << point->getLayer();
+}
+
+void MainWindow::onLineSelected(Line *line)
+{
+    qDebug() << line->getShapeId();
+    qDebug() << line->getPerimeter();
+}
+
+void MainWindow::onArcSelected(Arc *arc)
+{
+
+}
+
+void MainWindow::onEllipseSelected(Ellipse *ellipse)
+{
+
+}
+
+void MainWindow::onCircleSelected(Circle *circle)
+{
+
+}
+
+void MainWindow::onRectSelected(Rect *rect)
+{
+
+}
+
+void MainWindow::onPolyLineSelected(PolyLine *polyline)
+{
+
+}
+
+//void MainWindow::onItemSelected(Rect *rect)
+//{
+//    qDebug() << rect->getShapeId();
+//}
+
 
 

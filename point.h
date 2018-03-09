@@ -56,6 +56,10 @@ private:
     QPointF pos;  // 位置
     int offset;  //  点的偏移量
     QPen pen_style;  // 笔类型
+
+signals:
+    void select(Point *point);  // 图形被选择
+
 public slots:
     void onSceneMoveableChanged(bool moveable) Q_DECL_OVERRIDE;  //  响应场景可移动性改变
 };

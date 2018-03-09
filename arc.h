@@ -55,6 +55,9 @@ private:
     QLineF getLine(QPointF p1, QPointF p2, QPointF p0);  // 判断是否在线段内
     qreal getLineAngle(QPointF sPoint, QPointF ePoint);
 
+signals:
+    void select(Arc *arc);  // 图形被选择
+
 public slots:
     void onSceneMoveableChanged(bool moveable) Q_DECL_OVERRIDE;  //  响应场景可移动性改变
 };

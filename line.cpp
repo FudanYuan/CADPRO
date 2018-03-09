@@ -26,6 +26,7 @@ void Line::startDraw(QGraphicsSceneMouseEvent *event)
     pen.setWidthF(penStyle.width);
     setPen(pen);
     sPoint = event->scenePos();
+//    sPoint = event->pos();
     overFlag = true;  // 马上就要结束
 }
 
@@ -34,6 +35,7 @@ void Line::drawing(QGraphicsSceneMouseEvent *event)
     ePoint = event->scenePos();
     QLineF newLine(sPoint, ePoint);
     setLine(newLine);
+    update();
 }
 
 bool Line::updateFlag(QGraphicsSceneMouseEvent *event)
@@ -54,8 +56,37 @@ void Line::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     QPen pen = this->pen();
     // 重新设置画笔线宽;
     pen.setWidthF(pen.widthF() / scaleFactor);
-    painter->setPen(pen);
-    painter->drawLine(this->line());
+
+    Shape::ShapeType type = getShapeType();
+    switch (type) {
+    case Shape::Line:
+    case Shape::MiddleAxis:
+
+        painter->setPen(pen);
+        painter->drawLine(this->line());
+        break;
+    case Shape::Direction:
+    {
+        pen.setColor(Qt::red);
+        painter->setPen(pen);
+        drawCrossPoint(painter, sPoint, 2, upright);
+        painter->drawEllipse(sPoint, 2, 2);
+        QBrush brush = QBrush();
+        brush.setColor(Qt::red);
+        brush.setStyle(Qt::SolidPattern);
+        painter->setBrush(brush);
+        drawLineWithArrow(painter, QLineF(sPoint, ePoint), 5);
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+qreal Line::getPerimeter()
+{
+    return qSqrt(qPow((sPoint.rx()-ePoint.rx()), 2)
+                 + qPow((sPoint.ry()-ePoint.ry()), 2));
 }
 
 void Line::mousePressEvent(QGraphicsSceneMouseEvent *event)
@@ -70,6 +101,7 @@ void Line::mousePressEvent(QGraphicsSceneMouseEvent *event)
         pen.setStyle(selectedEntity.style);
         pen.setWidthF(selectedEntity.width);
         setPen(pen);
+        emit select(this);
     }
     QGraphicsItem::mousePressEvent(event);
 }

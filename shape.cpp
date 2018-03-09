@@ -94,3 +94,8 @@ bool Shape::isSelected() const
 {
     return this->selected;
 }
+
+//Shape::Attribute Shape::getAttribute()
+//{
+
+//}

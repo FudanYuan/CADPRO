@@ -86,6 +86,7 @@ void Circle::mousePressEvent(QGraphicsSceneMouseEvent *event)
             setBrush(QBrush(selectedEntity.color, Qt::SolidPattern));
         }
         setPen(pen);
+        emit select(this);
     }
     QGraphicsItem::mousePressEvent(event);
 }

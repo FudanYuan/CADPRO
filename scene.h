@@ -78,11 +78,25 @@ signals:
     void sceneScaleChanged(qreal scaleFactor);  // scene缩放事件
     void sceneItemsChanged();  // scene图元改变
     void sceneNameChanged(QString, QString); // scene名称改变
+    void pointSelected(Point *point);
+    void lineSelected(Line *line);
+    void arcSelected(Arc *arc);
+    void ellipseSelected(Ellipse *ellipse);
+    void circleSelected(Circle *circle);
+    void rectSelected(Rect *rect);
+    void polyLineSelected(PolyLine *polyline);
 
 public slots:
     void onViewScaleChanged(qreal scaleFactor);  // 响应view缩放事件
     void onAxesChanged(bool show);  // 响应坐标轴是否显示
     void onGridChanged(bool show);  // 响应网格是否显示
+    void onPointSelected(Point *point);
+    void onLineSelected(Line *line);  // 响应图形被选中
+    void onArcSelected(Arc *arc);
+    void onEllipseSelected(Ellipse *ellipse);
+    void onCircleSelected(Circle *circle);
+    void onRectSelected(Rect *rect);
+    void onPolyLineSelected(PolyLine *polyline);
 };
 
 #endif // SCENE_H

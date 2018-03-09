@@ -38,6 +38,10 @@ private:
     bool cFlag;  // 确定圆心
     bool r1Flag;  // 确定r1
     bool r2Flag;  // 确定r2
+
+signals:
+    void select(Ellipse *ellipse);  // 图形被选择
+
 public slots:
     void onSceneMoveableChanged(bool moveable) Q_DECL_OVERRIDE;  //  响应场景可移动性改变
 };

@@ -36,6 +36,9 @@ protected:
 private:
     QPointF topLeftPoint, bottomRightPoint;  // 顶点
 
+signals:
+    void select(Rect *rect);  // 图形被选择
+
 public slots:
     void onSceneMoveableChanged(bool moveable) Q_DECL_OVERRIDE;  //  响应场景可移动性改变
 };
