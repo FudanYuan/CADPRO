@@ -24,7 +24,7 @@ void DxfFilter::addPoint(const DL_PointData &data)
     qDebug() << "POINT: "
              << "x: " << data.x << "    "
              << "y: " << data.y << "    "
-             << "z:   " << data.z;
+             << "z: " << data.z;
     getEntityAttributy();
     MyPointData point(data, attributes);
     points.append(point);

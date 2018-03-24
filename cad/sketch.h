@@ -43,7 +43,8 @@ public:
     void updateScene();             // 更新绘图区域
     bool maybeSave();                   // 是否保存项目
     bool saveFile(QString fileName);    // 实现文件的存储
-
+    void saveLayout();  // 保存窗口布局
+    void loadLayout();  // 保存窗口布局
 protected:
     void closeEvent(QCloseEvent *event);
 

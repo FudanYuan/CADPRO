@@ -25,7 +25,6 @@ public:
     QList<MyPointData> points;
     QList<MyLineData> lines;
     QList<MyArcData> arcs;
-    /*
     QList<MyCircleData> circles;
     QList<MyEllipseData> ellipses;
     QList<MyTextData> texts;
@@ -38,7 +37,6 @@ public:
     QList<MyHatchData> hatches;
     QList<MyHatchEdgeData> hatchedges;
     QList<QString> hatchcolors;
-    */
 };
 
 #endif // DXFFILTER_H

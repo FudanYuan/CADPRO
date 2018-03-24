@@ -40,6 +40,7 @@ Sketch::Sketch(QWidget *parent) :
     initConfiguration();// 初始化配置
     initProjectView();  // 初始化项目
     initStatusBar();    // 初始化状态栏
+    //loadLayout();  // 载入布局
 }
 
 Sketch::~Sketch()
@@ -1555,10 +1556,84 @@ bool Sketch::saveFile(QString fileName)
     return project_active->saveProject();
 }
 
+void Sketch::saveLayout()
+{
+    QString fileName = "layout";
+    if (fileName.isEmpty())
+        return;
+    QFile file(fileName);
+    if (!file.open(QFile::WriteOnly)) {
+        QString msg = tr("Failed to open %1\n%2")
+                        .arg(QDir::toNativeSeparators(fileName), file.errorString());
+        QMessageBox::warning(this, tr("Error"), msg);
+        return;
+    }
+
+    QByteArray geo_data = saveGeometry();
+    QByteArray layout_data = saveState();
+
+    bool ok = file.putChar((uchar)geo_data.size());
+    if (ok)
+        ok = file.write(geo_data) == geo_data.size();
+    if (ok)
+        ok = file.write(layout_data) == layout_data.size();
+
+    if (!ok) {
+        QString msg = tr("Error writing to %1\n%2")
+                        .arg(QDir::toNativeSeparators(fileName), file.errorString());
+        QMessageBox::warning(this, tr("Error"), msg);
+        return;
+    }
+}
+
+void Sketch::loadLayout()
+{
+    QString fileName = "layout";
+    if (fileName.isEmpty())
+        return;
+    QFile file(fileName);
+    if (!file.open(QFile::ReadOnly)) {
+        QString msg = tr("Failed to open %1\n%2")
+                        .arg(QDir::toNativeSeparators(fileName), file.errorString());
+        QMessageBox::warning(this, tr("Error"), msg);
+        return;
+    }
+
+    uchar geo_size;
+    QByteArray geo_data;
+    QByteArray layout_data;
+
+    bool ok = file.getChar((char*)&geo_size);
+    if (ok) {
+        geo_data = file.read(geo_size);
+        ok = geo_data.size() == geo_size;
+    }
+    if (ok) {
+        layout_data = file.readAll();
+        ok = layout_data.size() > 0;
+    }
+
+    if (ok)
+        ok = restoreGeometry(geo_data);
+    if (ok)
+        ok = restoreState(layout_data);
+
+    if (!ok) {
+        QString msg = tr("Error reading %1").arg(QDir::toNativeSeparators(fileName));
+        QMessageBox::warning(this, tr("Error"), msg);
+        return;
+    }
+}
+
 void Sketch::closeEvent(QCloseEvent *event)
 {
-    if(maybeSave()) qApp->quit();
-    else event->ignore();
+    if(maybeSave()) {
+        qApp->quit();
+        //saveLayout();
+    }
+    else {
+        event->ignore();
+    }
 }
 
 void Sketch::onActionFileNew()
