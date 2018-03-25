@@ -1,11 +1,18 @@
-#ifndef POLYGON_DIALOG_H
-#define POLYGON_DIALOG_H
+#ifndef POLYGONDIALOG_H
+#define POLYGONDIALOG_H
 
-#include <QtWidgets>
+#include <QDialog>
+#include <QGroupBox>
+#include <QLabel>
+#include <QLineEdit>
+#include <QComboBox>
+#include <QRadioButton>
+#include <QLayout>
+#include <QPushButton>
 
 #include "renderarea.h"
 
-class Polygon_dialog : public QDialog,public QGraphicsPathItem
+class PolygonDialog : public QDialog
 {
     Q_OBJECT
 
@@ -14,7 +21,7 @@ public:
         normal,
         upright
     };
-    Polygon_dialog();
+    PolygonDialog();
     void createtopGroupBox();
     void createtop_insideGroupBox();
     void initdialog();
@@ -72,4 +79,4 @@ public slots:
 };
 
 
-#endif // POLYGON_DIALOG_H
+#endif // POLYGONDIALOG_H

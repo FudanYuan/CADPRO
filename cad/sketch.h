@@ -549,8 +549,8 @@ public slots:
     void onSceneItemsChanged();  // 响应场景图元改变
     void onPointSelected(Point *point);
     void onLineSelected(Line *line);  // 响应图形被选中
-//    void onArcSelected(Arc *arc);
-//    void onEllipseSelected(Ellipse *ellipse);
+    void onArcSelected(Arc *arc);
+    void onEllipseSelected(Ellipse *ellipse);
     void onCircleSelected(Circle *circle);
     void onRectSelected(Rect *rect);
     void onPolylineSelected(Polyline *polyline);

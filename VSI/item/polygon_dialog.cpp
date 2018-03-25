@@ -5,7 +5,7 @@
 
 
 //! [0]
-Polygon_dialog::Polygon_dialog()
+PolygonDialog::PolygonDialog()
 {
     len_num=4;
     raduii=100;
@@ -13,7 +13,7 @@ Polygon_dialog::Polygon_dialog()
     penstyle=1;
     initdialog();
 }
-void Polygon_dialog::createtopGroupBox(){
+void PolygonDialog::createtopGroupBox(){
     topGroupBox = new QGroupBox;
     QGridLayout *layout = new QGridLayout;
     topGroupBox->setMaximumSize(200,230);
@@ -69,7 +69,7 @@ void Polygon_dialog::createtopGroupBox(){
 
 }
 
-void Polygon_dialog::createtop_insideGroupBox(){
+void PolygonDialog::createtop_insideGroupBox(){
     top_insideGroupBox = new QGroupBox(tr("模式"));
     QGridLayout *layout = new QGridLayout;
 
@@ -85,7 +85,7 @@ void Polygon_dialog::createtop_insideGroupBox(){
     top_insideGroupBox->setLayout(layout);
 }
 
-void Polygon_dialog::initdialog(){
+void PolygonDialog::initdialog(){
     createtopGroupBox();
     createtop_insideGroupBox();
 
@@ -121,82 +121,82 @@ void Polygon_dialog::initdialog(){
     setWindowTitle(tr("正多边形绘制"));
 }
 
-int Polygon_dialog::getPenstyle() const
+int PolygonDialog::getPenstyle() const
 {
     return penstyle;
 }
 
-void Polygon_dialog::setPenstyle(int &value)
+void PolygonDialog::setPenstyle(int &value)
 {
     penstyle = value;
 }
 
-bool Polygon_dialog::getOk() const
+bool PolygonDialog::getOk() const
 {
     return ok;
 }
 
-void Polygon_dialog::setOk(bool value)
+void PolygonDialog::setOk(bool value)
 {
     ok = value;
 }
 
-double Polygon_dialog::getAngle() const
+double PolygonDialog::getAngle() const
 {
     return angle;
 }
 
-void Polygon_dialog::setAngle(double value)
+void PolygonDialog::setAngle(double value)
 {
     angle = value;
 }
 
-double Polygon_dialog::getRaduii() const
+double PolygonDialog::getRaduii() const
 {
     return raduii;
 }
 
-void Polygon_dialog::setRaduii(double value)
+void PolygonDialog::setRaduii(double value)
 {
     raduii = value;
 }
 
-int Polygon_dialog::getLen_num() const
+int PolygonDialog::getLen_num() const
 {
     return len_num;
 }
 
-void Polygon_dialog::setLen_num(int value)
+void PolygonDialog::setLen_num(int value)
 {
     len_num = value;
 }
 
-void Polygon_dialog::onclickedok(){
+void PolygonDialog::onclickedok(){
     setOk(true);
     this->accept();
 }
-void Polygon_dialog::onclickedcancel(){
+void PolygonDialog::onclickedcancel(){
     setOk(false);
     this->reject();
 }
-void Polygon_dialog::len_numchanged(){
+void PolygonDialog::len_numchanged(){
     this->setLen_num(len_edit->text().toInt());
     len_num=len_edit->text().toInt();
     originalRenderArea->setLine_num(len_num);
 //    qDebug()<<"输出边数"<<len_edit->text().toInt();
 }
-void Polygon_dialog::radchanged(){
+void PolygonDialog::radchanged(){
     this->setRaduii(rad_edit->text().toDouble());
 }
 
-void Polygon_dialog::angelchanged(){
+void PolygonDialog::angelchanged(){
     this->setAngle(angel_edit->text().toDouble());
     angle=angel_edit->text().toDouble();
     originalRenderArea->setAlpha(angle);
 }
 
 //获取线对象
-void Polygon_dialog::typechanged(){
+void PolygonDialog::typechanged(){
     int line=line_type_choose->currentIndex();
     this->setPenstyle(line);
     qDebug()<<"线类型："<<line_type_choose->currentIndex();
@@ -221,7 +221,7 @@ void Polygon_dialog::typechanged(){
     */
 }
 
-void Polygon_dialog::modelchanged()
+void PolygonDialog::modelchanged()
 {
     if(radio1->isChecked())
         originalRenderArea->setType(1);
