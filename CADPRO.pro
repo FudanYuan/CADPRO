@@ -53,13 +53,13 @@ SOURCES += \
     VSI/item/ellipse.cpp \
     VSI/item/circle.cpp \
     VSI/item/arc.cpp \
-    VSI/item/polygon_dialog.cpp \
     VSI/item/renderarea.cpp \
     VSI/item/trapezium.cpp \
-    VSI/item/trapezium_dialog.cpp \
     cad/project.cpp \
     cad/sketch.cpp \
     cad/nest.cpp \
+    VSI/item/polygondialog.cpp \
+    VSI/item/trapeziumdialog.cpp
 
 HEADERS += \
     common/debug.h \
@@ -96,13 +96,13 @@ HEADERS += \
     VSI/item/ellipse.h \
     VSI/item/circle.h \
     VSI/item/arc.h \
-    VSI/item/polygon_dialog.h \
     VSI/item/renderarea.h \
     VSI/item/trapezium.h \
-    VSI/item/trapezium_dialog.h \
     cad/project.h \
     cad/sketch.h \
     cad/nest.h \
+    VSI/item/polygondialog.h \
+    VSI/item/trapeziumdialog.h
 
 FORMS += \
     configure/configuredialog.ui \

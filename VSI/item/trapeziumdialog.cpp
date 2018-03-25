@@ -1,6 +1,6 @@
 #include <QtWidgets>
 
-#include "trapezium_dialog.h"
+#include "trapeziumdialog.h"
 #include <QGraphicsView>
 
 

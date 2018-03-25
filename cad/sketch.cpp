@@ -3,8 +3,8 @@
 #include "customdocktitlebar.h"
 
 #include "configuredialog.h"
-#include "polygon_dialog.h"
-#include "trapezium_dialog.h"
+#include "polygondialog.h"
+#include "trapeziumdialog.h"
 
 #include <QDockWidget>
 #include <QToolButton>
