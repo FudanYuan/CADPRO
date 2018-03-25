@@ -1705,7 +1705,9 @@ void Sketch::onActionFilePrintSetup()
 void Sketch::onActionFileImportDXF()
 {
     qDebug() << "import dxf files";
-    QString fileName = QFileDialog::getOpenFileName(this, tr("打开DXF文件"), QDir::currentPath());
+    QString fileName = QFileDialog::getOpenFileName(this,
+                                                    tr("打开DXF文件"),
+                                                    QDir::currentPath());
     //fileName = "/Users/Jeremy/Desktop/项目/梁叔项目/画图+排版/素材/全套.dxf";
     if (!fileName.isEmpty()) {
         QFileInfo new_project = QFileInfo(fileName);
@@ -1751,6 +1753,16 @@ void Sketch::onActionFileImportTEF()
 void Sketch::onActionFileExportDXF()
 {
     qDebug() << "export dxf files";
+    QString fileName = QFileDialog::getSaveFileName(this,
+                                                    tr("导出DXF文件"),
+                                                    tr("export.dxf"));
+    if (!fileName.isEmpty()) {
+        try{
+            project_active->dxfFileWriter(fileName);
+        } catch(QString exception){
+            QMessageBox::warning(this, tr("错误"), exception);
+        }
+    }
 }
 
 void Sketch::onActionFileExportDVS()
@@ -2774,7 +2786,7 @@ void Sketch::onMousePositionChanged(QPointF pos)
 void Sketch::onSceneItemsChanged()
 {
     bool flag = true;
-    if(scene_active->getitemListLength() > 0){
+    if(scene_active->getItemListLength() > 0){
         flag = false;
     }
     action_modify_redo->setDisabled(flag);

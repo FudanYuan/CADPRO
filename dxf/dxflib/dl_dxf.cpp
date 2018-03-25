@@ -4357,8 +4357,6 @@ void DL_Dxf::writeBlockRecord(DL_WriterA& dw, const std::string& name) {
 void DL_Dxf::writeObjects(DL_WriterA& dw, const std::string& appDictionaryName) {
     dw.dxfString(  0, "SECTION");
     dw.dxfString(  2, "OBJECTS");
-
-
     dw.dxfString(  0, "DICTIONARY");
     dw.dxfHex(5, 0xC);
     dw.dxfString(100, "AcDbDictionary");

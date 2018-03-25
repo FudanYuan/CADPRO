@@ -16,10 +16,18 @@ public:
     bool updateFlag(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
 
-    void setCircle(qreal px, qreal py, qreal radius);  // 设置圆形
-    Circle circle();  // 圆形
+    void setCPoint(QPointF p);  // 设置圆心
+    QPointF getCPoint();  // 获取圆心
+
+    void setRadius(qreal r);  // 设置半径
+    qreal getRadius();  // 获取半径
+
     void setFilled(bool filled);  // 设置填充
     bool isFilled() const;  // 是否填充
+
+    void setCircle(qreal px, qreal py, qreal radius);  // 设置圆形
+    Circle circle();  // 圆形
+
 protected:
     //鼠标事件
     void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;

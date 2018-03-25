@@ -273,6 +273,49 @@ QColor DxfFilter::transformColor(const int color) const
     return ret;
 }
 
+int DxfFilter::transformColor(const QColor color) const
+{
+    int ret;
+    switch (color.rgb()) {
+    case Qt::color0:
+        ret = 0; // byblock = 0
+    case Qt::red:
+        ret = 1;
+        break;
+    case Qt::yellow:
+        ret = 2;
+        break;
+    case Qt::green:
+        ret = 3;
+        break;
+    case Qt::cyan:
+        ret = 4;
+        break;
+    case Qt::blue:
+        ret = 5;
+        break;
+    case Qt::magenta:
+        ret = 6;
+        break;
+    case Qt::white:
+        ret = 7;
+        break;
+    case Qt::gray:
+        ret = 8;
+        break;
+    case Qt::darkRed:
+        ret = 15;  // brown
+        break;
+    case Qt::color1:
+        ret = 256;  //  bylayer = 256
+    case Qt::black:
+    default:
+        ret = 250;
+        break;
+    }
+    return ret;
+}
+
 int DxfFilter::transformWidth(const int width) const
 {
     int w = 0;
@@ -291,8 +334,11 @@ int DxfFilter::transformWidth(const int width) const
 Qt::PenStyle DxfFilter::transformStyle(std::string style) const
 {
     QString s = QString::fromStdString(style);
-    if(s == "BYLAYER" || s == "BYBLOCK"){
+    if(s == "BYLAYER" || s == "BYBLOCK" || s == "CONTINUOUS"){
         return Qt::SolidLine;
+    }
+    if(s == "DASH"){
+        return Qt::DashLine;
     }
     return Qt::SolidLine;
 }
