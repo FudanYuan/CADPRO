@@ -19,7 +19,7 @@ public:
         Line,  // 线
         Direction,  // 方向轴
         MiddleAxis, // 中心轴
-        PolyLine,   // 中心轴
+        Polyline,   // 中心轴
         Rectangle,  // 矩形
         Ellipse,    // 椭圆
         Circle,     // 圆

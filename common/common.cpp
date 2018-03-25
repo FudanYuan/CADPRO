@@ -1,12 +1,12 @@
 #include "common.h"
 #include <QDebug>
 
-QColor intToColor(int rgb, bool a)
+QColor intToColor(const int rgb, bool a)
 {
     //将Color 从int 转换成 QColor
-    int blue = rgb & 255;
+    int red = rgb & 255;
     int green = rgb >> 8 & 255;
-    int red = rgb >> 16 & 255;
+    int blue = rgb >> 16 & 255;
     int alpha = 255;
     if(a){
         alpha = rgb >> 24 & 255;
@@ -81,33 +81,9 @@ QPointF transformY(QPointF p)
     return QPointF(p.rx(), -p.ry());
 }
 
-QPointF transformRotate(QPointF p, QPointF o, qreal angle)
+QPointF transformRotate(QPointF o, qreal r, qreal angle)
 {
-    // 绕(x2, y2)旋转
-    // x=(x1-x2)cosθ-(y1-y2)sinθ+x2;
-    // y=(y1-y2)cosθ+(x1-x2)sinθ+y2;
-    // 首先将点转化为标准坐标系
-    p = transformY(p);
-    o = transformY(o);
-    qreal px = p.rx();
-    qreal py = p.ry();
-    qreal ox = o.rx();
-    qreal oy = o.ry();
-    QPointF res = QPointF(((px - ox) * qCos(angle) - (py - oy) * qSin(angle)) + ox,
-                          ((px - ox) * qSin(angle) + (py - oy) * qCos(angle)) + oy);
-    return transformY(res);
-
-    // 首先将点转化为标准坐标系
-//    p = transformY(p);
-//    qreal x = p.rx();
-//    qreal y = p.ry();
-//    qreal tx = -x;
-//    qreal ty = -y;
-//    qreal x0 = 0;
-//    qreal y0 = 0;
-//    qreal cosAngle = qCos(angle);
-//    qreal sinAngle = qSin(angle);
-
-//    QPointF res = QPointF(0,0);
-//    return transformY(res);
+    QPointF res(o.rx()+r*qCos(M_PI*angle/180),
+                o.ry()+r*qSin(M_PI*angle/180));
+    return res;
 }

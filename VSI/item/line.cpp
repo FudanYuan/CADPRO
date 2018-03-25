@@ -113,6 +113,16 @@ void Line::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     painter->restore();
 }
 
+void Line::setCustomLine(const QLineF &line)
+{
+    QPen pen = QPen();
+    pen.setColor(penStyle.color);
+    pen.setStyle(penStyle.style);
+    pen.setWidthF(penStyle.width);
+    setPen(pen);
+    setLine(line);
+}
+
 qreal Line::getPerimeter()
 {
     return qSqrt(qPow((sPoint.rx()-ePoint.rx()), 2)

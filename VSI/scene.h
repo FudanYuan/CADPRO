@@ -23,6 +23,7 @@ class Scene : public QGraphicsScene
     Q_OBJECT
 public:
     Scene(QObject *parent = 0);
+    ~Scene();
 
     void setName(QString name);  // 设置图层名称
     QString getName();  // 获取图层名称
@@ -45,9 +46,14 @@ public:
 
     void setAxesGrid(Configure::AxesGrid axesGrid);  // 设置网格坐标轴
 
-    void addCustomLineItem(Line *line);
-
-    void addCustomRectItem(Rect *rect);
+    // 添加自定义图形元素
+    void addCustomPointItem(Point *point);  // 添加自定义点
+    void addCustomLineItem(Line *line);  // 添加自定义直线
+    void addCustomPolylineItem(Polyline *polyline);  // 添加自定义直线
+    void addCustomRectItem(Rect *rect);  // 添加自定义矩形
+    void addCustomEllipseItem(Ellipse *ellipse);  // 添加自定义椭圆
+    void addCustomCircleItem(Circle *circle);  // 添加自定义圆形
+    void addCustomArcItem(Arc *arc);  // 添加自定义圆弧
 
     //绘制正多边形传递参数
     int getPolygon_type() const;
@@ -72,7 +78,6 @@ public:
     void setTrapezium_type(int value);
 
 protected:
-
     int polygon_type=1;  //绘制正多边形传递的线类型
     int polygon_line_num=4;//绘制正多边形传递的边数
     double polygon_radius=100;//绘制正多边形传递的半径
@@ -123,19 +128,20 @@ signals:
     void ellipseSelected(Ellipse *ellipse);
     void circleSelected(Circle *circle);
     void rectSelected(Rect *rect);
-    void polyLineSelected(PolyLine *polyline);
+    void polylineSelected(Polyline *polyline);
 
 public slots:
     void onViewScaleChanged(qreal scaleFactor);  // 响应view缩放事件
     void onAxesChanged(bool show);  // 响应坐标轴是否显示
     void onGridChanged(bool show);  // 响应网格是否显示
+    void onNewItem();  // 图元改变
     void onPointSelected(Point *point);
     void onLineSelected(Line *line);  // 响应图形被选中
     void onArcSelected(Arc *arc);
     void onEllipseSelected(Ellipse *ellipse);
     void onCircleSelected(Circle *circle);
     void onRectSelected(Rect *rect);
-    void onPolyLineSelected(PolyLine *polyline);
+    void onPolylineSelected(Polyline *polyline);
 };
 
 #endif // SCENE_H

@@ -20,6 +20,8 @@ public:
     bool updateFlag(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
 
+    void setArc(qreal px, qreal py, qreal radius, qreal angle1, qreal angle2);  // 设置圆弧
+    Arc arc();
     void setType(ArcType type);
     ArcType getType();
 protected:

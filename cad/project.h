@@ -13,32 +13,33 @@ class Project : public QObject
     Q_OBJECT
 public:
     explicit Project(QObject *parent = 0);
-
-    void setName(QString name);  // 设置项目名称
-    void changeName(QString name);  // 更改项目名称
+    ~Project();
+    void setName(const QString name);  // 设置项目名称
+    void changeName(const QString name);  // 更改项目名称
     QString getName();  // 获取项目名称
-
     void addScene(Scene *scene);  // 添加项目图层
     Scene *addScene();  // 添加项目图层
     void setActiveScene(Scene *Scene);  // 设置活动图层
-
     QList<Scene *> getSceneList();  // 获取项目图层列表
-    Scene* getScene(int index);  // 获取项目图层
-    Scene* getSceneByName(QString name);  // 通过名称获取项目图层
+    Scene* getScene(const int index);  // 获取项目图层
+    Scene* getSceneByName(const QString name);  // 通过名称获取项目图层
     Scene* getActiveScene();  // 获取项目活动图层
-
-    void setSaved(bool saved);  // 设置项目保存状态
+    void setSaved(const bool saved);  // 设置项目保存状态
     bool isSaved();  // 判断项目是否被保存过
-
     bool isModified();  // 判断项目是否被更改过
-
     bool saveProject();  // 保存项目
-
     QString getNewSceneName();  // 获取新图层名称
     QString getSceneName(Scene *Scene);  // 获取图层名称
-    QString getSceneName(int i);  // 获取第i层图层名称
-
-    void dxfFileParser(QString fileName);  // 解析dxf文件
+    QString getSceneName(const int i);  // 获取第i层图层名称
+    void dxfFileReader(const QString fileName);  // 解析dxf文件
+    void dxfLayerReader(const DxfFilter dxfFilter);  // 解析layer
+    void dxfPointReader(const DxfFilter dxfFilter);  // 解析point实体
+    void dxfLineReader(const DxfFilter dxfFilter);  // 解析line实体
+    void dxfArcReader(const DxfFilter dxfFilter);  // 解析arc实体
+    void dxfCircleReader(const DxfFilter dxfFilter);  // 解析circle实体
+    void dxfEllipseReader(const DxfFilter dxfFilter);  // 解析ellipse实体
+    void dxfPolylineReader(const DxfFilter dxfFilter);  // 解析polyline实体
+    void dxfTextReader(const DxfFilter dxfFilter);  // 解析text实体
 
 private:
     QString name;  // 项目名称
@@ -46,15 +47,11 @@ private:
     Scene *sceneActive;  // 活动图层
     bool saved;  // 是否保存
     bool modified;  // 是否更改
-
-    DxfFilter dxfFilter;
+    DxfFilter dxfFilter;  // dxf 操作
     DL_Dxf dxf;
-protected:
-
+    QList<QString> offLayers; // 关闭的layer
 signals:
     void projectNameChanged(QString, QString);
-
-public slots:
 };
 
 #endif // PROJECT_H

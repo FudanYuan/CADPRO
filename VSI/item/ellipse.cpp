@@ -184,6 +184,33 @@ qreal Ellipse::getLineAngle(QPointF sPoint, QPointF ePoint)
     return lineAngle * 180.0 / M_PI;
 }
 
+void Ellipse::setEllipse(qreal px, qreal py, qreal radius1, qreal radius2, qreal angle)
+{
+    QPen pen = QPen();
+    pen.setColor(penStyle.color);
+    pen.setStyle(penStyle.style);
+    pen.setWidthF(penStyle.width);
+    setPen(pen);
+
+    cPoint.setX(px);
+    cPoint.setY(py);
+    r1 = radius1;
+    r2 = radius2;
+    alpha = angle;
+    sPoint = transformRotate(cPoint, r1, alpha);
+    ePoint = transformRotate(cPoint, r2, 90 - alpha);  //// 不确定
+    setRect(cPoint.rx()-r1, cPoint.ry()-r2, r1*2, r2*2);
+    cFlag = true;
+    r1Flag = true;
+    r2Flag = true;
+    update();
+}
+
+Ellipse Ellipse::ellipse()
+{
+
+}
+
 void Ellipse::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(selectable){

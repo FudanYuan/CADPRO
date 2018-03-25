@@ -403,7 +403,7 @@ private slots:
     void onActionModifyTrim();                              // 修剪
     void onActionModifyExtend();                    // 延伸
     void onActionModifyEndpoint();                  // 修改端点
-    void onActionModifyAdjustPolyLine();            // 调整折线
+    void onActionModifyAdjustPolyline();            // 调整折线
     void onActionModifyStartpoint();                // 起点
     void onActionModifySoftenup();                  // 软化
     void onActionModifyWarp();                      // 弯曲
@@ -553,7 +553,7 @@ public slots:
 //    void onEllipseSelected(Ellipse *ellipse);
     void onCircleSelected(Circle *circle);
     void onRectSelected(Rect *rect);
-    void onPolyLineSelected(PolyLine *polyline);
+    void onPolylineSelected(Polyline *polyline);
 };
 
 #endif // SKETCH_H

@@ -66,6 +66,29 @@ void Circle::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QW
     drawCrossPoint(painter, cPoint, 5, upright);
 }
 
+void Circle::setCircle(qreal px, qreal py, qreal radius)
+{
+    QPen pen = QPen();
+    pen.setColor(penStyle.color);
+    pen.setStyle(penStyle.style);
+    pen.setWidthF(penStyle.width);
+    setPen(pen);
+
+    QPointF cPoint, sPoint; // 圆心
+    qreal r; // 半径
+    cPoint.setX(px);
+    cPoint.setY(py);
+    sPoint = cPoint + QPointF(0, radius);
+    r = radius;
+    setRect(cPoint.rx()-r, cPoint.ry()-r, r*2, r*2);
+    update();
+}
+
+Circle Circle::circle()
+{
+
+}
+
 void Circle::setFilled(bool filled)
 {
     this->filled = filled;

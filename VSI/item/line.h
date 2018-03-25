@@ -16,6 +16,7 @@ public:
     bool updateFlag(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
 
+    void setCustomLine(const QLineF &line);
     qreal getPerimeter();  // 获取周长
 protected:
     //鼠标事件

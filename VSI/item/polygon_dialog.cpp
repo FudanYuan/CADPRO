@@ -188,11 +188,11 @@ void Polygon_dialog::len_numchanged(){
 void Polygon_dialog::radchanged(){
     this->setRaduii(rad_edit->text().toDouble());
 }
+
 void Polygon_dialog::angelchanged(){
     this->setAngle(angel_edit->text().toDouble());
     angle=angel_edit->text().toDouble();
     originalRenderArea->setAlpha(angle);
-
 }
 
 //获取线对象

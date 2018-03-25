@@ -5,11 +5,11 @@
 #include <QPen>
 #include <QDebug>
 
-PolyLine::PolyLine(QGraphicsItem *parent) :
+Polyline::Polyline(QGraphicsItem *parent) :
     QGraphicsPathItem(parent),
     type(line)
 {
-    setShapeType(Shape::PolyLine);
+    setShapeType(Shape::Polyline);
     // 设置图元为可焦点的
     setFlag(QGraphicsItem::ItemIsFocusable);
     // 设置图元为可移动的
@@ -20,7 +20,7 @@ PolyLine::PolyLine(QGraphicsItem *parent) :
     setAcceptHoverEvents(true);
 }
 
-void PolyLine::startDraw(QGraphicsSceneMouseEvent *event)
+void Polyline::startDraw(QGraphicsSceneMouseEvent *event)
 {
     QPen pen = QPen();
     pen.setColor(penStyle.color);
@@ -31,13 +31,13 @@ void PolyLine::startDraw(QGraphicsSceneMouseEvent *event)
     points.append(point);
 }
 
-void PolyLine::drawing(QGraphicsSceneMouseEvent *event)
+void Polyline::drawing(QGraphicsSceneMouseEvent *event)
 {
     newPoint = event->scenePos();
     update();
 }
 
-bool PolyLine::updateFlag(QGraphicsSceneMouseEvent *event)
+bool Polyline::updateFlag(QGraphicsSceneMouseEvent *event)
 {
     Q_UNUSED(event);
     QPointF point = event->scenePos();
@@ -46,11 +46,11 @@ bool PolyLine::updateFlag(QGraphicsSceneMouseEvent *event)
     return overFlag;
 }
 
-void PolyLine::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void Polyline::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     Q_UNUSED(option);
     Q_UNUSED(widget);
-    scaleFactor =  painter->matrix().m11();
+    scaleFactor = painter->matrix().m11();
     // 获取到当前的线宽，这里的线宽其实还是之前设置的线宽值;
     // 比如我们之前设置线宽为 2 ，这里返回的线宽还是 2 ，但是当前的缩放比例变了；
     // 其实当前的线宽就相当于 penWidth * scaleFactor;
@@ -76,7 +76,7 @@ void PolyLine::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     case line:
         for (int i = 0; i < len - 1; ++i) {
             painter->setBrush(QBrush(penStyle.color));
-            drawRectPoint(painter, points.at(i), offset);
+            //drawRectPoint(painter, points.at(i), offset);
             painter->setBrush(QBrush());
             path.lineTo(points.at(i+1));
         }
@@ -118,17 +118,32 @@ void PolyLine::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     setPath(path);
 }
 
-void PolyLine::setType(PolyLine::Type type)
+void Polyline::setPolyline(QList<QPointF> pList, int flag, double elevation)
+{
+    QPen pen = QPen();
+    pen.setColor(penStyle.color);
+    pen.setStyle(penStyle.style);
+    pen.setWidthF(penStyle.width);
+    setPen(pen);
+
+    Q_UNUSED(elevation);
+    type = (Type)flag;
+    points.append(pList);
+    update();
+    overFlag = true;
+}
+
+void Polyline::setType(Polyline::Type type)
 {
     this->type = type;
 }
 
-PolyLine::Type PolyLine::getType()
+Polyline::Type Polyline::getType()
 {
     return this->type;
 }
 
-void PolyLine::mousePressEvent(QGraphicsSceneMouseEvent *event)
+void Polyline::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(selectable){
         selected = true;
@@ -145,43 +160,43 @@ void PolyLine::mousePressEvent(QGraphicsSceneMouseEvent *event)
     QGraphicsItem::mousePressEvent(event);
 }
 
-void PolyLine::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
+void Polyline::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-    // qDebug() << "PolyLine::mouseMoveEvent";
+    // qDebug() << "Polyline::mouseMoveEvent";
     QGraphicsItem::mouseMoveEvent(event);
 }
 
-void PolyLine::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+void Polyline::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-    // qDebug() << "PolyLine::mouseReleaseEvent";
+    // qDebug() << "Polyline::mouseReleaseEvent";
     QGraphicsItem::mouseReleaseEvent(event);
 }
 
-void PolyLine::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
+void Polyline::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
 {
-    // qDebug() << "PolyLine::dragEnterEvent";
+    // qDebug() << "Polyline::dragEnterEvent";
     QGraphicsItem::dragEnterEvent(event);
 }
 
-void PolyLine::dragLeaveEvent(QGraphicsSceneDragDropEvent *event)
+void Polyline::dragLeaveEvent(QGraphicsSceneDragDropEvent *event)
 {
-    // qDebug() << "PolyLine::dragLeaveEvent";
+    // qDebug() << "Polyline::dragLeaveEvent";
     QGraphicsItem::dragLeaveEvent(event);
 }
 
-void PolyLine::dragMoveEvent(QGraphicsSceneDragDropEvent *event)
+void Polyline::dragMoveEvent(QGraphicsSceneDragDropEvent *event)
 {
-    // qDebug() << "PolyLine::dragMoveEvent";
+    // qDebug() << "Polyline::dragMoveEvent";
     QGraphicsItem::dragMoveEvent(event);
 }
 
-void PolyLine::dropEvent(QGraphicsSceneDragDropEvent *event)
+void Polyline::dropEvent(QGraphicsSceneDragDropEvent *event)
 {
-    // qDebug() << "PolyLine::dropEvent";
+    // qDebug() << "Polyline::dropEvent";
     QGraphicsItem::dropEvent(event);
 }
 
-void PolyLine::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
+void Polyline::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
     if(selectable){
         QPen pen = QPen();
@@ -200,7 +215,7 @@ void PolyLine::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
     }
 }
 
-void PolyLine::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
+void Polyline::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
     if(selectable){
         setCursor(Qt::OpenHandCursor);
@@ -208,7 +223,7 @@ void PolyLine::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
     }
 }
 
-void PolyLine::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
+void Polyline::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
     if(selectable){
         QPen pen = QPen();
@@ -226,7 +241,7 @@ void PolyLine::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
     }
 }
 
-void PolyLine::onSceneMoveableChanged(bool moveable)
+void Polyline::onSceneMoveableChanged(bool moveable)
 {
     this->moveable = moveable;
     setFlag(QGraphicsItem::ItemIsMovable, moveable);

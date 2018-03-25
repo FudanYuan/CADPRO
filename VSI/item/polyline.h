@@ -8,22 +8,24 @@
 
 //!
 //! 折线类，所有的多边形、曲线、
-//! \brief The PolyLine class
+//! \brief The Polyline class
 //!
-class PolyLine : public Shape, public QGraphicsPathItem
+class Polyline : public Shape, public QGraphicsPathItem
 {
     Q_OBJECT
 public:
     enum Type{
-        line,
-        curve,
-        cubic
+        line = 1,
+        curve = 2,
+        cubic = 3
     };
-    PolyLine(QGraphicsItem *parent=0);
+    Polyline(QGraphicsItem *parent=0);
     void startDraw(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 开始绘图
     void drawing(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 绘图开始
     bool updateFlag(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
+
+    void setPolyline(QList<QPointF> pList, int flag, double elevation);
 
     void setType(Type type);
     Type getType();
@@ -48,7 +50,7 @@ private:
     Type type;  // 类型
 
 signals:
-    void select(PolyLine *polyline);  // 图形被选择
+    void select(Polyline *polyline);  // 图形被选择
 
 public slots:
     void onSceneMoveableChanged(bool moveable) Q_DECL_OVERRIDE;  //  响应场景可移动性改变

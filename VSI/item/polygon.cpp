@@ -61,10 +61,12 @@ void Polygon::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
     int num = line_num;
     double angle=alpha;
     QPainterPath path;
-    QPointF sPoint(cPoint.rx()+r*qCos(M_PI*angle/180), cPoint.ry()+r*qSin(M_PI*angle/180));
+    QPointF sPoint(cPoint.rx()+r*qCos(M_PI*angle/180),
+                   cPoint.ry()+r*qSin(M_PI*angle/180));
     path.moveTo(sPoint);
     for(int i=1;i < num;i++){
-       QPointF p(cPoint.rx()+r*qCos(2*M_PI/num * i+M_PI*angle/180), cPoint.ry()+r*qSin(2*M_PI/num * i+M_PI*angle/180));
+       QPointF p(cPoint.rx()+r*qCos(2*M_PI/num * i+M_PI*angle/180),
+                 cPoint.ry()+r*qSin(2*M_PI/num * i+M_PI*angle/180));
        path.lineTo(p);
     }
     path.lineTo(sPoint);

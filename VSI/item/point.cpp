@@ -21,6 +21,12 @@ Point::Point(QGraphicsItem *parent) :
 
 void Point::startDraw(QGraphicsSceneMouseEvent *event)
 {
+    QPen pen = QPen();
+    pen.setColor(penStyle.color);
+    pen.setStyle(penStyle.style);
+    pen.setWidthF(penStyle.width);
+    setPen(pen);
+
     pos = event->scenePos();
     update();
     overFlag = true;  // 马上就要结束
@@ -85,6 +91,12 @@ QPointF Point::point() const
 
 void Point::setPoint(const QPointF &point)
 {
+    QPen pen = QPen();
+    pen.setColor(penStyle.color);
+    pen.setStyle(penStyle.style);
+    pen.setWidthF(penStyle.width);
+    setPen(pen);
+
     this->pos = point;
 }
 

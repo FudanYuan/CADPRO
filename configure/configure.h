@@ -50,6 +50,12 @@ public:
 
         }
 
+        PenStyle(QColor c, Qt::PenStyle s, qreal w) :
+            color(c), style(s), width(w)
+        {
+
+        }
+
         QColor color;  // 实体颜色, 默认为黑色
         Qt::PenStyle style;  // 实体样式，默认为实线
         qreal width;  // 实体宽度，默认为1

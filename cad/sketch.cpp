@@ -453,7 +453,7 @@ void Sketch::initActions()
 
     action_modify_adjust_polyline = new QAction(tr("&调整折线"), this);
     action_modify_adjust_polyline->setDisabled(true);
-    connect(action_modify_adjust_polyline, &QAction::triggered, this, &Sketch::onActionModifyAdjustPolyLine);
+    connect(action_modify_adjust_polyline, &QAction::triggered, this, &Sketch::onActionModifyAdjustPolyline);
 
     action_modify_start_point = new QAction(tr("&起点"), this);
     action_modify_start_point->setDisabled(true);
@@ -1706,6 +1706,7 @@ void Sketch::onActionFileImportDXF()
 {
     qDebug() << "import dxf files";
     QString fileName = QFileDialog::getOpenFileName(this, tr("打开DXF文件"), QDir::currentPath());
+    //fileName = "/Users/Jeremy/Desktop/项目/梁叔项目/画图+排版/素材/全套.dxf";
     if (!fileName.isEmpty()) {
         QFileInfo new_project = QFileInfo(fileName);
         QString name_project_new = new_project.fileName();
@@ -1713,7 +1714,13 @@ void Sketch::onActionFileImportDXF()
         project_active->setName(name_project_new);
         project_list.append(project_active);
 
-        project_active->dxfFileParser(fileName);
+        // 读取dxf文件
+        try{
+            project_active->dxfFileReader(fileName);
+        } catch (QString exception){
+            QMessageBox::warning(this, tr("错误"), exception);
+        }
+
         QTreeWidgetItem *item_project = new QTreeWidgetItem(tree_project, QStringList(name_project_new));
         tree_project_item_list.append(item_project);
         int count = project_active->getSceneList().length();
@@ -1802,7 +1809,7 @@ void Sketch::onActionDrawCircle()
 void Sketch::onActionDrawPolyline()
 {
     qDebug() << "draw a polyline";
-    scene_active->setCurShape(Shape::PolyLine);
+    scene_active->setCurShape(Shape::Polyline);
 }
 
 void Sketch::onActionDrawArcBy3Pnts()
@@ -2154,7 +2161,7 @@ void Sketch::onActionModifyEndpoint()
     qDebug() << "修改端点";
 }
 
-void Sketch::onActionModifyAdjustPolyLine()
+void Sketch::onActionModifyAdjustPolyline()
 {
     qDebug() << "调整折线";
 }
@@ -2841,7 +2848,7 @@ void Sketch::onRectSelected(Rect *rect)
 
 }
 
-void Sketch::onPolyLineSelected(PolyLine *polyline)
+void Sketch::onPolylineSelected(Polyline *polyline)
 {
 
 }

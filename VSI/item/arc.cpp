@@ -179,6 +179,37 @@ void Arc::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidg
     }
 }
 
+void Arc::setArc(qreal px, qreal py, qreal radius, qreal angle1, qreal angle2)
+{
+    QPen pen = QPen();
+    pen.setColor(penStyle.color);
+    pen.setStyle(penStyle.style);
+    pen.setWidthF(penStyle.width);
+    setPen(pen);
+
+    cPoint.setX(px);
+    cPoint.setY(py);
+    r = radius;
+    sAngle = angle1;
+    eAngle = angle2;
+    angleRange = angle2 - angle1;
+    fPoint = cPoint;
+    sPoint = transformRotate(cPoint, radius, angle1);
+    tPoint = transformRotate(cPoint, radius, angle2);
+    setRect(cPoint.rx()-r, cPoint.ry()-r, r*2, r*2);  // 可优化
+    type = normal;
+    fFlag = true;
+    sFlag = true;
+    tFlag = true;
+    eFlag = false;
+    update();
+}
+
+Arc Arc::arc()
+{
+
+}
+
 void Arc::setType(Arc::ArcType type)
 {
     this->type = type;

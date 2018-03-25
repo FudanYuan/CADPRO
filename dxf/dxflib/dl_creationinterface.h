@@ -50,7 +50,9 @@ public:
         extrusion = new DL_Extrusion;
     }
     virtual ~DL_CreationInterface() {
-        delete extrusion;
+        if(extrusion){
+            //delete extrusion;
+        }
     }
 
     /**

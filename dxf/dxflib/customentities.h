@@ -4,6 +4,7 @@
 #endif // CUSTOMENTITIES_H
 #include "dl_attributes.h"
 #include "dl_entities.h"
+#include <QList>
 
 /**
  * My Layer Data.
@@ -47,6 +48,21 @@ struct MyLineData
      }
 
      DL_LineData line;
+     DL_Attributes attribute;
+};
+
+/**
+ * My Ray Data.
+ */
+struct MyRayData
+{
+     MyRayData(DL_RayData ray,
+                 DL_Attributes attribute) :
+     ray(ray), attribute(attribute){
+
+     }
+
+     DL_RayData ray;
      DL_Attributes attribute;
 };
 
@@ -161,8 +177,9 @@ struct MyDimRadialData
 struct MyVertexData
 {
      MyVertexData(DL_VertexData vertex,
-                 DL_Attributes attribute) :
-     vertex(vertex), attribute(attribute){
+                  DL_Attributes attribute) :
+         vertex(vertex),
+         attribute(attribute){
 
      }
 
@@ -182,6 +199,7 @@ struct MyPolylineData
      }
 
      DL_PolylineData polyline;
+     QList<DL_VertexData> vertexList;
      DL_Attributes attribute;
 };
 

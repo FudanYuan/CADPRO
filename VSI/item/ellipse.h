@@ -16,6 +16,9 @@ public:
     bool updateFlag(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
     qreal getLineAngle(QPointF sPoint, QPointF ePoint);
+
+    void setEllipse(qreal px, qreal py, qreal radius1, qreal radius2, qreal angle);  // 设置椭圆元素
+    Ellipse ellipse();  // 获取椭圆元素
 protected:
     //鼠标事件
     void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;

@@ -7,3 +7,7 @@
 #if 0
 #define NESTDEBUG
 #endif
+
+#if 0
+#define DXFDEBUG
+#endif
