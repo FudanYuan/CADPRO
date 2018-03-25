@@ -1392,9 +1392,9 @@ void Sketch::addProject()
     connect(scene_active, &Scene::sceneItemsChanged, this, &Sketch::onSceneItemsChanged);
     connect(scene_active, &Scene::pointSelected, this, &Sketch::onPointSelected);
     connect(scene_active, &Scene::lineSelected, this, &Sketch::onLineSelected);
-//    connect(scene_active, &Scene::ellipseSelected, this, &Sketch::onEllipseSelected);
+    connect(scene_active, &Scene::ellipseSelected, this, &Sketch::onEllipseSelected);
     connect(scene_active, &Scene::circleSelected, this, &Sketch::onCircleSelected);
-//    connect(scene_active, &Scene::arcSelected, this, &Sketch::onArcSelected);
+    connect(scene_active, &Scene::arcSelected, this, &Sketch::onArcSelected);
     connect(scene_active, &Scene::rectSelected, this, &Sketch::onRectSelected);
 
     QTreeWidgetItem *item_project = new QTreeWidgetItem(tree_project,QStringList(name_project_new));
@@ -1828,7 +1828,7 @@ void Sketch::onActionDrawTrapezium()
 {
     //绘制梯形
     qDebug() << "draw a trapezium";
-    Trapezium_dialog *trapezium_dialog =new Trapezium_dialog;
+    TrapeziumDialog *trapezium_dialog =new TrapeziumDialog;
     trapezium_dialog->exec();
 
    if(trapezium_dialog->getOk())
@@ -1850,14 +1850,14 @@ void Sketch::onActionDrawPolygon()
 {
     //绘制正多边形
     qDebug() << "draw a polygon";
-    Polygon_dialog *polygon_dialog =new Polygon_dialog;
-    polygon_dialog->exec();
-    if(polygon_dialog->getOk())
+    PolygonDialog *polygondialog =new PolygonDialog;
+    polygondialog->exec();
+    if(polygondialog->getOk())
     {
-        scene_active->setPolygon_line_num(polygon_dialog->getLen_num());
-        scene_active->setPolygon_radius(polygon_dialog->getRaduii());
-        scene_active->setPolygon_alpha(polygon_dialog->getAngle());
-        scene_active->setPolygon_type(polygon_dialog->getPenstyle());
+        scene_active->setPolygon_line_num(polygondialog->getLen_num());
+        scene_active->setPolygon_radius(polygondialog->getRaduii());
+        scene_active->setPolygon_alpha(polygondialog->getAngle());
+        scene_active->setPolygon_type(polygondialog->getPenstyle());
         scene_active->setCurShape(Shape::Polygon);
     }
     else
@@ -2827,15 +2827,15 @@ void Sketch::onLineSelected(Line *line)
 }
 
 
-//void Sketch::onArcSelected(Arc *arc)
-//{
+void Sketch::onArcSelected(Arc *arc)
+{
 
-//}
+}
 
-//void Sketch::onEllipseSelected(Ellipse *ellipse)
-//{
+void Sketch::onEllipseSelected(Ellipse *ellipse)
+{
 
-//}
+}
 
 
 void Sketch::onCircleSelected(Circle *circle)

@@ -5,12 +5,12 @@
 
 
 //! [0]
-Trapezium_dialog::Trapezium_dialog()
+TrapeziumDialog::TrapeziumDialog()
 {
     intidialog();
 }
 
-void Trapezium_dialog::intidialog()
+void TrapeziumDialog::intidialog()
 {
     mainLayout = new QVBoxLayout;//主框架
     layout1 = new QHBoxLayout();//水平框架
@@ -47,7 +47,7 @@ void Trapezium_dialog::intidialog()
     setWindowTitle(tr("梯形绘制"));
 }
 
-void Trapezium_dialog::creatlayout3()
+void TrapeziumDialog::creatlayout3()
 {
      topGroupBox->setMaximumSize(250,230);
      topGroupBox->setMinimumSize(250,230);
@@ -104,119 +104,119 @@ void Trapezium_dialog::creatlayout3()
      topGroupBox->setLayout(layout3);
 }
 
-double Trapezium_dialog::getAlp1() const
+double TrapeziumDialog::getAlp1() const
 {
     return alp1;
 }
 
-void Trapezium_dialog::setAlp1(double value)
+void TrapeziumDialog::setAlp1(double value)
 {
     alp1 = value;
 }
 
-double Trapezium_dialog::getAlp2() const
+double TrapeziumDialog::getAlp2() const
 {
     return alp2;
 }
 
-void Trapezium_dialog::setAlp2(double value)
+void TrapeziumDialog::setAlp2(double value)
 {
     alp2 = value;
 }
 
-double Trapezium_dialog::getH_size() const
+double TrapeziumDialog::getH_size() const
 {
     return H_size;
 }
 
-void Trapezium_dialog::setH_size(double value)
+void TrapeziumDialog::setH_size(double value)
 {
     H_size = value;
 }
 
-double Trapezium_dialog::getTop_length_size() const
+double TrapeziumDialog::getTop_length_size() const
 {
     return top_length_size;
 }
 
-void Trapezium_dialog::setTop_length_size(double value)
+void TrapeziumDialog::setTop_length_size(double value)
 {
     top_length_size = value;
 }
 
-bool Trapezium_dialog::getOk() const
+bool TrapeziumDialog::getOk() const
 {
     return ok;
 }
 
-void Trapezium_dialog::setOk(bool value)
+void TrapeziumDialog::setOk(bool value)
 {
     ok = value;
 }
 
-int Trapezium_dialog::getTrapezium_dialog_type() const
+int TrapeziumDialog::getTrapezium_dialog_type() const
 {
     return trapezium_dialog_type;
 }
 
-void Trapezium_dialog::setTrapezium_dialog_type(int value)
+void TrapeziumDialog::setTrapezium_dialog_type(int value)
 {
     trapezium_dialog_type = value;
 }
 
-int Trapezium_dialog::getPenstyle() const
+int TrapeziumDialog::getPenstyle() const
 {
     return penstyle;
 }
 
-void Trapezium_dialog::setPenstyle(int value)
+void TrapeziumDialog::setPenstyle(int value)
 {
     penstyle = value;
 }
 
-void Trapezium_dialog::onclickedok()
+void TrapeziumDialog::onclickedok()
 {
     this->setOk(true);
     this->accept();
 }
 
-void Trapezium_dialog::onclickedcancel()
+void TrapeziumDialog::onclickedcancel()
 {
     this->setOk(false);
     this->reject();
 }
 
-void Trapezium_dialog::onalpha1change()
+void TrapeziumDialog::onalpha1change()
 {
     this->setAlp1(alpha1_edit->text().toDouble());
 //    qDebug()<<"角度1:"<<alpha1_edit->text().toDouble();
 }
 
-void Trapezium_dialog::onalpha2change()
+void TrapeziumDialog::onalpha2change()
 {
     this->setAlp2(alpha2_edit->text().toDouble());
 //    qDebug()<<"角度2:"<<alpha2_edit->text().toDouble();
 }
 
-void Trapezium_dialog::onHchange()
+void TrapeziumDialog::onHchange()
 {
     this->setH_size(H_edit->text().toDouble());
 //    qDebug()<<"高:"<<H_edit->text().toDouble();
 }
 
-void Trapezium_dialog::ontop_lengthchange()
+void TrapeziumDialog::ontop_lengthchange()
 {
     this->setTop_length_size(top_length_edit->text().toDouble());
 //    qDebug()<<"上底:"<<top_length_edit->text().toDouble();
 }
 
-void Trapezium_dialog::online_typechange()
+void TrapeziumDialog::online_typechange()
 {
     int line=line_type_choose->currentIndex();
     this->setPenstyle(line);
 }
 
-void Trapezium_dialog::onchoose_checkchange()
+void TrapeziumDialog::onchoose_checkchange()
 {
     if(choose_check->isChecked())
     {

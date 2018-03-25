@@ -3,17 +3,24 @@
 #ifndef TRAPEZIUM_DIALOG_H
 #define TRAPEZIUM_DIALOG_H
 
-#include <QtWidgets>
-
+#include <QDialog>
+#include <QGroupBox>
+#include <QLabel>
+#include <QLineEdit>
+#include <QComboBox>
+#include <QRadioButton>
+#include <QLayout>
+#include <QPushButton>
+#include <QCheckBox>
 #include "renderarea.h"
 
-class Trapezium_dialog : public QDialog, public QGraphicsPathItem
+class TrapeziumDialog : public QDialog
 {
     Q_OBJECT
 
 public:
 
-    Trapezium_dialog();
+    TrapeziumDialog();
     void intidialog();//初始化对话框
     void creatlayout3();
 
