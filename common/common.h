@@ -8,8 +8,9 @@
 #include <qmath.h>
 
 enum crossType{
-    normal,
-    upright
+    none = 0,
+    normal = 1,
+    upright = 2
 };
 QColor intToColor(const int rgb, bool a=false); // 将int转华为color
 QPointF transformY(QPointF p);  // 转变纵坐标轴

@@ -17,6 +17,18 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
     qreal getLineAngle(QPointF sPoint, QPointF ePoint);
 
+    void setCPoint(QPointF p);  // 设置圆心
+    QPointF getCPoint();  // 获取圆心
+
+    void setRadius1(qreal r1);  // 设置半径1
+    qreal getRadius1();  // 获取半径1
+
+    void setRadius2(qreal r2);  // 设置半径2
+    qreal getRadius2();  // 获取半径2
+
+    void setAlpha(qreal a);  // 设置旋转角度
+    qreal getAlpha();  // 获取旋转角度
+
     void setEllipse(qreal px, qreal py, qreal radius1, qreal radius2, qreal angle);  // 设置椭圆元素
     Ellipse ellipse();  // 获取椭圆元素
 protected:

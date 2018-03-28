@@ -10,7 +10,7 @@ class Arc : public Shape, public QGraphicsEllipseItem
 {
     Q_OBJECT
 public:
-    enum ArcType{
+    enum Type{
         normal,
         updated
     };
@@ -20,10 +20,25 @@ public:
     bool updateFlag(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
 
+    void setCPoint(QPointF p);  // 设置圆心
+    QPointF getCPoint();  // 获取圆心
+
+    void setRadius(qreal r);  // 设置半径
+    qreal getRadius();  // 获取半径
+
+    void setSAngle(qreal angle);  //设置开始角度
+    qreal getSAngle();  // 获取开始角度
+
+    void setEAngle(qreal angle);  //设置结束角度
+    qreal getEAngle();  // 获取结束角度
+
+    void setType(Type type);
+    Type getType();  // 获取圆心点类型
+
     void setArc(qreal px, qreal py, qreal radius, qreal angle1, qreal angle2);  // 设置圆弧
     Arc arc();
-    void setType(ArcType type);
-    ArcType getType();
+
+
 protected:
     //鼠标事件
     void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
@@ -46,7 +61,7 @@ private:
     qreal eAngle;  // 结束角度
     qreal angleRange;  // 跨度
     QPointF fPoint, sPoint, tPoint; // 圆心, 第一点
-    ArcType type;
+    Type type;
     bool fFlag;  // 第一点确定
     bool sFlag;  // 第二点确定
     bool tFlag;  // 第三点确定
