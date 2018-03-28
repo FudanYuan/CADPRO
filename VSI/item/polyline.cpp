@@ -128,15 +128,9 @@ void Polyline::setPolyline(QList<QPointF> pList, int flag, double elevation)
 
     Q_UNUSED(elevation);
     type = (Type)flag;
-    qDebug() << "polyline: " << type;
     points.append(pList);
     update();
     overFlag = true;
-}
-
-QList<QPointF> Polyline::getPoints()
-{
-    return this->points;
 }
 
 void Polyline::setType(Polyline::Type type)

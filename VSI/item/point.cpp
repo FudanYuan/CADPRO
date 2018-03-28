@@ -6,9 +6,7 @@
 #include <QDebug>
 
 Point::Point(QGraphicsItem *parent) :
-    QGraphicsItem(parent),
-    offset(1),
-    ctype(normal)
+    QGraphicsItem(parent)
 {
     setShapeType(Shape::Point);
     // 设置图元为可焦点的
@@ -76,11 +74,6 @@ void Point::setOffset(int offset)
     this->offset = offset;
 }
 
-int Point::getOffset()
-{
-    return this->offset;
-}
-
 QPen Point::pen() const
 {
     return pen_style;
@@ -130,11 +123,6 @@ bool Point::contains(const QPointF &point) const
 int Point::type() const
 {
     return Type;
-}
-
-crossType Point::getCrossType()
-{
-    return this->ctype;
 }
 
 void Point::mousePressEvent(QGraphicsSceneMouseEvent *event)

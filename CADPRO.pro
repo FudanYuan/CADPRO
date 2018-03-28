@@ -108,7 +108,7 @@ HEADERS += \
     cad/project.h \
     cad/sketch.h \
     cad/nest.h \
-    VSI/item/polygon_dialog.h \
+    VSI/item/polygondialog.h \
     VSI/item/eyelet.h \
     VSI/item/eyeletdialog.h \
     VSI/item/text.h \

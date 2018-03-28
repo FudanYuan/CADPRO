@@ -33,26 +33,7 @@ public:
     void setCurShape(Shape::ShapeType curShape);  // 设置当前图形
     Shape::ShapeType getCurShape();  // 获取当前图形
 
-    QList<Shape *> getItemList() const;  // 获取item列表
-    int getItemListLength() const;  // 获取item列表长度
-
-    QList<Point *> getPointList() const;  // 获取点列表
-    int getPointListLength() const;  // 获取点列表长度
-
-    QList<Line *> getLineList() const;  // 获取直线列表
-    int getLineListLength() const;  // 获取直线列表长度
-
-    QList<Polyline *> getPolylineList() const;  // 获取多边形列表
-    int getPolylineListLength() const;  // 获取多边形列表长度
-
-    QList<Ellipse *> getEllipseList() const;  // 获取椭圆列表
-    int getEllipseListLength() const;  // 获取椭圆列表长度
-
-    QList<Circle *> getCircleList() const;  // 获取圆列表
-    int getCircleListLength() const;  // 获取圆列表长度
-
-    QList<Arc *> getArcList() const;  // 获取圆弧列表
-    int getArcListLength() const;  // 获取圆弧列表长度
+    int getitemListLength() const;  // 获取item列表长度
 
     void setModified(bool modified);  // 设置画布是否被更改
     bool isModified() const;  // 返回画布内容是否被更改过
@@ -130,12 +111,6 @@ private:
     Shape::ShapeType preShape;  // 上一个图形
     Shape::ShapeType curShape;  // 当前图形
     QList<Shape *> itemList;  // 图元列表
-    QList<Point *> pointList;  // 点列表
-    QList<Line *> lineList;  // 直线列表
-    QList<Polyline *> polylineList;  // 多边形列表
-    QList<Ellipse *> ellipseList;  // 椭圆列表
-    QList<Circle *> circleList;  // 圆列表
-    QList<Arc *> arcList;  // 圆弧列表
     Shape *curItem;  // 设置当前图形
     bool modified;  // 标志图层是否被更改过
 

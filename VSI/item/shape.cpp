@@ -33,11 +33,6 @@ void Shape::setPenStyle(Configure::PenStyle penStyle)
     this->penStyle = penStyle;
 }
 
-Configure::PenStyle Shape::getPenStyle()
-{
-    return this->penStyle;
-}
-
 void Shape::setEntityUnderCursorStyle(Configure::PenStyle underCursorStyle)
 {
     this->underCursorStyle = underCursorStyle;

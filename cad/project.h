@@ -31,27 +31,15 @@ public:
     QString getNewSceneName();  // 获取新图层名称
     QString getSceneName(Scene *Scene);  // 获取图层名称
     QString getSceneName(const int i);  // 获取第i层图层名称
-
-    // dxf 读
     void dxfFileReader(const QString fileName);  // 解析dxf文件
     void dxfLayerReader(const DxfFilter dxfFilter);  // 解析layer
     void dxfPointReader(const DxfFilter dxfFilter);  // 解析point实体
     void dxfLineReader(const DxfFilter dxfFilter);  // 解析line实体
-    void dxfPolylineReader(const DxfFilter dxfFilter);  // 解析polyline实体
     void dxfArcReader(const DxfFilter dxfFilter);  // 解析arc实体
     void dxfCircleReader(const DxfFilter dxfFilter);  // 解析circle实体
     void dxfEllipseReader(const DxfFilter dxfFilter);  // 解析ellipse实体
+    void dxfPolylineReader(const DxfFilter dxfFilter);  // 解析polyline实体
     void dxfTextReader(const DxfFilter dxfFilter);  // 解析text实体
-
-    // dxf 写
-    void dxfFileWriter(const QString fileName);  // 存储dxf文件
-    void dxfPointWriter(const QList<Point *> &list, DL_Dxf &dxf, DL_WriterA* dw);  // 存储点
-    void dxfLineWriter(const QList<Line *> &list, DL_Dxf &dxf, DL_WriterA* dw);  // 存储直线
-    void dxfPolylineWriter(const QList<Polyline *> &list, DL_Dxf &dxf, DL_WriterA* dw);  // 存储多边形
-    void dxfArcWriter(const QList<Arc *> &list, DL_Dxf &dxf, DL_WriterA* dw);  // 存储圆弧
-    void dxfCircleWriter(const QList<Circle *> &list, DL_Dxf &dxf, DL_WriterA* dw);  // 存储圆
-    void dxfEllipseWriter(const QList<Ellipse *> &list, DL_Dxf &dxf, DL_WriterA* dw);  // 存储椭圆
-//    void dxfTextWriter(const QList<Text *> &list, DL_Dxf &dxf, DL_WriterA* dw);  // 存储文本
 
 private:
     QString name;  // 项目名称

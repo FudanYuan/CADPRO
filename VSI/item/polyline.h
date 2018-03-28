@@ -27,7 +27,6 @@ public:
 
     void setPolyline(QList<QPointF> pList, int flag, double elevation);
 
-    QList<QPointF> getPoints();  // 获取点
     void setType(Type type);
     Type getType();
 protected:

@@ -35,7 +35,7 @@ void ItemProperties::initdialog(){
     QTableWidgetItem *tableitem= new QTableWidgetItem(tr("ID"));
     table_widget->setItem(0,0,tableitem);
     tableitem->setTextAlignment(Qt::AlignCenter);
-    tableitem->setFlags(false);//设置为不可编辑
+    //tableitem->setFlags(false);//设置为不可编辑
 
     QString string = QString::number(shapeid, 10);//将int变成QString类
     tableitem = new QTableWidgetItem(string);

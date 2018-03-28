@@ -6,9 +6,6 @@
 
 Line::Line(QGraphicsItem *parent) :
     QGraphicsLineItem(parent),
-    crossSize(2),
-    crossCircleR(2),
-    arrowSize(5),
     sPointEdit(false),
     ePointEdit(false),
     itemp(false)
@@ -87,16 +84,16 @@ void Line::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
         pen.setColor(Qt::red);
         painter->setPen(pen);
         // 设置交叉线大小
-        crossSize /= scaleFactor;
-        crossCircleR /= scaleFactor;
+        int crossSize = 2;
+        int r = 2;
         drawCrossPoint(painter, sPoint, crossSize, upright);
-        painter->drawEllipse(sPoint, crossCircleR, crossCircleR);
+        painter->drawEllipse(sPoint, r, r);
         QBrush brush = QBrush();
         brush.setColor(Qt::red);
         brush.setStyle(Qt::SolidPattern);
         painter->setBrush(brush);
         // 设置方向箭头大小
-        arrowSize /= scaleFactor;
+        int arrowSize = 5;
         drawLineWithArrow(painter, QLineF(sPoint, ePoint), arrowSize);
         break;
     }
@@ -126,36 +123,6 @@ void Line::setCustomLine(const QLineF &line)
     pen.setWidthF(penStyle.width);
     setPen(pen);
     setLine(line);
-}
-
-void Line::setCrossSize(qreal size)
-{
-    this->crossSize = size;
-}
-
-qreal Line::getCrossSize()
-{
-    return this->crossSize;
-}
-
-void Line::setCrossCircleR(qreal r)
-{
-    this->crossCircleR = r;
-}
-
-qreal Line::getCrossCircleR()
-{
-    return this->crossCircleR;
-}
-
-void Line::setArrowSize(qreal size)
-{
-    this->arrowSize = size;
-}
-
-qreal Line::getArrowSize()
-{
-    return this->arrowSize;
 }
 
 qreal Line::getPerimeter()

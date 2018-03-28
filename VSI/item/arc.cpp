@@ -179,46 +179,6 @@ void Arc::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidg
     }
 }
 
-void Arc::setCPoint(QPointF p)
-{
-    this->cPoint = p;
-}
-
-QPointF Arc::getCPoint()
-{
-    return this->cPoint;
-}
-
-void Arc::setRadius(qreal r)
-{
-    this->r = r;
-}
-
-qreal Arc::getRadius()
-{
-    return this->r;
-}
-
-void Arc::setSAngle(qreal angle)
-{
-    this->sAngle = angle;
-}
-
-qreal Arc::getSAngle()
-{
-    return this->sAngle;
-}
-
-void Arc::setEAngle(qreal angle)
-{
-    this->eAngle= angle;
-}
-
-qreal Arc::getEAngle()
-{
-    return this->eAngle;
-}
-
 void Arc::setArc(qreal px, qreal py, qreal radius, qreal angle1, qreal angle2)
 {
     QPen pen = QPen();
@@ -250,12 +210,12 @@ Arc Arc::arc()
 
 }
 
-void Arc::setType(Arc::Type type)
+void Arc::setType(Arc::ArcType type)
 {
     this->type = type;
 }
 
-Arc::Type Arc::getType()
+Arc::ArcType Arc::getType()
 {
     return this->type;
 }

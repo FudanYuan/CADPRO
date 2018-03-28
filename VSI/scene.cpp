@@ -46,74 +46,9 @@ Shape::ShapeType Scene::getCurShape()
     return this->curShape;
 }
 
-QList<Shape *> Scene::getItemList() const
-{
-    return this->itemList;
-}
-
-int Scene::getItemListLength() const
+int Scene::getitemListLength() const
 {
     return this->itemList.length();
-}
-
-QList<Point *> Scene::getPointList() const
-{
-    return this->pointList;
-}
-
-int Scene::getPointListLength() const
-{
-    return this->pointList.length();
-}
-
-QList<Line *> Scene::getLineList() const
-{
-    return this->lineList;
-}
-
-int Scene::getLineListLength() const
-{
-    return this->lineList.length();
-}
-
-QList<Polyline *> Scene::getPolylineList() const
-{
-    return this->polylineList;
-}
-
-int Scene::getPolylineListLength() const
-{
-    return this->polylineList.length();
-}
-
-QList<Ellipse *> Scene::getEllipseList() const
-{
-    return this->ellipseList;
-}
-
-int Scene::getEllipseListLength() const
-{
-    return this->ellipseList.length();
-}
-
-QList<Circle *> Scene::getCircleList() const
-{
-    return this->circleList;
-}
-
-int Scene::getCircleListLength() const
-{
-    return this->circleList.length();
-}
-
-QList<Arc *> Scene::getArcList() const
-{
-    return this->arcList;
-}
-
-int Scene::getArcListLength() const
-{
-    return this->arcList.length();
 }
 
 void Scene::setModified(bool modified)
@@ -161,10 +96,9 @@ void Scene::addCustomPointItem(Point *point)
     if(itemList.contains(point)){
         return;
     }
-    point->setShapeId(getItemListLength()+1);
+    point->setShapeId(getitemListLength()+1);
     addItem(point);
     itemList.append(point);
-    pointList.append(point);
     connect(point, &Shape::sceneMoveableChanged, point, &Point::onSceneMoveableChanged);
 }
 
@@ -173,10 +107,9 @@ void Scene::addCustomLineItem(Line *line)
     if(itemList.contains(line)){
         return;
     }
-    line->setShapeId(getItemListLength()+1);
+    line->setShapeId(getitemListLength()+1);
     addItem(line);
     itemList.append(line);
-    lineList.append(line);
     connect(line, &Shape::sceneMoveableChanged, line, &Line::onSceneMoveableChanged);
 }
 
@@ -185,10 +118,9 @@ void Scene::addCustomPolylineItem(Polyline *polyline)
     if(itemList.contains(polyline)){
         return;
     }
-    polyline->setShapeId(getItemListLength()+1);
+    polyline->setShapeId(getitemListLength()+1);
     addItem(polyline);
     itemList.append(polyline);
-    polylineList.append(polyline);
     connect(polyline, &Shape::sceneMoveableChanged, polyline, &Polyline::onSceneMoveableChanged);
 }
 
@@ -197,7 +129,7 @@ void Scene::addCustomRectItem(Rect *rect)
     if(itemList.contains(rect)){
         return;
     }
-    rect->setShapeId(getItemListLength()+1);
+    rect->setShapeId(getitemListLength()+1);
     addItem(rect);
     itemList.append(rect);
     connect(rect, &Shape::sceneMoveableChanged, rect, &Rect::onSceneMoveableChanged);
@@ -208,28 +140,25 @@ void Scene::addCustomEllipseItem(Ellipse *ellipse)
     if(itemList.contains(ellipse)){
         return;
     }
-    ellipse->setShapeId(getItemListLength()+1);
+    ellipse->setShapeId(getitemListLength()+1);
     addItem(ellipse);
     itemList.append(ellipse);
-    ellipseList.append(ellipse);
     connect(ellipse, &Shape::sceneMoveableChanged, ellipse, &Ellipse::onSceneMoveableChanged);
 }
 
 void Scene::addCustomCircleItem(Circle *circle)
 {
-    circle->setShapeId(getItemListLength()+1);
+    circle->setShapeId(getitemListLength()+1);
     addItem(circle);
     itemList.append(circle);
-    circleList.append(circle);
     connect(circle, &Shape::sceneMoveableChanged, circle, &Circle::onSceneMoveableChanged);
 }
 
 void Scene::addCustomArcItem(Arc *arc)
 {
-    arc->setShapeId(getItemListLength()+1);
+    arc->setShapeId(getitemListLength()+1);
     addItem(arc);
     itemList.append(arc);
-    arcList.append(arc);
     connect(arc, &Shape::sceneMoveableChanged, arc, &Arc::onSceneMoveableChanged);
 }
 
@@ -356,7 +285,6 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     point->setSelectStyle(eStyle.selectedEntity);
                     curItem = point;
                     addItem(point);
-                    pointList.append(point);
                     connect(point, &Shape::sceneMoveableChanged, point, &Point::onSceneMoveableChanged);
                     connect(point, &Point::select, this, &Scene::onPointSelected);
                     break;
@@ -370,7 +298,6 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     line->setSelectStyle(eStyle.selectedEntity);
                     curItem = line;
                     addItem(line);
-                    lineList.append(line);
                     connect(line, &Shape::sceneMoveableChanged, line, &Line::onSceneMoveableChanged);
                     connect(line, &Line::select, this, &Scene::onLineSelected);
                     break;
@@ -385,7 +312,6 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     line->setSelectStyle(eStyle.selectedEntity);
                     curItem = line;
                     addItem(line);
-                    lineList.append(line);
                     connect(line, &Shape::sceneMoveableChanged, line, &Line::onSceneMoveableChanged);
                     connect(line, &Line::select, this, &Scene::onLineSelected);
                     break;
@@ -400,7 +326,6 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     line->setSelectStyle(eStyle.selectedEntity);
                     curItem = line;
                     addItem(line);
-                    lineList.append(line);
                     connect(line, &Shape::sceneMoveableChanged, line, &Line::onSceneMoveableChanged);
                     connect(line, &Line::select, this, &Scene::onLineSelected);
                     break;
@@ -415,7 +340,6 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     polyline->setSelectStyle(eStyle.selectedEntity);
                     curItem = polyline;
                     addItem(polyline);
-                    polylineList.append(polyline);
                     connect(polyline, &Shape::sceneMoveableChanged, polyline, &Polyline::onSceneMoveableChanged);
                     connect(polyline, &Polyline::select, this, &Scene::onPolylineSelected);
                     break;
@@ -442,7 +366,6 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     ellipse->setSelectStyle(eStyle.selectedEntity);
                     curItem = ellipse;
                     addItem(ellipse);
-                    ellipseList.append(ellipse);
                     connect(ellipse, &Shape::sceneMoveableChanged, ellipse, &Ellipse::onSceneMoveableChanged);
                     connect(ellipse, &Ellipse::select, this, &Scene::onEllipseSelected);
                     break;
@@ -457,7 +380,6 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     circle->setSelectStyle(eStyle.selectedEntity);
                     curItem = circle;
                     addItem(circle);
-                    circleList.append(circle);
                     connect(circle, &Shape::sceneMoveableChanged, circle, &Circle::onSceneMoveableChanged);
                     connect(circle, &Circle::select, this, &Scene::onCircleSelected);
                     break;
@@ -472,7 +394,6 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     circle->setSelectStyle(eStyle.selectedEntity);
                     curItem = circle;
                     addItem(circle);
-                    circleList.append(circle);
                     connect(circle, &Shape::sceneMoveableChanged, circle, &Circle::onSceneMoveableChanged);
                     connect(circle, &Circle::select, this, &Scene::onCircleSelected);
                     break;
@@ -486,7 +407,6 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     arc->setSelectStyle(eStyle.selectedEntity);
                     curItem = arc;
                     addItem(arc);
-                    arcList.append(arc);
                     connect(arc, &Shape::sceneMoveableChanged, arc, &Arc::onSceneMoveableChanged);
                     connect(arc, &Arc::select, this, &Scene::onArcSelected);
                     break;
@@ -501,7 +421,6 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     arc->setSelectStyle(eStyle.selectedEntity);
                     curItem = arc;
                     addItem(arc);
-                    arcList.append(arc);
                     connect(arc, &Shape::sceneMoveableChanged, arc, &Arc::onSceneMoveableChanged);
                     connect(arc, &Arc::select, this, &Scene::onArcSelected);
                     break;
@@ -509,10 +428,12 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                 case Shape::Polygon:
                 {
                     Polygon *polygon = new Polygon;
+
                     polygon->setLine_num(this->getPolygon_line_num());
                     polygon->setRadius(this->getPolygon_radius());
                     polygon->setAlpha(this->getPolygon_alpha());
                     polygon->setType(this->getPolygon_type());
+
                    /* Polygon_dialog *polygon_dialog = new Polygon_dialog;//正多边形绘制的对话框
                     polygon_dialog->exec();
                     //获得对话框中传递的数据

@@ -187,6 +187,7 @@ void Project::dxfLayerReader(const DxfFilter dxfFilter)
     for(int i=0; i<dxfFilter.layers.length();i++){
         QString layer = dxfFilter.transformText(dxfFilter.layers.at(i).layer.name);
         bool off = dxfFilter.layers.at(i).layer.off;
+        qDebug() << off;
         if(!off){
             QString name = layer;
             Scene *scene = new Scene();
@@ -303,61 +304,6 @@ void Project::dxfLineReader(const DxfFilter dxfFilter)
         qDebug() << "style：" << style;
         qDebug() << "width：" << width;
         qDebug() << "line：" << line->line();
-#endif
-    }
-}
-
-void Project::dxfPolylineReader(const DxfFilter dxfFilter)
-{
-    for(int i=0; i<dxfFilter.polylines.length();i++){
-        // 判断该元素是否在不可用图层上
-        DL_Attributes attr = dxfFilter.polylines.at(i).attribute;
-        QString layer = dxfFilter.transformText(attr.getLayer());
-        if(offLayers.contains(layer)){
-            continue;
-        }
-
-        // 获取polyline的顶点
-        QList<DL_VertexData> v = dxfFilter.polylines.at(i).vertexList;
-        QList<QPointF> points;
-        for(int j=0; j<v.length(); j++){
-            // 获取vertex基本信息
-            qreal px = v.at(j).x;
-            qreal py = v.at(j).y;
-            points.append(QPointF(px, py));
-        }
-
-        // 获取polyline属性
-        int flag = dxfFilter.polylines.at(i).polyline.flags;
-        double elevation = dxfFilter.polylines.at(i).polyline.elevation;
-        QColor color = dxfFilter.transformColor(attr.getColor());
-        Qt::PenStyle style = dxfFilter.transformStyle(attr.getLinetype());
-        int width = dxfFilter.transformWidth(attr.getWidth());
-
-        qDebug() << "polyline属性 color: " << color;
-        // 根据图层名获取图层
-        sceneActive = getSceneByName(layer);
-        if(!sceneActive){
-            sceneActive = new Scene(this);
-            QString name = layer;
-            sceneActive->setName(name);
-            sceneList.append(sceneActive);
-        }
-
-        // 添加点元素
-        Polyline *polyline = new Polyline;
-        Configure::PenStyle pen;
-        pen.setPenStyle(color, style, width);
-        polyline->setPenStyle(pen);
-        polyline->setPolyline(points, flag, elevation);
-        sceneActive->addCustomPolylineItem(polyline);
-        sceneList[0]->addCustomPolylineItem(polyline);
-#ifdef DXFDEBUG
-    qDebug() << "layer：" << layer;
-    qDebug() << "color：" << color;
-    qDebug() << "style：" << style;
-    qDebug() << "width：" << width;
-    qDebug() << "polyline";
 #endif
     }
 }
@@ -512,6 +458,60 @@ void Project::dxfEllipseReader(const DxfFilter dxfFilter)
     }
 }
 
+void Project::dxfPolylineReader(const DxfFilter dxfFilter)
+{
+    for(int i=0; i<dxfFilter.polylines.length();i++){
+        // 判断该元素是否在不可用图层上
+        DL_Attributes attr = dxfFilter.polylines.at(i).attribute;
+        QString layer = dxfFilter.transformText(attr.getLayer());
+        if(offLayers.contains(layer)){
+            continue;
+        }
+
+        // 获取polyline的顶点
+        QList<DL_VertexData> v = dxfFilter.polylines.at(i).vertexList;
+        QList<QPointF> points;
+        for(int j=0; j<v.length(); j++){
+            // 获取vertex基本信息
+            qreal px = v.at(j).x;
+            qreal py = v.at(j).y;
+            points.append(QPointF(px, py));
+        }
+
+        // 获取polyline属性
+        int flag = dxfFilter.polylines.at(i).polyline.flags;
+        double elevation = dxfFilter.polylines.at(i).polyline.elevation;
+        QColor color = dxfFilter.transformColor(attr.getColor());
+        Qt::PenStyle style = dxfFilter.transformStyle(attr.getLinetype());
+        int width = dxfFilter.transformWidth(attr.getWidth());
+
+        // 根据图层名获取图层
+        sceneActive = getSceneByName(layer);
+        if(!sceneActive){
+            sceneActive = new Scene(this);
+            QString name = layer;
+            sceneActive->setName(name);
+            sceneList.append(sceneActive);
+        }
+
+        // 添加点元素
+        Polyline *polyline = new Polyline;
+        Configure::PenStyle pen;
+        pen.setPenStyle(color, style, width);
+        polyline->setPenStyle(pen);
+        polyline->setPolyline(points, flag, elevation);
+        sceneActive->addCustomPolylineItem(polyline);
+        sceneList[0]->addCustomPolylineItem(polyline);
+#ifdef DXFDEBUG
+    qDebug() << "layer：" << layer;
+    qDebug() << "color：" << color;
+    qDebug() << "style：" << style;
+    qDebug() << "width：" << width;
+    qDebug() << "polyline";
+#endif
+    }
+}
+
 void Project::dxfTextReader(const DxfFilter dxfFilter)
 {
     for(int i=0; i<dxfFilter.texts.length();i++){
@@ -565,242 +565,6 @@ void Project::dxfTextReader(const DxfFilter dxfFilter)
         qDebug() << "width：" << width;
         qDebug() << "text：" << content;
 #endif
-    }
-}
-
-void Project::dxfFileWriter(const QString fileName)
-{
-    DL_Codes::version exportVersion = DL_Codes::AC1015;
-    DL_WriterA* dw = dxf.out(fileName.toStdString().c_str(), exportVersion);
-    if (dw==NULL) {
-        throw(tr("无法打开文件进行写入操作"));
-    }
-    dxf.writeHeader(*dw);
-
-    // 保存layers
-    int numberOfLayers = sceneList.length();
-    dw->tableLayers(numberOfLayers);
-    for(int i=0; i<numberOfLayers; i++){
-        std::string name = sceneList.at(i)->getName().toStdString();
-        dxf.writeLayer(*dw,
-                        DL_LayerData(name, 0),
-                        DL_Attributes(
-                            std::string(""),  // leave empty
-                            DL_Codes::black,  // default color
-                            1,  // default width
-                            "CONTINUOUS", 1.0));  // default line style
-
-        // save points
-        dxfPointWriter(sceneList[i]->getPointList(), dxf, dw);
-
-        // save lines
-        dxfLineWriter(sceneList[i]->getLineList(), dxf, dw);
-
-        // save polylines
-        dxfPolylineWriter(sceneList[i]->getPolylineList(), dxf, dw);
-
-        // save arcs
-        dxfArcWriter(sceneList[i]->getArcList(), dxf, dw);
-
-        // save circle
-        dxfCircleWriter(sceneList[i]->getCircleList(), dxf, dw);
-
-        // save ellipse
-        dxfEllipseWriter(sceneList[i]->getEllipseList(), dxf, dw);
-    }
-    dw->dxfEOF();
-    dw->close();
-    delete dw;
-}
-
-void Project::dxfPointWriter(const QList<Point *> &list, DL_Dxf &dxf, DL_WriterA *dw)
-{
-    for(int i=0; i<list.length(); i++){
-        qreal px = list[i]->point().rx();
-        qreal py = list[i]->point().ry();
-        qreal pz = 0.0;
-        qreal offset = list[i]->getOffset();
-
-        std::string layer = list[i]->getLayer().toStdString();
-        int color = dxfFilter.transformColor(list[i]->getPenStyle().color);
-        qreal width = list[i]->getPenStyle().width;
-
-        switch (list[i]->getCrossType()) {
-        case normal:
-            dxf.writeLine(
-                        *dw,
-                        DL_LineData(px-offset, py+offset, pz, px+offset, py-offset, pz),
-                        DL_Attributes(layer, color, width, "BYLAYER", 1.0));
-            dxf.writeLine(
-                        *dw,
-                        DL_LineData(px+offset, py+offset, pz, px-offset, py-offset, pz),
-                        DL_Attributes(layer, color, width, "BYLAYER", 1.0));
-            break;
-        case upright:
-            dxf.writeLine(
-                        *dw,
-                        DL_LineData(px, py+offset, pz, px, py-offset, pz),
-                        DL_Attributes(layer, color, width, "BYLAYER", 1.0));
-            dxf.writeLine(
-                        *dw,
-                        DL_LineData(px+offset, py, pz, px-offset, py, pz),
-                        DL_Attributes(layer, color, width, "BYLAYER", 1.0));
-            break;
-        case none:
-            dxf.writePoint(
-                        *dw,
-                        DL_PointData(px, py),
-                        DL_Attributes(layer, color, offset, "BYLAYER", 1.0));
-        default:
-            break;
-        }
-    }
-}
-
-void Project::dxfLineWriter(const QList<Line *> &list, DL_Dxf &dxf, DL_WriterA *dw)
-{
-    for(int i=0; i<list.length(); i++){
-        qreal px1 = list[i]->line().p1().rx();
-        qreal py1 = list[i]->line().p1().ry();
-        qreal pz1 = 0.0;
-        qreal px2 = list[i]->line().p2().rx();
-        qreal py2 = list[i]->line().p2().ry();
-        qreal pz2 = 0.0;
-
-        std::string layer = list[i]->getLayer().toStdString();
-        int color = dxfFilter.transformColor(list[i]->getPenStyle().color);
-        qreal width = list[i]->getPenStyle().width;
-
-        Shape::ShapeType shapeType = list[i]->getShapeType();
-        switch (shapeType) {
-        case Shape::Line:
-            dxf.writeLine(
-                        *dw,
-                        DL_LineData(px1, py1, pz1, px2, py2, pz2),
-                        DL_Attributes(layer, color, width, "BYLAYER", 1.0));
-            break;
-        case Shape::MiddleAxis:
-            dxf.writeLine(
-                        *dw,
-                        DL_LineData(px1, py1, pz1, px2, py2, pz2),
-                        DL_Attributes(layer, color, width, "DASH", 1.0));
-            break;
-        case Shape::Direction:{
-            qreal offset = list[i]->getArrowSize();
-            QLineF v = list[i]->line().unitVector();
-            v.setLength(offset);
-            v.translate(QPointF(list[i]->line().dx(), list[i]->line().dy()));
-
-            QLineF n = v.normalVector();
-            n.setLength(n.length() * 0.5);
-            QLineF n2 = n.normalVector().normalVector();
-
-            QPointF p1 = v.p2();
-            QPointF p2 = n.p2();
-            QPointF p3 = n2.p2();
-
-            dxf.writeLine(
-                        *dw,
-                        DL_LineData(px1, py1, pz1, px2, py2, pz2),
-                        DL_Attributes(layer, color, width, "DASH", 1.0));
-
-            dxf.writePolyline(
-                        *dw,
-                        DL_PolylineData(3, 0, 0, 0, 0),
-                        DL_Attributes(layer, color, width, "BYLAYER", 1.0));
-            dxf.writeVertex(
-                        *dw,
-                        DL_VertexData(p1.rx(), p1.ry(), 0, 0));
-            dxf.writeVertex(
-                        *dw,
-                        DL_VertexData(p2.rx(), p2.ry(), 0, 0));
-            dxf.writeVertex(
-                        *dw,
-                        DL_VertexData(p3.rx(), p3.ry(), 0, 0));
-            dxf.writePolylineEnd(*dw);
-            break;
-        }
-        default:
-            break;
-        }
-
-    }
-}
-
-void Project::dxfPolylineWriter(const QList<Polyline *> &list, DL_Dxf &dxf, DL_WriterA *dw)
-{
-    for(int i=0; i<list.length(); i++){
-        QList<QPointF> points = list[i]->getPoints();
-        int pCount = points.length();
-        Polyline::Type type = list[i]->getType();
-
-        std::string layer = list[i]->getLayer().toStdString();
-        int color = dxfFilter.transformColor(list[i]->getPenStyle().color);
-        qreal width = list[i]->getPenStyle().width;
-
-        dxf.writePolyline(
-                    *dw,
-                    DL_PolylineData(pCount, 0, 0, 0, (int)type),
-                    DL_Attributes(layer, color, width, "BYLAYER", 1.0));
-        for(int j=0; j<pCount; j++){
-            dxf.writeVertex(
-                        *dw,
-                        DL_VertexData(points[j].rx(), points[j].ry(), 0, 0));
-        }
-        dxf.writePolylineEnd(*dw);
-    }
-}
-
-void Project::dxfArcWriter(const QList<Arc *> &list, DL_Dxf &dxf, DL_WriterA *dw)
-{
-    for(int i=0; i<list.length(); i++){
-        QPointF cPoint = list[i]->getCPoint();
-        qreal r = list[i]->getRadius();
-        qreal sAngle = list[i]->getSAngle();
-        qreal eAngle = list[i]->getEAngle();
-
-        std::string layer = list[i]->getLayer().toStdString();
-        int color = dxfFilter.transformColor(list[i]->getPenStyle().color);
-        qreal width = list[i]->getPenStyle().width;
-        dxf.writeArc(
-                    *dw,
-                    DL_ArcData(cPoint.rx(), cPoint.ry(), 0.0, r, sAngle, eAngle),
-                    DL_Attributes(layer, color, width, "BYLAYER", 1.0));
-    }
-}
-
-void Project::dxfCircleWriter(const QList<Circle *> &list, DL_Dxf &dxf, DL_WriterA *dw)
-{
-    for(int i=0; i<list.length(); i++){
-        QPointF cPoint = list[i]->getCPoint();
-        qreal r = list[i]->getRadius();
-
-        std::string layer = list[i]->getLayer().toStdString();
-        int color = dxfFilter.transformColor(list[i]->getPenStyle().color);
-        qreal width = list[i]->getPenStyle().width;
-        dxf.writeCircle(
-                    *dw,
-                    DL_CircleData(cPoint.rx(), cPoint.ry(), 0.0, r),
-                    DL_Attributes(layer, color, width, "BYLAYER", 1.0));
-    }
-}
-
-void Project::dxfEllipseWriter(const QList<Ellipse *> &list, DL_Dxf &dxf, DL_WriterA *dw)
-{
-    for(int i=0; i<list.length(); i++){
-        QPointF cPoint = list[i]->getCPoint();
-        qreal r1 = list[i]->getRadius1();
-        qreal r2 = list[i]->getRadius1();
-
-        std::string layer = list[i]->getLayer().toStdString();
-        int color = dxfFilter.transformColor(list[i]->getPenStyle().color);
-        qreal width = list[i]->getPenStyle().width;
-        dxf.writeEllipse(
-                    *dw,
-                    DL_EllipseData(cPoint.rx(), cPoint.ry(), 0.0,
-                                   cPoint.rx() + r1, cPoint.ry() + r2, 0.0,
-                                   r2/r1, 0, 2*M_PI),
-                    DL_Attributes(layer, color, width, "BYLAYER", 1.0));
     }
 }
 

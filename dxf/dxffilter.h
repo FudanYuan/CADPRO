@@ -29,7 +29,6 @@ public:
     void getEntityAttributy();
     QString transformText(const std::string text) const;
     QColor transformColor(const int color) const;
-    int transformColor(const QColor color) const;
     int transformWidth(const int width) const;
     Qt::PenStyle transformStyle(std::string style) const;
 

@@ -41,10 +41,7 @@ public:
     virtual bool updateFlag(QGraphicsSceneMouseEvent *event) = 0;  // 更新标识
 
     void setObjectSize(Configure::ObjSize objSize);  // 设置对象识别距离
-
     void setPenStyle(Configure::PenStyle penStyle);  // 设置实体类型
-    Configure::PenStyle getPenStyle();  // 获取画笔属性
-
     void setEntityUnderCursorStyle(Configure::PenStyle underCursorStyle);  // 设置光标下类型
     void setSelectStyle(Configure::PenStyle selectedEntity);  // 选择实体类型
 
