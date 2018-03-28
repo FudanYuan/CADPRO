@@ -2,7 +2,7 @@
 #include "sketch.h"
  #include "nest.h"
 #include <QDebug>
-#include "binarytree.h"
+//#include "binarytree.h"
 #include <sys/time.h>
 
 using namespace std;
