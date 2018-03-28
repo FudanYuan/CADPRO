@@ -14,7 +14,7 @@ Configure::Configure(QObject *parent) :
 Configure::~Configure()
 {
 #ifdef DEBUG
-    qDebug() << "delete configure";
+    qDebug() << "configure has been deleted!";
 #endif
     delete settings;
 }

@@ -54,6 +54,12 @@ public:
     void setLayer(QString layer);  // 设置图层
     QString getLayer();  // 获取图层
 
+    void setName(QString name);  // 设置名称
+    QString getName();  // 获取名称
+
+    void setNumber(int num);  // 设置个数
+    int getNumber();  // 获取个数
+
     void setShapeType(ShapeType shape);  // 设置类型
     ShapeType getShapeType();  // 获取类型
 
@@ -75,6 +81,12 @@ public:
     void setEditOverFlag(bool editOverFlag);  // 结束标志
     bool getEditOverFlag() const;  // 获取结束标识
 protected:
+    QString layer;  // 图层名称
+    QString name;  // 图形名称
+    ShapeType shape;  // 类型
+    int id;  // 编号
+    int number;  // 图形个数
+
     qreal scaleFactor;  // 缩放因子
     bool moveable;  // 是否可移动
     bool selectable;  // 可选择标识
@@ -83,14 +95,11 @@ protected:
     bool showNode;  // 显示节点
     bool editable;  // 可编辑
     bool editOverFlag;  // 编辑结束
-    int id;  // 编号
+
     Configure::ObjSize objSize;  // 对象大小
     Configure::PenStyle penStyle;  // 属性
     Configure::PenStyle underCursorStyle;  // 光标下属性
     Configure::PenStyle selectedEntity;  // 选中属性
-
-    QString layer;  // 图层名称
-    ShapeType shape;  // 类型
 
 signals:
     void sceneMoveableChanged(bool moveable);  // 场景可移动性信号

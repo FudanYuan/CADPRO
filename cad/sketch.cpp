@@ -24,8 +24,7 @@
 
 Sketch::Sketch(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::Sketch),
-    DockNestingEnabled(true)
+    ui(new Ui::Sketch)
 {
     ui->setupUi(this);
     setWindowTitle("CADPRO");
@@ -125,8 +124,6 @@ void Sketch::initActions()
     action_file_exit->setShortcut(QKeySequence::Quit);
     action_file_exit->setStatusTip(tr("退出应用程序；提示保存项目"));
     connect(action_file_exit, &QAction::triggered, this, &Sketch::onActionFileExit);
-
-
 // ![1] 文件
 
 // ![2] 绘图
@@ -1290,7 +1287,10 @@ void Sketch::initToolBar()
 
 void Sketch::initStatusBar()
 {
-    if(ui->statusBar) delete ui->statusBar;
+    if(ui->statusBar) {
+        delete ui->statusBar;
+        ui->statusBar = NULL;
+    }
     statusBar();
     mousePositionLabel = new QLabel(tr(""), this);
     mousePositionLabel->setMargin(1);
@@ -1300,13 +1300,13 @@ void Sketch::initStatusBar()
 void Sketch::initDockWidget()
 {
     // 设置dock窗口嵌套
-    setDockNestingEnabled(DockNestingEnabled);
+    setDockNestingEnabled(true);
 
     // 新建dock窗口
     dock_find_style = new QDockWidget(tr("查找款型"), this);     // 添加find_style浮动窗口
     dock_project = new QDockWidget(tr("项目"), this);        // 添加project浮动窗口
     dock_properties = new QDockWidget(tr("属性"), this);     // 添加properties浮动窗口
-    dock_scene= new QDockWidget(tr("绘图区"), this);      // 添加绘图区
+    dock_scene = new QDockWidget(tr("绘图区"), this);      // 添加绘图区
 
     dock_find_style->setHidden(!action_view_tool_find_style->isChecked());
     dock_project->setHidden(!action_view_tool_project->isChecked());
@@ -1333,22 +1333,22 @@ void Sketch::initDockWidget()
 void Sketch::initConfiguration()
 {
     qDebug() << "初始化配置文件";
-//    if(configCopy) delete configCopy;
-    configCopy = new Configure();
-    connect(this, &Sketch::configChanged, configCopy, &Configure::onConfigChanged);
-    action_view_xy_axes->setChecked(configCopy->axesGrid.axes.showAxes);
-    action_view_grid->setChecked(configCopy->axesGrid.grid.showGrid);
-    action_view_grading_rules->setChecked(configCopy->view.gradingRules);
-    action_view_filled_patterns->setChecked(configCopy->view.filledPatterns);
-    action_view_tool_find_style->setChecked(configCopy->view.toolFindStyle);
-    action_view_tool_project->setChecked(configCopy->view.toolProject);
-    action_view_tool_properties->setChecked(configCopy->view.toolProperties);
+//    if(config) delete config;
+    config = new Configure(this);
+    connect(this, &Sketch::configChanged, config, &Configure::onConfigChanged);
+    action_view_xy_axes->setChecked(config->axesGrid.axes.showAxes);
+    action_view_grid->setChecked(config->axesGrid.grid.showGrid);
+    action_view_grading_rules->setChecked(config->view.gradingRules);
+    action_view_filled_patterns->setChecked(config->view.filledPatterns);
+    action_view_tool_find_style->setChecked(config->view.toolFindStyle);
+    action_view_tool_project->setChecked(config->view.toolProject);
+    action_view_tool_properties->setChecked(config->view.toolProperties);
 
     for(int i=0; i<project_list.length();i++){
         for(int j=0; j<project_list.at(i)->getSceneList().length();j++){
             project_list.at(i)->getScene(j)->setCurShape(Shape::None);
-            project_list.at(i)->getScene(j)->setEntityStyle(configCopy->eStyle);
-            project_list.at(i)->getScene(j)->setAxesGrid(configCopy->axesGrid);
+            project_list.at(i)->getScene(j)->setEntityStyle(config->eStyle);
+            project_list.at(i)->getScene(j)->setAxesGrid(config->axesGrid);
         }
     }
 }
@@ -1357,9 +1357,12 @@ void Sketch::initProjectView()
 {
     //删除中央窗体
     QWidget* p = takeCentralWidget();
-    if(p) delete p;
+    if(p) {
+        delete p;
+        p = NULL;
+    }
 
-    view = new View;    // 初始化view
+    view = new View(dock_scene);    // 初始化view
     dock_scene->setWidget(view);    // 将该视图加入到central widget
     connect(view, &View::mousePositionChanged, this, &Sketch::onMousePositionChanged);
 
@@ -1379,7 +1382,7 @@ void Sketch::addProject()
 {
     // 初始化项目名称
     QString name_project_new = getNewProjectName();
-    project_active = new Project();
+    project_active = new Project(this);
     project_active->setName(name_project_new);
     // 在项目列表中加入该项目
     project_list.append(project_active);
@@ -1461,10 +1464,10 @@ void Sketch::showTreeMenu(QPoint pos)
         connect(action_tree_project_rename, &QAction::triggered, this, &Sketch::onActionTreeProjectRename);
         connect(action_tree_project_close, &QAction::triggered, this, &Sketch::onActionTreeProjectClose);
 
-        menu_tree_project->addAction(action_tree_project_rename);
         menu_tree_project->addAction(action_tree_project_add_scene);
         menu_tree_project->addAction(action_tree_project_save);
         menu_tree_project->addAction(action_tree_project_save_as);
+        menu_tree_project->addAction(action_tree_project_rename);
         menu_tree_project->addAction(action_tree_project_close);
         menu_tree_project->exec(QCursor::pos());  //在当前鼠标位置显示
     } else{                 // 图层栏
@@ -1515,8 +1518,8 @@ void Sketch::showTreeMenu(QPoint pos)
 void Sketch::updateScene()
 {
     // 设置图层样式
-    scene_active->setEntityStyle(configCopy->eStyle);
-    scene_active->setAxesGrid(configCopy->axesGrid);
+    scene_active->setEntityStyle(config->eStyle);
+    scene_active->setAxesGrid(config->axesGrid);
 
     // 更新窗口名称
     setWindowTitle("CADPRO-<" + project_active->getName() + "-" + scene_active->getName() + ">");
@@ -1777,9 +1780,8 @@ void Sketch::onActionFileExportTEF()
 
 void Sketch::onActionFileConfiguration()
 {
-    ConfigureDialog configDialog(configCopy);
+    ConfigureDialog configDialog(config);
     configDialog.exec();
-
     initConfiguration();
 }
 
@@ -2296,7 +2298,7 @@ void Sketch::onActionPatternSaveAsWeft()
 void Sketch::onActionViewXYAxes(bool toggled)
 {
     // 更新配置文件
-    configCopy->axesGrid.axes.showAxes = toggled;
+    config->axesGrid.axes.showAxes = toggled;
     emit configChanged("axesGrid/axesGrid_showAxes", QVariant(toggled));
     // 显示坐标
     for(int i=0; i<project_list.length();i++){
@@ -2308,7 +2310,7 @@ void Sketch::onActionViewXYAxes(bool toggled)
 
 void Sketch::onActionViewGrid(bool toggled)
 {
-    configCopy->axesGrid.grid.showGrid = toggled;
+    config->axesGrid.grid.showGrid = toggled;
     emit configChanged("axesGrid/axesGrid_showGrid", QVariant(toggled));
     // 显示网格
     for(int i=0; i<project_list.length();i++){
@@ -2335,13 +2337,13 @@ void Sketch::onActionViewDesignRules(bool toggled)
 
 void Sketch::onActionViewGradingRules(bool toggled)
 {
-    configCopy->view.gradingRules = toggled;
+    config->view.gradingRules = toggled;
     emit configChanged("view/view_grading_rules", QVariant(toggled));
 }
 
 void Sketch::onActionViewFilledPatterns(bool toggled)
 {
-    configCopy->view.filledPatterns = toggled;
+    config->view.filledPatterns = toggled;
     emit configChanged("view/view_filled_patterns", QVariant(toggled));
 }
 
@@ -2403,21 +2405,21 @@ void Sketch::onActionViewLockLayout(bool toggled)
 void Sketch::onActionViewToolFindStyleToggled(bool toggled)
 {
     onDockFindStyleVisibilityChanged(toggled);
-    configCopy->view.toolFindStyle = toggled;
+    config->view.toolFindStyle = toggled;
     emit configChanged("view/view_tool_find_style", QVariant(toggled));
 }
 
 void Sketch::onActionViewToolProjectToggled(bool toggled)
 {
     onDockProjectVisibilityChanged(toggled);
-    configCopy->view.toolProject = toggled;
+    config->view.toolProject = toggled;
     emit configChanged("view/view_tool_project", QVariant(toggled));
 }
 
 void Sketch::onActionViewToolPropertiesToggled(bool toggled)
 {
     onDockPropertiesVisibilityChanged(toggled);
-    configCopy->view.toolProperties = toggled;
+    config->view.toolProperties = toggled;
     emit configChanged("view/view_tool_properties", QVariant(toggled));
 }
 

@@ -71,6 +71,26 @@ QRectF Point::boundingRect() const
                   offset * 2);
 }
 
+QPainterPath Point::shape() const
+{
+    QPainterPath path;
+    QPointF p = this->pos;
+    qDebug() << p.rx() << "   " << p.ry();
+    path.addRect(QRectF(p.rx()-offset,
+                        p.ry()-offset,
+                        offset * 2,
+                        offset * 2));
+    return path;
+}
+
+bool Point::contains(const QPointF &point) const
+{
+    bool res = false;
+    if (point == this->pos)
+        res = true;
+    return res;
+}
+
 void Point::setOffset(int offset)
 {
     this->offset = offset;
@@ -105,26 +125,6 @@ void Point::setPoint(const QPointF &point)
     setPen(pen);
 
     this->pos = point;
-}
-
-QPainterPath Point::shape() const
-{
-    QPainterPath path;
-    QPointF p = this->pos;
-    qDebug() << p.rx() << "   " << p.ry();
-    path.addRect(QRectF(p.rx()-offset,
-                        p.ry()-offset,
-                        offset * 2,
-                        offset * 2));
-    return path;
-}
-
-bool Point::contains(const QPointF &point) const
-{
-    bool res = false;
-    if (point == this->pos)
-        res = true;
-    return res;
 }
 
 int Point::type() const

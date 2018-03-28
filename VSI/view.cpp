@@ -7,6 +7,9 @@
 
 View::View(QWidget *parent)
     : QGraphicsView(parent),
+      mouseFlag(true),
+      wheelFlag(true),
+      keyboardFlag(true),
       xPos(0),
       yPos(0),
       windowScale(1.0),
@@ -37,6 +40,43 @@ View::View(QWidget *parent)
     qDebug() << "mapFromScene(p1.x(), p1.y())" << mapFromScene(p1.x(), p1.y());
     qDebug() << "view " << size().width() << "  " << size().height();
 #endif
+}
+
+View::~View()
+{
+#ifdef DEBUG
+    qDebug() << "view has been deleted!";
+#endif
+}
+
+void View::setMouseFlag(bool flag)
+{
+    this->mouseFlag = flag;
+}
+
+bool View::getMouseFlag()
+{
+    return this->mouseFlag;
+}
+
+void View::setWheelFlag(bool flag)
+{
+    this->wheelFlag = flag;
+}
+
+bool View::getWheelFlag()
+{
+    return this->wheelFlag;
+}
+
+void View::setKeyboardFlag(bool flag)
+{
+    this->keyboardFlag = flag;
+}
+
+bool View::getKeyboardFlag()
+{
+    return this->keyboardFlag;
 }
 
 void View::setPosition(qreal x, qreal y)
@@ -98,7 +138,10 @@ qreal View::getAngle()
 
 void View::keyPressEvent(QKeyEvent *event)
 {
-    // qDebug() << "View::keyPressEvent";
+    if(!keyboardFlag){
+        event->ignore();
+        return;
+    }
     switch (event->key()) {
     case Qt::Key_Up:
         translate(QPointF(0, 2));  // 上移
@@ -133,12 +176,19 @@ void View::keyPressEvent(QKeyEvent *event)
 
 void View::mousePressEvent(QMouseEvent *event)
 {
-    // qDebug() << "View::mousePressEvent";
+    if(!mouseFlag){
+        event->ignore();
+        return;
+    }
     QGraphicsView::mousePressEvent(event);
 }
 
 void View::mouseMoveEvent(QMouseEvent *event)
 {
+    if(!mouseFlag){
+        event->ignore();
+        return;
+    }
     QGraphicsView::mouseMoveEvent(event);
     setPosition(event->pos());
     emit mousePositionChanged(mapToScene(event->pos()));
@@ -146,43 +196,45 @@ void View::mouseMoveEvent(QMouseEvent *event)
 
 void View::mouseReleaseEvent(QMouseEvent *event)
 {
-    // qDebug() << "View::mouseReleaseEvent";
+    if(!mouseFlag){
+        event->ignore();
+        return;
+    }
     QGraphicsView::mouseReleaseEvent(event);
 }
 
 void View::paintEvent(QPaintEvent *event)
 {
-    // qDebug() << "View::paintEvent";
     QGraphicsView::paintEvent(event);
 }
 
 void View::dragEnterEvent(QDragEnterEvent *event)
 {
-    // qDebug() << "View::dragEnterEvent";
     QGraphicsView::dragEnterEvent(event);
 }
 
 void View::dragLeaveEvent(QDragLeaveEvent *event)
 {
-    // qDebug() << "View::dragLeaveEvent";
     QGraphicsView::dragLeaveEvent(event);
 }
 
 void View::dragMoveEvent(QDragMoveEvent *event)
 {
-    // qDebug() << "View::dragMoveEvent";
     QGraphicsView::dragMoveEvent(event);
 
 }
 
 void View::dropEvent(QDropEvent *event)
 {
-    // qDebug() << "View::dropEvent";
     QGraphicsView::dropEvent(event);
 }
 
 void View::wheelEvent(QWheelEvent *event)
 {
+    if(!wheelFlag){
+        event->ignore();
+        return;
+    }
     // 滚轮的滚动量
     QPoint scrollAmount = event->angleDelta();
     // 正值表示滚轮远离使用者（放大），负值表示朝向使用者（缩小）

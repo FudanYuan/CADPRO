@@ -7,7 +7,10 @@
 
 Polyline::Polyline(QGraphicsItem *parent) :
     QGraphicsPathItem(parent),
-    type(line)
+    type(line),
+    elevation(1),
+    alpha(0),
+    offset(QPointF())
 {
     setShapeType(Shape::Polyline);
     // 设置图元为可焦点的
@@ -68,15 +71,14 @@ void Polyline::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     if(points.isEmpty()){
         return;
     }
-    int offset = 2;
+    int size = 2;
     int len = points.length();
     QPainterPath path(points.at(0));
-    drawRectPoint(painter, points.at(0), offset);
     switch (type) {
     case line:
         for (int i = 0; i < len - 1; ++i) {
             painter->setBrush(QBrush(penStyle.color));
-            //drawRectPoint(painter, points.at(i), offset);
+            //drawRectPoint(painter, points.at(i), size);
             painter->setBrush(QBrush());
             path.lineTo(points.at(i+1));
         }
@@ -112,13 +114,92 @@ void Polyline::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         }
         break;
     }
-//    const QPointF* head = &points.at(0);
-//    painter->drawPolyline(head, points.length());
+//    drawCrossPoint(painter, boundingRect().center(), 2, upright);
+//    painter->drawRect(boundingRect());
+
+    if(offset!=QPointF(0, 0)){
+        qDebug() << offset;
+    }
+
+    if(alpha != 0){
+        painter->save();
+        painter->translate(boundingRect().center());
+        painter->rotate(alpha); //以中心点为中心，顺时针旋转alpha度
+        painter->translate(-boundingRect().center());
+        painter->drawPath(path);
+        setPath(path);
+        painter->restore();
+        return;
+    }
+//    drawRectPoint(painter, points.at(0), size);
     painter->drawPath(path);
     setPath(path);
 }
 
-void Polyline::setPolyline(QList<QPointF> pList, int flag, double elevation)
+//QRectF Polyline::boundingRect() const
+//{
+//    qreal xMin = LONG_MAX;
+//    qreal xMax = LONG_MIN;
+//    qreal yMin = LONG_MAX;
+//    qreal yMax = LONG_MIN;
+//    for(int i=0; i < points.length(); i++){
+//        QPointF point = points[i];
+//        qreal px = point.rx();
+//        qreal py = point.ry();
+//        if(px < xMin){
+//            xMin = px;
+//        }
+//        if(px > xMax){
+//            xMax = px;
+//        }
+//        if(py < yMin){
+//            yMin = py;
+//        }
+//        if(py > yMax){
+//            yMax = py;
+//        }
+//    }
+//    QRectF rect(xMin, yMin, xMax-xMin, yMax-yMin);
+//    // 如果图形旋转
+//    if(alpha!=0){
+//        xMin = LONG_MAX;
+//        xMax = LONG_MIN;
+//        yMin = LONG_MAX;
+//        yMax = LONG_MIN;
+//        QPointF center = rect.center();
+//        for(int i=0; i < points.length(); i++){
+//            QPointF point = points[i];
+////            qDebug() << "原坐标" << point;
+//            point = transformRotate(center, point, alpha);
+////            qDebug() << "新坐标" << point;
+////            qDebug() << "";
+//            qreal px = point.rx();
+//            qreal py = point.ry();
+//            if(px < xMin){
+//                xMin = px;
+//            }
+//            if(px > xMax){
+//                xMax = px;
+//            }
+//            if(py < yMin){
+//                yMin = py;
+//            }
+//            if(py > yMax){
+//                yMax = py;
+//            }
+//        }
+//        QRect newRect(xMin, xMax, yMin, yMax);
+//        return newRect;
+//    }
+//    return rect;
+//}
+
+QPainterPath Polyline::shape() const
+{
+    return this->path();
+}
+
+void Polyline::setPolyline(QList<QPointF> pList, int flag, qreal ele, qreal angle, const QPointF off)
 {
     QPen pen = QPen();
     pen.setColor(penStyle.color);
@@ -126,10 +207,11 @@ void Polyline::setPolyline(QList<QPointF> pList, int flag, double elevation)
     pen.setWidthF(penStyle.width);
     setPen(pen);
 
-    Q_UNUSED(elevation);
-    type = (Type)flag;
-    qDebug() << "polyline: " << type;
     points.append(pList);
+    type = (Type)flag;
+    elevation = ele;
+    alpha = angle;
+    offset = off;
     update();
     overFlag = true;
 }
@@ -147,6 +229,16 @@ void Polyline::setType(Polyline::Type type)
 Polyline::Type Polyline::getType()
 {
     return this->type;
+}
+
+void Polyline::setElevation(qreal elevation)
+{
+    this->elevation = elevation;
+}
+
+qreal Polyline::getElevation()
+{
+    return this->elevation;
 }
 
 void Polyline::mousePressEvent(QGraphicsSceneMouseEvent *event)

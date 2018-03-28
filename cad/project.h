@@ -12,8 +12,14 @@ class Project : public QObject
 {
     Q_OBJECT
 public:
+    enum Type{
+        Sketch,
+        Nest
+    };
     explicit Project(QObject *parent = 0);
     ~Project();
+    void setType(Type type);  // 设置类型
+    Type getType();  // 获取类型
     void setName(const QString name);  // 设置项目名称
     void changeName(const QString name);  // 更改项目名称
     QString getName();  // 获取项目名称
@@ -23,6 +29,8 @@ public:
     QList<Scene *> getSceneList();  // 获取项目图层列表
     Scene* getScene(const int index);  // 获取项目图层
     Scene* getSceneByName(const QString name);  // 通过名称获取项目图层
+    bool removeScene(const int index);  // 删除项目图层
+    bool removeSceneByName(const QString name); // 通过名称删除项目图层
     Scene* getActiveScene();  // 获取项目活动图层
     void setSaved(const bool saved);  // 设置项目保存状态
     bool isSaved();  // 判断项目是否被保存过
@@ -54,11 +62,13 @@ public:
 //    void dxfTextWriter(const QList<Text *> &list, DL_Dxf &dxf, DL_WriterA* dw);  // 存储文本
 
 private:
+    Type type;  // 类型
     QString name;  // 项目名称
     QList<Scene *> sceneList;  // 图层对象
     Scene *sceneActive;  // 活动图层
     bool saved;  // 是否保存
     bool modified;  // 是否更改
+
     DxfFilter dxfFilter;  // dxf 操作
     DL_Dxf dxf;
     QList<QString> offLayers; // 关闭的layer

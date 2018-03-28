@@ -73,6 +73,8 @@ public:
     void addCustomEllipseItem(Ellipse *ellipse);  // 添加自定义椭圆
     void addCustomCircleItem(Circle *circle);  // 添加自定义圆形
     void addCustomArcItem(Arc *arc);  // 添加自定义圆弧
+    void addCustomItem();  // 添加自定义元素图形
+    void clearCustomItem();  // 清空自定义图元
 
     //绘制正多边形传递参数
     int getPolygon_type() const;

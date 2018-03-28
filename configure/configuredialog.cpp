@@ -56,7 +56,7 @@ ConfigureDialog::ConfigureDialog(Configure *config, QWidget *parent) :
 ConfigureDialog::~ConfigureDialog()
 {
 #ifdef DEBUG
-    qDebug() << "delete configure dialog";
+    qDebug() << "configure dialog has deleted!";
 #endif
     delete ui;
     delete tabWidget;

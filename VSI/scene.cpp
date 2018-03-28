@@ -18,6 +18,9 @@ Scene::Scene(QObject *parent) :
 
 Scene::~Scene()
 {
+#ifdef DEBUG
+    qDebug() << "scene has been deleted!";
+#endif
     itemList.clear();
     curItem = NULL;
 }
@@ -160,9 +163,9 @@ void Scene::addCustomPointItem(Point *point)
         return;
     }
     point->setShapeId(getItemListLength()+1);
-    addItem(point);
     itemList.append(point);
     pointList.append(point);
+    addItem(point);
     connect(point, &Shape::sceneMoveableChanged, point, &Point::onSceneMoveableChanged);
 }
 
@@ -172,9 +175,9 @@ void Scene::addCustomLineItem(Line *line)
         return;
     }
     line->setShapeId(getItemListLength()+1);
-    addItem(line);
     itemList.append(line);
     lineList.append(line);
+    addItem(line);
     connect(line, &Shape::sceneMoveableChanged, line, &Line::onSceneMoveableChanged);
 }
 
@@ -184,9 +187,9 @@ void Scene::addCustomPolylineItem(Polyline *polyline)
         return;
     }
     polyline->setShapeId(getItemListLength()+1);
-    addItem(polyline);
     itemList.append(polyline);
     polylineList.append(polyline);
+    addItem(polyline);
     connect(polyline, &Shape::sceneMoveableChanged, polyline, &Polyline::onSceneMoveableChanged);
 }
 
@@ -196,8 +199,8 @@ void Scene::addCustomRectItem(Rect *rect)
         return;
     }
     rect->setShapeId(getItemListLength()+1);
-    addItem(rect);
     itemList.append(rect);
+    addItem(rect);
     connect(rect, &Shape::sceneMoveableChanged, rect, &Rect::onSceneMoveableChanged);
 }
 
@@ -207,30 +210,44 @@ void Scene::addCustomEllipseItem(Ellipse *ellipse)
         return;
     }
     ellipse->setShapeId(getItemListLength()+1);
-    addItem(ellipse);
     itemList.append(ellipse);
     ellipseList.append(ellipse);
+    addItem(ellipse);
     connect(ellipse, &Shape::sceneMoveableChanged, ellipse, &Ellipse::onSceneMoveableChanged);
 }
 
 void Scene::addCustomCircleItem(Circle *circle)
 {
     circle->setShapeId(getItemListLength()+1);
-    addItem(circle);
     itemList.append(circle);
     circleList.append(circle);
+    addItem(circle);
     connect(circle, &Shape::sceneMoveableChanged, circle, &Circle::onSceneMoveableChanged);
 }
 
 void Scene::addCustomArcItem(Arc *arc)
 {
     arc->setShapeId(getItemListLength()+1);
-    addItem(arc);
     itemList.append(arc);
     arcList.append(arc);
+    addItem(arc);
     connect(arc, &Shape::sceneMoveableChanged, arc, &Arc::onSceneMoveableChanged);
 }
 
+void Scene::addCustomItem()
+{
+
+}
+
+void Scene::clearCustomItem(){
+    itemList.clear();
+    pointList.clear();
+    lineList.clear();
+    polylineList.clear();
+    ellipseList.clear();
+    circleList.clear();
+    clear();
+}
 
 int Scene::getPolygon_type() const
 {
@@ -406,7 +423,7 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                 case Shape::Polyline:
                 {
                     Polyline *polyline = new Polyline;
-                    polyline->setType(Polyline::cubic);
+//                    polyline->setType(Polyline::cubic);
                     polyline->setShapeId(id+1);
                     polyline->setPenStyle(eStyle.perimeterLine);
                     polyline->setEntityUnderCursorStyle(eStyle.entityUnderCursor);

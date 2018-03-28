@@ -36,28 +36,28 @@ public:
     void initConfiguration();   // 初始化配置
     void initProjectView();     // 初始化项目
     void addProject();          // 添加项目
-    QString getNewProjectName();// 获取新项目名称
+    QString getNewProjectName();  // 获取新项目名称
     Project *getProjectByName(QString project_name);  // 根据项目获取对象
 
-    void showTreeMenu(QPoint pos);      // 显示项目栏菜单
-    void updateScene();             // 更新绘图区域
-    bool maybeSave();                   // 是否保存项目
-    bool saveFile(QString fileName);    // 实现文件的存储
+    void showTreeMenu(QPoint pos);  // 显示项目栏菜单
+    void updateScene();  // 更新排版区域
+    bool maybeSave();  // 是否保存项目
+    bool saveFile(QString fileName);  // 实现文件的存储
+
     void saveLayout();  // 保存窗口布局
     void loadLayout();  // 保存窗口布局
+
 protected:
     void closeEvent(QCloseEvent *event);
 
 private:
     Ui::Sketch *ui;
 
-    Configure *configCopy;               // 配置
-
+    Configure *config;               // 配置
     View *view;                         // 视图
-
+    QList<Project *> project_list;      // 项目列表
     Project *project_active;            // 活动项目
     Scene *scene_active;                // 活动图层
-    QList<Project *> project_list;      // 项目列表
 
     QMenu *menu_file;
     QAction *action_file_new;
@@ -292,7 +292,6 @@ private:
     QToolBar *tool_pattern;
 
     QLabel *mousePositionLabel;  //  鼠标坐标
-    bool DockNestingEnabled;
     QDockWidget *dock_find_style;    // 浮动窗口1
     QDockWidget *dock_project;       // 浮动窗口2
     QDockWidget *dock_properties;    // 浮动窗口3
@@ -543,7 +542,6 @@ signals:
 
 public slots:
     void onProjectNameChanged(QString lastName, QString presentName);
-
     void onMousePositionChanged(QPointF pos);  // 鼠标位置更新
 
     void onSceneItemsChanged();  // 响应场景图元改变

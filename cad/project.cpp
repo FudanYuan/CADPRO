@@ -4,6 +4,7 @@
 
 Project::Project(QObject *parent) :
     QObject(parent),
+    type(Sketch),
     name(""),
     saved(false),
     modified(false)
@@ -13,8 +14,21 @@ Project::Project(QObject *parent) :
 
 Project::~Project()
 {
+    qDebug() << "project has been deleted!";
     sceneList.clear();
-    delete sceneActive;
+    if(sceneActive){
+        //free(sceneActive);
+    }
+}
+
+void Project::setType(Project::Type type)
+{
+    this->type = type;
+}
+
+Project::Type Project::getType()
+{
+    return this->type;
 }
 
 QString Project::getName()
@@ -68,7 +82,7 @@ QList<Scene *> Project::getSceneList()
 Scene *Project::getScene(const int index)
 {
     int length = this->sceneList.length();
-    if(index > length){
+    if(index >= length){
         return NULL;
     }
     return this->sceneList.at(index);
@@ -82,6 +96,27 @@ Scene *Project::getSceneByName(const QString name)
         }
     }
     return NULL;
+}
+
+bool Project::removeScene(const int index)
+{
+    int length = this->sceneList.length();
+    if(index > length){
+        return false;
+    }
+    sceneList.removeAt(index);
+    return true;
+}
+
+bool Project::removeSceneByName(const QString name)
+{
+    for(int i=0;i<sceneList.length();i++){
+        if(sceneList.at(i)->getName() == name){
+            sceneList.removeAt(i);
+            return true;
+        }
+    }
+    return false;
 }
 
 Scene *Project::getActiveScene()
@@ -152,8 +187,10 @@ void Project::dxfFileReader(const QString fileName)
         // 读取图层
         dxfLayerReader(dxfFilter);
 
-        // 读取point实体
-        dxfPointReader(dxfFilter);
+        if(type == Sketch){
+            // 读取point实体
+            dxfPointReader(dxfFilter);
+        }
 
         // 读取line实体
         dxfLineReader(dxfFilter);
@@ -187,7 +224,7 @@ void Project::dxfLayerReader(const DxfFilter dxfFilter)
     for(int i=0; i<dxfFilter.layers.length();i++){
         QString layer = dxfFilter.transformText(dxfFilter.layers.at(i).layer.name);
         bool off = dxfFilter.layers.at(i).layer.off;
-        if(!off){
+        if(!off && type == Sketch){
             QString name = layer;
             Scene *scene = new Scene();
             scene->setName(name);
@@ -200,7 +237,7 @@ void Project::dxfLayerReader(const DxfFilter dxfFilter)
             offLayers.append(layer);
         }
     }
-    if(sceneList.length()==0){
+    if(sceneList.length()==0 && type == Sketch){
         sceneActive = new Scene;
         sceneActive->setName(getNewSceneName());
         sceneList.append(sceneActive);
@@ -230,11 +267,19 @@ void Project::dxfPointReader(const DxfFilter dxfFilter)
         Qt::PenStyle style = dxfFilter.transformStyle(attr.getLinetype());
         int width = dxfFilter.transformWidth(attr.getWidth());
 
-        // 根据图层名获取图层
-        sceneActive = getSceneByName(layer);
-        if(!sceneActive){
+        if(type == Sketch){
+            // 根据图层名获取图层
+            sceneActive = getSceneByName(layer);
+            if(!sceneActive){
+                sceneActive = new Scene(this);
+                QString name = layer;
+                sceneActive->setName(name);
+                sceneList.append(sceneActive);
+            }
+        } else{
+            // 当类型为排版时，一个图形就是一个图层
             sceneActive = new Scene(this);
-            QString name = layer;
+            QString name = getNewSceneName();
             sceneActive->setName(name);
             sceneList.append(sceneActive);
         }
@@ -248,6 +293,7 @@ void Project::dxfPointReader(const DxfFilter dxfFilter)
 
         sceneActive->addCustomPointItem(point);
         sceneList[0]->addCustomPointItem(point);
+
 #ifdef DXFDEBUG
         qDebug() << "layer：" << layer;
         qDebug() << "color：" << color;
@@ -279,11 +325,19 @@ void Project::dxfLineReader(const DxfFilter dxfFilter)
         Qt::PenStyle style = dxfFilter.transformStyle(attr.getLinetype());
         int width = dxfFilter.transformWidth(attr.getWidth());
 
-        // 根据图层名获取图层
-        sceneActive = getSceneByName(layer);
-        if(!sceneActive){
+        if(type == Sketch){
+            // 根据图层名获取图层
+            sceneActive = getSceneByName(layer);
+            if(!sceneActive){
+                sceneActive = new Scene(this);
+                QString name = layer;
+                sceneActive->setName(name);
+                sceneList.append(sceneActive);
+            }
+        } else{
+            // 当类型为排版时，一个图形就是一个图层
             sceneActive = new Scene(this);
-            QString name = layer;
+            QString name = getNewSceneName();
             sceneActive->setName(name);
             sceneList.append(sceneActive);
         }
@@ -334,12 +388,19 @@ void Project::dxfPolylineReader(const DxfFilter dxfFilter)
         Qt::PenStyle style = dxfFilter.transformStyle(attr.getLinetype());
         int width = dxfFilter.transformWidth(attr.getWidth());
 
-        qDebug() << "polyline属性 color: " << color;
-        // 根据图层名获取图层
-        sceneActive = getSceneByName(layer);
-        if(!sceneActive){
+        if(type == Sketch){
+            // 根据图层名获取图层
+            sceneActive = getSceneByName(layer);
+            if(!sceneActive){
+                sceneActive = new Scene(this);
+                QString name = layer;
+                sceneActive->setName(name);
+                sceneList.append(sceneActive);
+            }
+        } else{
+            // 当类型为排版时，一个图形就是一个图层
             sceneActive = new Scene(this);
-            QString name = layer;
+            QString name = getNewSceneName();
             sceneActive->setName(name);
             sceneList.append(sceneActive);
         }
@@ -384,16 +445,24 @@ void Project::dxfArcReader(const DxfFilter dxfFilter)
         Qt::PenStyle style = dxfFilter.transformStyle(attr.getLinetype());
         int width = dxfFilter.transformWidth(attr.getWidth());
 
-        // 根据图层名获取图层
-        sceneActive = getSceneByName(layer);
-        if(!sceneActive){
+        if(type == Sketch){
+            // 根据图层名获取图层
+            sceneActive = getSceneByName(layer);
+            if(!sceneActive){
+                sceneActive = new Scene(this);
+                QString name = layer;
+                sceneActive->setName(name);
+                sceneList.append(sceneActive);
+            }
+        } else{
+            // 当类型为排版时，一个图形就是一个图层
             sceneActive = new Scene(this);
-            QString name = layer;
+            QString name = getNewSceneName();
             sceneActive->setName(name);
             sceneList.append(sceneActive);
         }
 
-        // 添加点元素
+        // 添加arc元素
         Arc *arc = new Arc;
         Configure::PenStyle pen;
         pen.setPenStyle(color, style, width);
@@ -432,11 +501,19 @@ void Project::dxfCircleReader(const DxfFilter dxfFilter)
         Qt::PenStyle style = dxfFilter.transformStyle(attr.getLinetype());
         int width = dxfFilter.transformWidth(attr.getWidth());
 
-        // 根据图层名获取图层
-        sceneActive = getSceneByName(layer);
-        if(!sceneActive){
+        if(type == Sketch){
+            // 根据图层名获取图层
+            sceneActive = getSceneByName(layer);
+            if(!sceneActive){
+                sceneActive = new Scene(this);
+                QString name = layer;
+                sceneActive->setName(name);
+                sceneList.append(sceneActive);
+            }
+        } else{
+            // 当类型为排版时，一个图形就是一个图层
             sceneActive = new Scene(this);
-            QString name = layer;
+            QString name = getNewSceneName();
             sceneActive->setName(name);
             sceneList.append(sceneActive);
         }
@@ -484,11 +561,19 @@ void Project::dxfEllipseReader(const DxfFilter dxfFilter)
         Qt::PenStyle style = dxfFilter.transformStyle(attr.getLinetype());
         int width = dxfFilter.transformWidth(attr.getWidth());
 
-        // 根据图层名获取图层
-        sceneActive = getSceneByName(layer);
-        if(!sceneActive){
+        if(type == Sketch){
+            // 根据图层名获取图层
+            sceneActive = getSceneByName(layer);
+            if(!sceneActive){
+                sceneActive = new Scene(this);
+                QString name = layer;
+                sceneActive->setName(name);
+                sceneList.append(sceneActive);
+            }
+        } else{
+            // 当类型为排版时，一个图形就是一个图层
             sceneActive = new Scene(this);
-            QString name = layer;
+            QString name = getNewSceneName();
             sceneActive->setName(name);
             sceneList.append(sceneActive);
         }
@@ -540,14 +625,23 @@ void Project::dxfTextReader(const DxfFilter dxfFilter)
         Qt::PenStyle style = dxfFilter.transformStyle(attr.getLinetype());
         int width = dxfFilter.transformWidth(attr.getWidth());
 
-        // 根据图层名获取图层
-        sceneActive = getSceneByName(layer);
-        if(!sceneActive){
+        if(type == Sketch){
+            // 根据图层名获取图层
+            sceneActive = getSceneByName(layer);
+            if(!sceneActive){
+                sceneActive = new Scene(this);
+                QString name = layer;
+                sceneActive->setName(name);
+                sceneList.append(sceneActive);
+            }
+        } else{
+            // 当类型为排版时，一个图形就是一个图层
             sceneActive = new Scene(this);
-            QString name = layer;
+            QString name = getNewSceneName();
             sceneActive->setName(name);
             sceneList.append(sceneActive);
         }
+
 #ifdef DXFDEBUG
         // 添加texts元素
         Text *text = new Text;

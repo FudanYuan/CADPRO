@@ -69,7 +69,6 @@ public:
         }
     };
 
-
     //对象大小
     struct ObjSize
     {
@@ -90,7 +89,6 @@ public:
             this->snapDistanceInPix = snapDistanceInPix;
         }
     };
-
 
     //参考点
     struct ReferPoint
@@ -115,6 +113,7 @@ public:
         }
     };
 
+    // 实体类型
     struct EntityStyle{
         EntityStyle() :
             backgroundColor(Qt::white),
@@ -150,7 +149,7 @@ public:
         QColor basicSize; // 基本尺码
     };
 
-    //轴和网格
+    //轴
     struct Axes
     {
         Axes() :
@@ -180,8 +179,7 @@ public:
         }
     };
 
-
-    //轴和网格
+    //网格
     struct Grid
     {
         Grid() :
@@ -207,14 +205,14 @@ public:
         }
     };
 
-
+    // 轴和网格
     struct AxesGrid{
-        // 轴和网格
         Axes axes;  // 轴
         Grid grid;  // 网格
 
         bool antiAliaising;  //  抗锯齿
     };
+
     //偏移配置
     struct Offset
     {
@@ -254,7 +252,6 @@ public:
         bool toolProject;
         bool toolProperties;
     };
-
 
     // 配置键值对
     struct KeyValue

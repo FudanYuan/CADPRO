@@ -117,7 +117,6 @@ void Ellipse::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
         painter->restore();
 
         setRect(QRect(cPoint.rx()-W/2, cPoint.ry()-H/2, W, H));
-//        painter->drawRect(QRect(cPoint.rx()-W/2, cPoint.ry()-H/2, W, H));
         return;
     }
     if(r1Flag){

@@ -15,6 +15,7 @@ enum crossType{
 QColor intToColor(const int rgb, bool a=false); // 将int转华为color
 QPointF transformY(QPointF p);  // 转变纵坐标轴
 QPointF transformRotate(QPointF o, qreal r, qreal angle); // 返回旋转某一点之后的坐标
+QPointF transformRotate(QPointF o, QPointF p, qreal angle);  // 返回一点绕另一点旋转的坐标
 //QRectF getLineBoundingRect(QLineF line);
 void drawCrossPoint(QPainter* painter, QPointF point, int offset, crossType type);  // 画交叉点
 void drawNodePoint(QPainter* painter, QPointF point, int radius);  // 画点

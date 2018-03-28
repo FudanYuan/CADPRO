@@ -17,6 +17,10 @@ public:
     bool updateFlag(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
 
+    QRectF boundingRect() const Q_DECL_OVERRIDE;
+    QPainterPath shape() const Q_DECL_OVERRIDE;
+    bool contains(const QPointF &point) const Q_DECL_OVERRIDE;
+
     void setOffset(int offset);
     int getOffset();
 
@@ -27,10 +31,6 @@ public:
     void setPoint(const QPointF &point);
     inline void setPoint(qreal x1, qreal y1)
     { setPoint(QPointF(x1, y1)); }
-
-    QRectF boundingRect() const Q_DECL_OVERRIDE;
-    QPainterPath shape() const Q_DECL_OVERRIDE;
-    bool contains(const QPointF &point) const Q_DECL_OVERRIDE;
 
     enum {
         Type = 11,

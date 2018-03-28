@@ -3,12 +3,23 @@
 
 #include <QGraphicsView>
 #include <QKeyEvent>
+#include "debug.h"
 
 class View : public QGraphicsView
 {
     Q_OBJECT
 public:
     View(QWidget *parent = 0);
+    ~View();
+
+    void setMouseFlag(bool flag);  // 设置鼠标事件标识
+    bool getMouseFlag();  // 获取鼠标事件标识
+
+    void setWheelFlag(bool flag);  // 设置滚轮事件标识
+    bool getWheelFlag();  // 获取滚轮事件标识
+
+    void setKeyboardFlag(bool flag);  // 设置键盘事件标识
+    bool getKeyboardFlag();  // 获取键盘事件标识
 
     void setPosition(qreal x, qreal y);  // 设置鼠标坐标点
     void setPosition(QPointF pos);  // 设置鼠标坐标点
@@ -39,6 +50,10 @@ protected:
     void wheelEvent(QWheelEvent *event) Q_DECL_OVERRIDE;
 
 private:
+    bool mouseFlag;  // 鼠标事件标识
+    bool wheelFlag;  // 滑轮事件标识
+    bool keyboardFlag;  // 键盘事件标识
+
     qreal xPos;  // x点坐标
     qreal yPos;  // y点坐标
 
@@ -49,7 +64,7 @@ private:
     qreal translateSpeed;  // 平移速度
 
     bool isRotate;  // 旋转标识
-    qreal angle;      // 旋转角度
+    qreal angle;  // 旋转角度
 
 signals:
     void mousePositionChanged(QPointF pos);  // 鼠标坐标更改事件

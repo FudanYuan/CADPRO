@@ -1,6 +1,11 @@
 #include "shape.h"
 
 Shape::Shape() :
+    layer(""),
+    name(""),
+    shape(None),
+    id(0),
+    number(1),
     scaleFactor(1),
     moveable(false),
     selectable(false),
@@ -66,6 +71,26 @@ void Shape::setLayer(QString layer)
 QString Shape::getLayer()
 {
     return this->layer;
+}
+
+void Shape::setName(QString name)
+{
+    this->name = name;
+}
+
+QString Shape::getName()
+{
+    return this->name;
+}
+
+void Shape::setNumber(int num)
+{
+    this->number = num;
+}
+
+int Shape::getNumber()
+{
+    return this->number;
 }
 
 void Shape::setShapeType(Shape::ShapeType shape)

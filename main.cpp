@@ -2,7 +2,7 @@
 #include "sketch.h"
  #include "nest.h"
 #include <QDebug>
-#include "binarytree.h"
+//#include "binarytree.h"
 #include <sys/time.h>
 
 using namespace std;
@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 
     gettimeofday(&tpstart,NULL);
 
-    Sketch w; // Nest w;
+    Nest w;// Nest w; Sketch w;
     w.show();
 
     gettimeofday(&tpend,NULL);

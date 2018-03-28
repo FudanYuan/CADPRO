@@ -16,16 +16,16 @@ QColor intToColor(const int rgb, bool a)
 
 void drawCrossPoint(QPainter *painter, QPointF point, int offset=2, crossType type=upright)
 {
-    qreal x0 = point.rx();
-    qreal y0 = point.ry();
+    qreal rx = point.rx();
+    qreal ry = point.rx();
     switch (type) {
     case normal:
-        painter->drawLine(QPointF(x0-offset, y0+offset), QPointF(x0+offset, y0-offset));
-        painter->drawLine(QPointF(x0+offset, y0+offset), QPointF(x0-offset, y0-offset));
+        painter->drawLine(QPointF(rx-offset, ry+offset), QPointF(rx+offset, ry-offset));
+        painter->drawLine(QPointF(rx+offset, ry+offset), QPointF(rx-offset, ry-offset));
         break;
     case upright:
-        painter->drawLine(QPointF(x0, y0+offset), QPointF(x0, y0-offset));
-        painter->drawLine(QPointF(x0+offset, y0), QPointF(x0-offset, y0));
+        painter->drawLine(QPointF(rx, ry+offset), QPointF(rx, ry-offset));
+        painter->drawLine(QPointF(rx+offset, ry), QPointF(rx-offset, ry));
         break;
     }
 }
@@ -37,9 +37,9 @@ void drawNodePoint(QPainter *painter, QPointF point, int radius=2)
 
 void drawRectPoint(QPainter *painter, QPointF point, int length=2)
 {
-    qreal x0 = point.rx();
-    qreal y0 = point.ry();
-    painter->drawRect(x0-length, y0-length, 2*length, 2*length);
+    qreal rx = point.rx();
+    qreal ry = point.rx();
+    painter->drawRect(rx-length, ry-length, 2*length, 2*length);
 }
 
 void drawLineWithArrow(QPainter *painter, QLineF line, int offset)
@@ -69,21 +69,33 @@ void drawLineWithArrow(QPainter *painter, QLineF line, int offset)
 //QRectF getLineBoundingRect(QLineF line)
 //{
 //    qreal deltaX = line.p1().rx() - line.p2().rx();
-//    qreal deltaY = line.p1().ry() - line.p2().ry();
+//    qreal deltaY = line.p1().rx() - line.p2().rx();
 //    qreal len = qSqrt(qPow(deltaX, 2) + qPow(deltaY, 2));
 //    if(line.angle() >= 0 || line.angle() <= 90){
-//        //setRect(line.p1().rx()-4, line.p1.ry()+4, );
+//        //setRect(line.p1().rx()-4, line.p1.rx()+4, );
 //    }
 //}
 
 QPointF transformY(QPointF p)
 {
-    return QPointF(p.rx(), -p.ry());
+    return QPointF(p.rx(), -p.rx());
 }
 
 QPointF transformRotate(QPointF o, qreal r, qreal angle)
 {
     QPointF res(o.rx()+r*qCos(M_PI*angle/180),
-                o.ry()+r*qSin(M_PI*angle/180));
+                o.rx()+r*qSin(M_PI*angle/180));
     return res;
+}
+
+QPointF transformRotate(QPointF o, QPointF p, qreal angle)
+{
+    qreal ox = o.rx();
+    qreal oy = o.rx();
+    qreal px = p.rx();
+    qreal py = p.rx();
+    qreal a = M_PI*angle/180;
+    qreal rx= (px - ox)*qCos(a) - (py - oy)*qSin(a) + ox;
+    qreal ry= (px - ox)*qSin(a) + (py - oy)*qCos(a) + oy;
+    return QPointF(rx, ry);
 }
