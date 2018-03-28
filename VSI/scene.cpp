@@ -14,6 +14,8 @@ Scene::Scene(QObject *parent) :
     scaleFactor(1)
 {
     setSceneRect(SHRT_MIN, SHRT_MIN, SHRT_MAX * 2, SHRT_MAX * 2);
+    eyeletDialog = new Eyelet;
+    textdialog =new Text;
 }
 
 Scene::~Scene()
@@ -479,6 +481,45 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     connect(trapezium, &Shape::sceneMoveableChanged, trapezium, &Trapezium::onSceneMoveableChanged);
                     break;
                 }
+                case Shape::Eyelet:
+                {
+                    Eyelet *eyelet = new Eyelet;
+
+                    eyelet->setEyeletH(this->eyeletDialog->eyeletdialog->getEyeletheight());
+                    eyelet->setEyeletW(this->eyeletDialog->eyeletdialog->getEyeletwidth());
+
+                    eyelet->setShapeId(id+1);
+                    switch(this->eyeletDialog->eyeletdialog->getPenstyle()){
+                        case 0:eyelet->setPenStyle(eStyle.generic);break;
+                        case 1:eyelet->setPenStyle(eStyle.mark);break;
+                        case 2:eyelet->setPenStyle(eStyle.perimeterLine);break;
+                        case 3:eyelet->setPenStyle(eStyle.cut);break;
+                        case 4:eyelet->setPenStyle(eStyle.stitch);break;
+                    }
+                    eyelet->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
+                    eyelet->setSelectStyle(eStyle.selectedEntity);
+                    curItem = eyelet;
+                    addItem(eyelet);
+                    connect(eyelet, &Shape::sceneMoveableChanged, eyelet, &Eyelet::onSceneMoveableChanged);
+                    break;
+                }
+                case Shape::Text:
+                {
+                    Text *text = new Text;
+
+                    text->setTextcontent(this->textdialog->textdialog->getText());
+                    text->setTextPixelSize(this->textdialog->textdialog->getTextsize());
+                    qDebug()<<"文本内容"<<text->getTextcontent();
+                    qDebug()<<"文本大小"<<text->getTextPixelSize();
+
+                    text->setShapeId(id+1);
+                    text->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
+                    text->setSelectStyle(eStyle.selectedEntity);
+                    curItem = text;
+                    addItem(text);
+                    connect(text, &Shape::sceneMoveableChanged, text, &Text::onSceneMoveableChanged);
+                    break;
+                }
                 default:
                     break;
                 }
@@ -652,6 +693,26 @@ void Scene::drawBackground(QPainter *painter, const QRectF &rect)
         painter->drawText(-10, -20, 20, 20, Qt::AlignLeft | Qt::AlignTop, tr("y"));
     }
     painter->restore();
+}
+
+Text *Scene::getTextdialog() const
+{
+    return textdialog;
+}
+
+void Scene::setTextdialog(Text *value)
+{
+    textdialog = value;
+}
+
+Eyelet *Scene::getEyeletDialog() const
+{
+    return eyeletDialog;
+}
+
+void Scene::setEyeletDialog(Eyelet *value)
+{
+    eyeletDialog = value;
 }
 
 void Scene::onViewScaleChanged(qreal scaleFactor)

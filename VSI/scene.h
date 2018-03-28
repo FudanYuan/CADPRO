@@ -17,6 +17,8 @@
 #include "circle.h"
 #include "arc.h"
 #include "trapezium.h"
+#include "eyelet.h"
+#include "text.h"
 
 class Scene : public QGraphicsScene
 {
@@ -77,6 +79,12 @@ public:
     int getTrapezium_type() const;
     void setTrapezium_type(int value);
 
+    Eyelet *getEyeletDialog() const;
+    void setEyeletDialog(Eyelet *value);
+
+    Text *getTextdialog() const;
+    void setTextdialog(Text *value);
+
 protected:
     int polygon_type=1;  //绘制正多边形传递的线类型
     int polygon_line_num=4;//绘制正多边形传递的边数
@@ -117,6 +125,9 @@ private:
     // 配置文件
     Configure::EntityStyle eStyle;  // 实体类型
     Configure::AxesGrid axesGrid;  // 坐标网格
+
+    Eyelet *eyeletDialog ;//绘制鸡眼孔
+    Text *textdialog;//文本的对话框传递
 
 signals:
     void sceneScaleChanged(qreal scaleFactor);  // scene缩放事件

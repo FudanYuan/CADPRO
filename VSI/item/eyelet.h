@@ -1,26 +1,32 @@
-#ifndef LINE_H
-#define LINE_H
+#ifndef EYELET_H
+#define EYELET_H
 
-#include <QGraphicsLineItem>
+#include <QGraphicsPathItem>
 #include <QGraphicsSceneMouseEvent>
 #include "shape.h"
 #include <QPointF>
-#include "itemproperties.h"
+#include "eyeletdialog.h"
 
-class Line : public Shape, public QGraphicsLineItem
+class Eyelet : public Shape, public QGraphicsPathItem
 {
     Q_OBJECT
+
 public:
-    Line(QGraphicsItem *parent=0);
+
+    Eyelet(QGraphicsItem *parent=0);
     void startDraw(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 开始绘图
     void drawing(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 绘图开始
     bool updateFlag(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
 
-    void setCustomLine(const QLineF &line);
-    qreal getPerimeter();  // 获取周长
+    EyeletDialog *eyeletdialog;//鸡眼孔的对话框
 
-    ItemProperties *lineproperties;
+    int getEyeletH() const;
+    void setEyeletH(int value);
+
+    int getEyeletW() const;
+    void setEyeletW(int value);
+
 protected:
     //鼠标事件
     void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
@@ -36,19 +42,17 @@ protected:
     void hoverMoveEvent(QGraphicsSceneHoverEvent *event) Q_DECL_OVERRIDE;
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) Q_DECL_OVERRIDE;
 
+
 private:
-    QPointF sPoint, ePoint;  // 起止点
-    qreal perimeter;  // 周长
 
-    bool sPointEdit;  // 更改起点
-    bool ePointEdit;  // 更改终点
+    QPointF cPoint;
 
-    bool itemp;//属性改变
-signals:
-    void select(Line *line);  // 图形被选择
+    int eyeletH ;
+    int eyeletW ;
+
 public slots:
+    void on_commandLinkButton_2_clicked();
     void onSceneMoveableChanged(bool moveable) Q_DECL_OVERRIDE;  //  响应场景可移动性改变
-    void typechange();
 };
 
-#endif // LINE_H
+#endif // EYELET_H

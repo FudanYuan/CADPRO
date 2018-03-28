@@ -1,26 +1,30 @@
-#ifndef LINE_H
-#define LINE_H
+#ifndef TEST_H
+#define TEST_H
 
-#include <QGraphicsLineItem>
+#include <QGraphicsPathItem>
 #include <QGraphicsSceneMouseEvent>
 #include "shape.h"
 #include <QPointF>
-#include "itemproperties.h"
+#include "textdialog.h"
 
-class Line : public Shape, public QGraphicsLineItem
+class Text : public Shape, public QGraphicsPathItem
 {
     Q_OBJECT
 public:
-    Line(QGraphicsItem *parent=0);
+    TextDialog *textdialog;
+
+    Text(QGraphicsItem *parent=0);
     void startDraw(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 开始绘图
     void drawing(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 绘图开始
     bool updateFlag(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
 
-    void setCustomLine(const QLineF &line);
-    qreal getPerimeter();  // 获取周长
+    QString getTextcontent() const;
+    void setTextcontent(const QString &value);
 
-    ItemProperties *lineproperties;
+    int getTextPixelSize() const;
+    void setTextPixelSize(int value);
+
 protected:
     //鼠标事件
     void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
@@ -36,19 +40,22 @@ protected:
     void hoverMoveEvent(QGraphicsSceneHoverEvent *event) Q_DECL_OVERRIDE;
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) Q_DECL_OVERRIDE;
 
+
 private:
-    QPointF sPoint, ePoint;  // 起止点
-    qreal perimeter;  // 周长
 
-    bool sPointEdit;  // 更改起点
-    bool ePointEdit;  // 更改终点
+    QPointF cPoint, sPoint;
+    int textWeight;//字体粗细
+    int textPixelSize;//设置字体大小
+    int textPointSize;//设置字体点大小
+    bool textBold;//设置粗体
+    bool textItalic;//设置斜体
+    bool textUnderline;//设置下划线
+    QString textcontent;//文本内容
 
-    bool itemp;//属性改变
-signals:
-    void select(Line *line);  // 图形被选择
 public slots:
+    void on_commandLinkButton_2_clicked();
     void onSceneMoveableChanged(bool moveable) Q_DECL_OVERRIDE;  //  响应场景可移动性改变
-    void typechange();
 };
 
-#endif // LINE_H
+
+#endif // TEST_H

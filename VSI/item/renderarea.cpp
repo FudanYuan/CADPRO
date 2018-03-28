@@ -138,6 +138,32 @@ void RenderArea::drawtrapezium(QPainter &painter)
     }
 }
 
+void RenderArea::draweyelet(QPainter &painter)
+{
+    QPointF cPoint;cPoint.setX(80);cPoint.setY(160);//显示的中点
+
+    int width = 150;//鸡眼孔宽度
+    int height = 100;//鸡眼孔高度
+    QPointF sPoint;
+    QPainterPath path;
+
+    sPoint.setX(cPoint.rx()+width);sPoint.setY(cPoint.ry());
+    path.moveTo(cPoint);
+    path.lineTo(sPoint);
+    path.arcTo(cPoint.rx()+width-height/2,cPoint.ry()-height,height,height,-90,180);//图形左上角为点，宽和高，以某个角度开始，划过多少度
+    sPoint.setX(cPoint.rx());sPoint.setY(cPoint.ry()-height);
+    path.lineTo(sPoint);
+    path.arcTo(cPoint.rx()-height/2,cPoint.ry()-height,height,height,90,180);
+    painter.setPen(Qt::SolidLine);
+    painter.drawPath(path);
+
+    path.lineTo(cPoint.rx(),cPoint.ry()-height);
+    path.moveTo(cPoint.rx()+width,cPoint.ry());
+    path.lineTo(cPoint.rx()+width,cPoint.ry()-height);
+    painter.setPen(Qt::DotLine);
+    painter.drawPath(path);
+}
+
 int RenderArea::getTrapezium_dialog_type() const
 {
     return trapezium_dialog_type;
@@ -202,7 +228,10 @@ void RenderArea::drawCoordinates(QPainter &painter)
     //绘制梯形的区域
     if(dialog_type == 2){
         drawtrapezium(painter);
-        }
-        return;
+        }       
+    if(dialog_type == 3){
+        draweyelet(painter);
+       }
+    return;
 }
 
