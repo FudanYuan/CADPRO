@@ -17,7 +17,7 @@ QColor intToColor(const int rgb, bool a)
 void drawCrossPoint(QPainter *painter, QPointF point, int offset=2, crossType type=upright)
 {
     qreal rx = point.rx();
-    qreal ry = point.rx();
+    qreal ry = point.ry();
     switch (type) {
     case normal:
         painter->drawLine(QPointF(rx-offset, ry+offset), QPointF(rx+offset, ry-offset));
@@ -38,7 +38,7 @@ void drawNodePoint(QPainter *painter, QPointF point, int radius=2)
 void drawRectPoint(QPainter *painter, QPointF point, int length=2)
 {
     qreal rx = point.rx();
-    qreal ry = point.rx();
+    qreal ry = point.ry();
     painter->drawRect(rx-length, ry-length, 2*length, 2*length);
 }
 
@@ -78,22 +78,22 @@ void drawLineWithArrow(QPainter *painter, QLineF line, int offset)
 
 QPointF transformY(QPointF p)
 {
-    return QPointF(p.rx(), -p.rx());
+    return QPointF(p.rx(), -p.ry());
 }
 
 QPointF transformRotate(QPointF o, qreal r, qreal angle)
 {
     QPointF res(o.rx()+r*qCos(M_PI*angle/180),
-                o.rx()+r*qSin(M_PI*angle/180));
+                o.ry()+r*qSin(M_PI*angle/180));
     return res;
 }
 
 QPointF transformRotate(QPointF o, QPointF p, qreal angle)
 {
     qreal ox = o.rx();
-    qreal oy = o.rx();
+    qreal oy = o.ry();
     qreal px = p.rx();
-    qreal py = p.rx();
+    qreal py = p.ry();
     qreal a = M_PI*angle/180;
     qreal rx= (px - ox)*qCos(a) - (py - oy)*qSin(a) + ox;
     qreal ry= (px - ox)*qSin(a) + (py - oy)*qCos(a) + oy;
