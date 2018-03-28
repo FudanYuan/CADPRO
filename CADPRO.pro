@@ -53,13 +53,19 @@ SOURCES += \
     VSI/item/ellipse.cpp \
     VSI/item/circle.cpp \
     VSI/item/arc.cpp \
-    VSI/item/polygon_dialog.cpp \
     VSI/item/renderarea.cpp \
     VSI/item/trapezium.cpp \
     VSI/item/trapezium_dialog.cpp \
     cad/project.cpp \
     cad/sketch.cpp \
     cad/nest.cpp \
+    VSI/item/polygon_dialog.cpp \
+    VSI/item/eyelet.cpp \
+    VSI/item/eyeletdialog.cpp \
+    VSI/item/text.cpp \
+    VSI/item/textdialog.cpp \
+    VSI/item/itemproperties.cpp \
+    VSI/item/insertoffsetdialog.cpp
 
 HEADERS += \
     common/debug.h \
@@ -96,13 +102,19 @@ HEADERS += \
     VSI/item/ellipse.h \
     VSI/item/circle.h \
     VSI/item/arc.h \
-    VSI/item/polygon_dialog.h \
     VSI/item/renderarea.h \
     VSI/item/trapezium.h \
     VSI/item/trapezium_dialog.h \
     cad/project.h \
     cad/sketch.h \
     cad/nest.h \
+    VSI/item/polygon_dialog.h \
+    VSI/item/eyelet.h \
+    VSI/item/eyeletdialog.h \
+    VSI/item/text.h \
+    VSI/item/textdialog.h \
+    VSI/item/itemproperties.h \
+    VSI/item/insertoffsetdialog.h
 
 FORMS += \
     configure/configuredialog.ui \
