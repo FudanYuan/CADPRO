@@ -27,6 +27,8 @@ void drawCrossPoint(QPainter *painter, QPointF point, int offset=2, crossType ty
         painter->drawLine(QPointF(rx, ry+offset), QPointF(rx, ry-offset));
         painter->drawLine(QPointF(rx+offset, ry), QPointF(rx-offset, ry));
         break;
+    default:
+        break;
     }
 }
 

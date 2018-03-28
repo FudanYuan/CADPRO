@@ -5,6 +5,8 @@
 #include "configuredialog.h"
 #include "polygondialog.h"
 #include "trapeziumdialog.h"
+#include "itemproperties.h"
+#include "insertoffsetdialog.h"
 
 #include <QDockWidget>
 #include <QToolButton>
@@ -253,7 +255,7 @@ void Sketch::initActions()
 // ![3] 插入
     action_insert_offset = new QAction(tr("&偏移"), this);
     action_insert_offset->setStatusTip(tr("创建偏移"));
-    action_insert_offset->setDisabled(true);
+    action_insert_offset->setDisabled(false);
     connect(action_insert_offset, &QAction::triggered, this, &Sketch::onActionInsertOffset);
 
     action_insert_advanced_offset = new QAction(tr("&高级偏移"), this);
@@ -1708,9 +1710,7 @@ void Sketch::onActionFilePrintSetup()
 void Sketch::onActionFileImportDXF()
 {
     qDebug() << "import dxf files";
-    QString fileName = QFileDialog::getOpenFileName(this,
-                                                    tr("打开DXF文件"),
-                                                    QDir::currentPath());
+    QString fileName = QFileDialog::getOpenFileName(this, tr("打开DXF文件"), QDir::currentPath());
     //fileName = "/Users/Jeremy/Desktop/项目/梁叔项目/画图+排版/素材/全套.dxf";
     if (!fileName.isEmpty()) {
         QFileInfo new_project = QFileInfo(fileName);
@@ -1893,7 +1893,13 @@ void Sketch::onActionDrawReference()
 void Sketch::onActionDrawEyelet()
 {
     qDebug() << "draw an eyelet";
-    scene_active->setCurShape(Shape::Eyelet);
+    Eyelet *eyelet = new Eyelet;
+    eyelet->eyeletdialog->exec();
+    if(eyelet->eyeletdialog->getOk())
+    {
+        scene_active->setEyeletDialog(eyelet);
+        scene_active->setCurShape(Shape::Eyelet);
+    }
 }
 
 void Sketch::onActionDrawPatternDirection()
@@ -1975,6 +1981,11 @@ void Sketch::onActionDrawScannerVectorizeImage()
 void Sketch::onActionInsertOffset()
 {
     qDebug() << "创建偏移";
+    InsertOffsetDialog *insertoffsetdialog =new InsertOffsetDialog();
+    //设置窗口显示在最前面
+    insertoffsetdialog->setWindowFlags(insertoffsetdialog->windowFlags() | Qt::WindowStaysOnTopHint);
+    insertoffsetdialog->showNormal();
+    insertoffsetdialog->show();
 }
 
 void Sketch::onActionInsertAdvancedOffset()
@@ -1985,6 +1996,12 @@ void Sketch::onActionInsertAdvancedOffset()
 void Sketch::onActionInsertText()
 {
     qDebug() << "插入文本";
+    Text *text =new Text;
+    text->textdialog->exec();
+    if(text->textdialog->getOk()){
+        scene_active->setTextdialog(text);
+        scene_active->setCurShape(Shape::Text);
+    }
 }
 
 void Sketch::onActionInsertFillet()
@@ -2838,6 +2855,13 @@ void Sketch::onLineSelected(Line *line)
 {
     qDebug() << line->getShapeId();
     qDebug() << line->getPerimeter();
+
+    line->lineproperties->setShapeid(line->getShapeId());
+    line->lineproperties->setLength(line->getPerimeter());
+    line->lineproperties->setOk(true);
+
+    dock_properties->setWidget(line->lineproperties);
+    QObject::connect(line->lineproperties,SIGNAL(PropertiesChanged()),line,SLOT(typechange()));
 }
 
 

@@ -10,7 +10,8 @@ Line::Line(QGraphicsItem *parent) :
     crossCircleR(2),
     arrowSize(5),
     sPointEdit(false),
-    ePointEdit(false)
+    ePointEdit(false),
+    itemp(false)
 {
     setShapeType(Shape::Line);
     // 设置图元为可焦点的
@@ -21,6 +22,7 @@ Line::Line(QGraphicsItem *parent) :
     setAcceptDrops(true);
     // 设置图元为可接受hover事件
     setAcceptHoverEvents(true);
+    lineproperties =new ItemProperties;
 }
 
 void Line::startDraw(QGraphicsSceneMouseEvent *event)
@@ -282,3 +284,12 @@ void Line::onSceneMoveableChanged(bool moveable)
     setFlag(QGraphicsItem::ItemIsMovable, moveable);
 }
 
+void Line::typechange()
+{
+//    qDebug()<<"状态改变了";
+    itemp = this->lineproperties->getOk();
+    if(itemp)
+    {
+        this->setPen(this->lineproperties->getPen());
+    }
+}

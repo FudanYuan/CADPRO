@@ -1,42 +1,31 @@
-#ifndef POLYLINE_H
-#define POLYLINE_H
+#ifndef EYELET_H
+#define EYELET_H
 
 #include <QGraphicsPathItem>
 #include <QGraphicsSceneMouseEvent>
 #include "shape.h"
 #include <QPointF>
+#include "eyeletdialog.h"
 
-//!
-//! 折线类，所有的多边形、曲线、
-//! \brief The Polyline class
-//!
-class Polyline : public Shape, public QGraphicsPathItem
+class Eyelet : public Shape, public QGraphicsPathItem
 {
     Q_OBJECT
+
 public:
-    enum Type{
-        line = 1,
-        curve = 2,
-        cubic = 3
-    };
-    Polyline(QGraphicsItem *parent=0);
+
+    Eyelet(QGraphicsItem *parent=0);
     void startDraw(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 开始绘图
     void drawing(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 绘图开始
     bool updateFlag(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
-
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
-//    QRectF boundingRect() const Q_DECL_OVERRIDE;
-    QPainterPath shape() const Q_DECL_OVERRIDE;
 
-    void setPolyline(QList<QPointF> pList, int flag, qreal ele, qreal angle=0, const QPointF off=QPointF());
+    EyeletDialog *eyeletdialog;//鸡眼孔的对话框
 
-    QList<QPointF> getPoints();  // 获取点
+    int getEyeletH() const;
+    void setEyeletH(int value);
 
-    void setType(Type type);  // 设置类型
-    Type getType();  // 获取类型
-
-    void setElevation(qreal elevation);  // 设置高程
-    qreal getElevation();  // 获取高程
+    int getEyeletW() const;
+    void setEyeletW(int value);
 
 protected:
     //鼠标事件
@@ -53,19 +42,17 @@ protected:
     void hoverMoveEvent(QGraphicsSceneHoverEvent *event) Q_DECL_OVERRIDE;
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) Q_DECL_OVERRIDE;
 
-private:
-    QList<QPointF> points;  // 各个点的坐标
-    QPointF newPoint;  // 最后一个点
-    Type type;  // 类型
-    double elevation;  // 高程
-    qreal alpha;  // 旋转角度
-    QPointF offset;  // 偏移量
 
-signals:
-    void select(Polyline *polyline);  // 图形被选择
+private:
+
+    QPointF cPoint;
+
+    int eyeletH ;
+    int eyeletW ;
 
 public slots:
+    void on_commandLinkButton_2_clicked();
     void onSceneMoveableChanged(bool moveable) Q_DECL_OVERRIDE;  //  响应场景可移动性改变
 };
 
-#endif // POLYLINE_H
+#endif // EYELET_H

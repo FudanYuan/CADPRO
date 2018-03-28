@@ -1,42 +1,29 @@
-#ifndef POLYLINE_H
-#define POLYLINE_H
+#ifndef TEST_H
+#define TEST_H
 
 #include <QGraphicsPathItem>
 #include <QGraphicsSceneMouseEvent>
 #include "shape.h"
 #include <QPointF>
+#include "textdialog.h"
 
-//!
-//! 折线类，所有的多边形、曲线、
-//! \brief The Polyline class
-//!
-class Polyline : public Shape, public QGraphicsPathItem
+class Text : public Shape, public QGraphicsPathItem
 {
     Q_OBJECT
 public:
-    enum Type{
-        line = 1,
-        curve = 2,
-        cubic = 3
-    };
-    Polyline(QGraphicsItem *parent=0);
+    TextDialog *textdialog;
+
+    Text(QGraphicsItem *parent=0);
     void startDraw(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 开始绘图
     void drawing(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 绘图开始
     bool updateFlag(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
-
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
-//    QRectF boundingRect() const Q_DECL_OVERRIDE;
-    QPainterPath shape() const Q_DECL_OVERRIDE;
 
-    void setPolyline(QList<QPointF> pList, int flag, qreal ele, qreal angle=0, const QPointF off=QPointF());
+    QString getTextcontent() const;
+    void setTextcontent(const QString &value);
 
-    QList<QPointF> getPoints();  // 获取点
-
-    void setType(Type type);  // 设置类型
-    Type getType();  // 获取类型
-
-    void setElevation(qreal elevation);  // 设置高程
-    qreal getElevation();  // 获取高程
+    int getTextPixelSize() const;
+    void setTextPixelSize(int value);
 
 protected:
     //鼠标事件
@@ -53,19 +40,22 @@ protected:
     void hoverMoveEvent(QGraphicsSceneHoverEvent *event) Q_DECL_OVERRIDE;
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) Q_DECL_OVERRIDE;
 
-private:
-    QList<QPointF> points;  // 各个点的坐标
-    QPointF newPoint;  // 最后一个点
-    Type type;  // 类型
-    double elevation;  // 高程
-    qreal alpha;  // 旋转角度
-    QPointF offset;  // 偏移量
 
-signals:
-    void select(Polyline *polyline);  // 图形被选择
+private:
+
+    QPointF cPoint, sPoint;
+    int textWeight;//字体粗细
+    int textPixelSize;//设置字体大小
+    int textPointSize;//设置字体点大小
+    bool textBold;//设置粗体
+    bool textItalic;//设置斜体
+    bool textUnderline;//设置下划线
+    QString textcontent;//文本内容
 
 public slots:
+    void on_commandLinkButton_2_clicked();
     void onSceneMoveableChanged(bool moveable) Q_DECL_OVERRIDE;  //  响应场景可移动性改变
 };
 
-#endif // POLYLINE_H
+
+#endif // TEST_H

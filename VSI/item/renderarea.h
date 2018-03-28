@@ -57,6 +57,7 @@ private:
 
     void drawpolygon(QPainter &painter);
     void drawtrapezium(QPainter &painter);
+    void draweyelet(QPainter &painter);
 
     int line_num;
     double alpha;
