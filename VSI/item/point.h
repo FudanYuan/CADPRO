@@ -18,6 +18,7 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
 
     void setOffset(int offset);
+    int getOffset();
 
     QPen pen() const;
     void setPen(const QPen &pen);
@@ -33,10 +34,10 @@ public:
 
     enum {
         Type = 11,
-
     };
     int type() const Q_DECL_OVERRIDE;
 
+    crossType getCrossType();
 protected:
     //鼠标事件
     void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
@@ -56,7 +57,7 @@ private:
     QPointF pos;  // 位置
     int offset;  //  点的偏移量
     QPen pen_style;  // 笔类型
-
+    crossType ctype;  // 交叉类型
 signals:
     void select(Point *point);  // 图形被选择
 

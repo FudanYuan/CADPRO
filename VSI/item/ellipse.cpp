@@ -184,6 +184,46 @@ qreal Ellipse::getLineAngle(QPointF sPoint, QPointF ePoint)
     return lineAngle * 180.0 / M_PI;
 }
 
+void Ellipse::setCPoint(QPointF p)
+{
+    this->cPoint = p;
+}
+
+QPointF Ellipse::getCPoint()
+{
+    return this->cPoint;
+}
+
+void Ellipse::setRadius1(qreal r1)
+{
+    this->r1 = r1;
+}
+
+qreal Ellipse::getRadius1()
+{
+    return this->r1;
+}
+
+void Ellipse::setRadius2(qreal r2)
+{
+    this->r2 = r2;
+}
+
+qreal Ellipse::getRadius2()
+{
+    return this->r2;
+}
+
+void Ellipse::setAlpha(qreal a)
+{
+    this->alpha = a;
+}
+
+qreal Ellipse::getAlpha()
+{
+    return this->alpha;
+}
+
 void Ellipse::setEllipse(qreal px, qreal py, qreal radius1, qreal radius2, qreal angle)
 {
     QPen pen = QPen();

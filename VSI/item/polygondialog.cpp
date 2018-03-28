@@ -1,6 +1,6 @@
 #include <QtWidgets>
 
-#include "polygon_dialog.h"
+#include "polygondialog.h"
 #include <QGraphicsView>
 
 
