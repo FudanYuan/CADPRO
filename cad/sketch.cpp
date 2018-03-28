@@ -3,15 +3,14 @@
 #include "customdocktitlebar.h"
 
 #include "configuredialog.h"
-<<<<<<< HEAD
-#include "polygon_dialog.h"
-#include "trapezium_dialog.h"
 #include "itemproperties.h"
 #include "insertoffsetdialog.h"
-=======
 #include "polygondialog.h"
 #include "trapeziumdialog.h"
->>>>>>> Johnson
+#include "itemproperties.h"
+#include "insertoffsetdialog.h"
+#include "polygondialog.h"
+#include "trapeziumdialog.h"
 
 #include <QDockWidget>
 #include <QToolButton>
