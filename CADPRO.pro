@@ -55,11 +55,11 @@ SOURCES += \
     VSI/item/arc.cpp \
     VSI/item/renderarea.cpp \
     VSI/item/trapezium.cpp \
-    VSI/item/trapezium_dialog.cpp \
+    VSI/item/trapeziumdialog.cpp \
     cad/project.cpp \
     cad/sketch.cpp \
     cad/nest.cpp \
-    VSI/item/polygon_dialog.cpp \
+    VSI/item/polygondialog.cpp \
     VSI/item/eyelet.cpp \
     VSI/item/eyeletdialog.cpp \
     VSI/item/text.cpp \
@@ -104,7 +104,7 @@ HEADERS += \
     VSI/item/arc.h \
     VSI/item/renderarea.h \
     VSI/item/trapezium.h \
-    VSI/item/trapezium_dialog.h \
+    VSI/item/trapeziumdialog.h \
     cad/project.h \
     cad/sketch.h \
     cad/nest.h \
