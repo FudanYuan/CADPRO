@@ -809,8 +809,8 @@ void Nest::onActionTreeProjectNestScene()
 void Nest::onActionTreeProjectAddScene()
 {
     qDebug() << "import dxf files";
-    QString fileName ;//= QFileDialog::getOpenFileName(this, tr("打开DXF文件"), QDir::currentPath());
-    fileName = "/Users/Jeremy/Desktop/项目/梁叔项目/画图+排版/素材/单个.dxf";
+    QString fileName = QFileDialog::getOpenFileName(this, tr("打开DXF文件"), QDir::currentPath());
+    // fileName = "/Users/Jeremy/Desktop/项目/梁叔项目/画图+排版/素材/单个.dxf";
     if (!fileName.isEmpty()) {
         if(!projectActive){
             QString name_project_new = getNewProjectName();
