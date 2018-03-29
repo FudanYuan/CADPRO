@@ -387,7 +387,7 @@ void Project::dxfPolylineReader(const DxfFilter dxfFilter)
         QColor color = dxfFilter.transformColor(attr.getColor());
         Qt::PenStyle style = dxfFilter.transformStyle(attr.getLinetype());
         int width = dxfFilter.transformWidth(attr.getWidth());
-        
+
         if(type == Sketch){
             // 根据图层名获取图层
             sceneActive = getSceneByName(layer);
@@ -413,12 +413,15 @@ void Project::dxfPolylineReader(const DxfFilter dxfFilter)
         polyline->setPolyline(points, flag, elevation);
         sceneActive->addCustomPolylineItem(polyline);
         sceneList[0]->addCustomPolylineItem(polyline);
-#ifdef DXFDEBUG
+#ifndef DXFDEBUG
         qDebug() << "layer：" << layer;
         qDebug() << "color：" << color;
         qDebug() << "style：" << style;
         qDebug() << "width：" << width;
         qDebug() << "polyline";
+        qDebug() << "points num: " << polyline->getPoints().length();
+        qDebug() << "flag: " << flag;
+        qDebug() << "elevation: " << elevation;
 #endif
     }
 }
@@ -642,7 +645,8 @@ void Project::dxfTextReader(const DxfFilter dxfFilter)
             sceneList.append(sceneActive);
         }
         
-#ifdef DXFDEBUG
+//#ifdef DXFDEBUG
+#if 0
         // 添加texts元素
         Text *text = new Text;
         Configure::PenStyle pen;
@@ -664,7 +668,7 @@ void Project::dxfTextReader(const DxfFilter dxfFilter)
 
 void Project::dxfFileWriter(const QString fileName)
 {
-    DL_Codes::version exportVersion = DL_Codes::AC1015;
+    DL_Codes::version exportVersion = DL_Codes::AC1009;
     DL_WriterA* dw = dxf.out(fileName.toStdString().c_str(), exportVersion);
     if (dw==NULL) {
         throw(tr("无法打开文件进行写入操作"));
@@ -831,10 +835,10 @@ void Project::dxfPolylineWriter(const QList<Polyline *> &list, DL_Dxf &dxf, DL_W
         std::string layer = list[i]->getLayer().toStdString();
         int color = dxfFilter.transformColor(list[i]->getPenStyle().color);
         qreal width = list[i]->getPenStyle().width;
-        
+        qDebug() << "type" << type;
         dxf.writePolyline(
                           *dw,
-                          DL_PolylineData(pCount, 0, 0, 0, (int)type),
+                          DL_PolylineData(pCount, 0, 0, (int)type),
                           DL_Attributes(layer, color, width, "BYLAYER", 1.0));
         for(int j=0; j<pCount; j++){
             dxf.writeVertex(

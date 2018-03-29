@@ -96,7 +96,8 @@ void DxfFilter::addEllipse(const DL_EllipseData &data)
     qDebug() << "LAYER: " << transformText(attributes.getLayer())
              << "ELLIPSE: "
              << "cPoint: (" << data.cx << ", " <<data.cy << ")"
-             << "radius1: " << data.mx - data.cx << ", " << data.my - data.cy
+             << "radius1: " << data.mx - data.cx
+             << "radius2: " << data.my - data.cy
              << "sAngle: " << data.angle1 << ", "
              << "eAngle: " << data.angle2
              << "ratio: " << data.ratio;
@@ -163,11 +164,22 @@ void DxfFilter::endEntity()
 
 void DxfFilter::endSequence()
 {
-    for(int i=0; i<vertexs.length(); i++){
+    for(int i=0; i<vertexs.length();i++){
         polylines[polylineIndex].vertexList.append(vertexs[i].vertex);
     }
     vertexs.clear();
     polylineIndex++;
+
+#ifdef DXFDEBUG
+    qDebug()<<"-------endSequence----------";
+    int len = polylines[polylineIndex].vertexList.length();
+    qDebug() << "polyID:" << polylineIndex << ", 序列长度： " << len;
+    for(int i =0;i<len;i++){
+        qDebug() << polylines[polylineIndex].vertexList[i].x << ","
+                 << polylines[polylineIndex].vertexList[i].y;
+    }
+    qDebug() << "----------------";
+#endif
 }
 
 void DxfFilter::getEntityAttributy()

@@ -15,6 +15,7 @@ class Polyline : public Shape, public QGraphicsPathItem
     Q_OBJECT
 public:
     enum Type{
+        none = 0,
         line = 1,
         curve = 2,
         cubic = 3
