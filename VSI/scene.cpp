@@ -357,6 +357,48 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                 if(curItem && curItem->updateFlag(event)) {
                     drawing = false;
                     qDebug() << "结束绘图";
+                    //变化成polyline
+                    switch(curShape)
+                    {
+                        case Shape::Rectangle:
+                        {
+                            //转换类型
+                            Polyline *polyline = new Polyline;
+                            polyline->setPoints(recttram->topolyline());
+                            polylineList.append(polyline);
+                        }
+                        /*
+                        case Shape::Polygon:
+                        {
+                            //转换类型
+                            Polyline *polyline = new Polyline;
+                            polygontram->changetopolyline();
+                            polygontram->setPoints(polygontram->getPoints());
+                            polylineList.append(polyline);
+
+                            polyline->setPenStyle(recttram->getPenStyle());
+                            polyline->setLayer(recttram->getLayer());
+                            if(polyline->getPoints().isEmpty())
+                                qDebug()<<"没有点集";
+                            else
+                            {
+                                QPointF p;
+                                p=polyline->getPoints().at(0);
+                                qDebug()<<"点：x:"<<p.rx()<<"y:"<<p.ry();
+                                p=polyline->getPoints().at(1);
+                                qDebug()<<"点：x:"<<p.rx()<<"y:"<<p.ry();
+                                p=polyline->getPoints().at(2);
+                                qDebug()<<"点：x:"<<p.rx()<<"y:"<<p.ry();
+                                p=polyline->getPoints().at(3);
+                                qDebug()<<"点：x:"<<p.rx()<<"y:"<<p.ry();
+                                qDebug()<<"点集长度："<<polyline->getPoints().length();
+                                qDebug()<<"线类型："<<polyline->getType();
+                                qDebug()<<"不知道是啥："<<polyline->getLayer();
+                                qDebug()<<"颜色"<<polyline->getPenStyle().color;
+                                qDebug()<<"线宽"<<polyline->getPenStyle().width;
+                            }
+                        }*/
+                    }
                 }
             } else {
                 int id = itemList.length();
@@ -636,71 +678,6 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                         update();
                     } else {
                         drawing = true;
-                    }
-                    switch(curShape)
-                    {
-                        case Shape::Rectangle:
-                        {
-                            //转换类型
-                            Polyline *polyline = new Polyline;
-                            recttram->changetopolyline();
-                            polyline->setPoints(recttram->getPoints());
-                            polylineList.append(polyline);
-                            /*
-                            polyline->setPenStyle(recttram->getPenStyle());
-                            polyline->setLayer(recttram->getLayer());
-                            if(polyline->getPoints().isEmpty())
-                                qDebug()<<"没有点集";
-                            else
-                            {
-                                QPointF p;
-                                p=polyline->getPoints().at(0);
-                                qDebug()<<"点：x:"<<p.rx()<<"y:"<<p.ry();
-                                p=polyline->getPoints().at(1);
-                                qDebug()<<"点：x:"<<p.rx()<<"y:"<<p.ry();
-                                p=polyline->getPoints().at(2);
-                                qDebug()<<"点：x:"<<p.rx()<<"y:"<<p.ry();
-                                p=polyline->getPoints().at(3);
-                                qDebug()<<"点：x:"<<p.rx()<<"y:"<<p.ry();
-                                qDebug()<<"点集长度："<<polyline->getPoints().length();
-                                qDebug()<<"线类型："<<polyline->getType();
-                                qDebug()<<"不知道是啥："<<polyline->getLayer();
-                                qDebug()<<"颜色"<<polyline->getPenStyle().color;
-                                qDebug()<<"线宽"<<polyline->getPenStyle().width;
-                            }
-                            */
-                        }
-                        /*
-                        case Shape::Polygon:
-                        {
-                            //转换类型
-                            Polyline *polyline = new Polyline;
-                            polygontram->changetopolyline();
-                            polygontram->setPoints(polygontram->getPoints());
-                            polylineList.append(polyline);
-
-                            polyline->setPenStyle(recttram->getPenStyle());
-                            polyline->setLayer(recttram->getLayer());
-                            if(polyline->getPoints().isEmpty())
-                                qDebug()<<"没有点集";
-                            else
-                            {
-                                QPointF p;
-                                p=polyline->getPoints().at(0);
-                                qDebug()<<"点：x:"<<p.rx()<<"y:"<<p.ry();
-                                p=polyline->getPoints().at(1);
-                                qDebug()<<"点：x:"<<p.rx()<<"y:"<<p.ry();
-                                p=polyline->getPoints().at(2);
-                                qDebug()<<"点：x:"<<p.rx()<<"y:"<<p.ry();
-                                p=polyline->getPoints().at(3);
-                                qDebug()<<"点：x:"<<p.rx()<<"y:"<<p.ry();
-                                qDebug()<<"点集长度："<<polyline->getPoints().length();
-                                qDebug()<<"线类型："<<polyline->getType();
-                                qDebug()<<"不知道是啥："<<polyline->getLayer();
-                                qDebug()<<"颜色"<<polyline->getPenStyle().color;
-                                qDebug()<<"线宽"<<polyline->getPenStyle().width;
-                            }
-                        }*/
                     }
                     modified = true;
                     emit sceneItemsChanged();

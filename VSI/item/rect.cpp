@@ -87,25 +87,21 @@ void Rect::rotateAndPaintRect(QPainter *painter, const QRect &rect, int angle) {
     painter->restore();
 }
 
-void Rect::changetopolyline()
+QList<QPointF> Rect::topolyline()
 {
-
-    QPointF p;
-    points.append(topLeftPoint);
-    p.setX(bottomRightPoint.rx());p.setY(topLeftPoint.ry());
-    points.append(p);
-    points.append(bottomRightPoint);
-    p.setX(topLeftPoint.rx());p.setY(bottomRightPoint.ry());
-    points.append(p);
-    points.append(topLeftPoint);
-
+    QList<QPointF> points;
+    points.append(this->rect().topLeft());
+    points.append(this->rect().topRight());
+    points.append(this->rect().bottomRight());
+    points.append(this->rect().bottomLeft());
+    points.append(this->rect().topLeft());
+    return points;
 /*
     qDebug()<<"点：x:"<<rect().topLeft().rx()<<"y:"<<rect().topLeft().ry();
     qDebug()<<"点：x:"<<rect().topRight().rx()<<"y:"<<rect().topRight().ry();
     qDebug()<<"点：x:"<<rect().bottomLeft().rx()<<"y:"<<rect().bottomLeft().ry();
     qDebug()<<"点：x:"<<rect().bottomRight().rx()<<"y:"<<rect().bottomRight().ry();
     */
-
 }
 
 void Rect::mousePressEvent(QGraphicsSceneMouseEvent *event)
@@ -203,11 +199,6 @@ void Rect::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
         }
         QGraphicsItem::hoverLeaveEvent(event);
     }
-}
-
-QList<QPointF> Rect::getPoints() const
-{
-    return points;
 }
 
 void Rect::onSceneMoveableChanged(bool moveable)
