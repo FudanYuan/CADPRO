@@ -339,6 +339,11 @@ void Polyline::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
     }
 }
 
+void Polyline::setPoints(const QList<QPointF> &value)
+{
+    points = value;
+}
+
 void Polyline::onSceneMoveableChanged(bool moveable)
 {
     this->moveable = moveable;

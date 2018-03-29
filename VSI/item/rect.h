@@ -3,7 +3,6 @@
 
 #include <QGraphicsRectItem>
 #include <QGraphicsSceneMouseEvent>
-#include "rect.h"
 #include "shape.h"
 #include <QPointF>
 
@@ -17,6 +16,10 @@ public:
     bool updateFlag(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
     void rotateAndPaintRect(QPainter *painter, const QRect &rect, int angle);
+    void changetopolyline();//转变成polyline
+
+    QList<QPointF> getPoints() const;
+    void setPoints(const QList<QPointF> &value);
 
 protected:
     //鼠标事件
@@ -35,6 +38,7 @@ protected:
 
 private:
     QPointF topLeftPoint, bottomRightPoint;  // 顶点
+    QList<QPointF> points;  // 各个点的坐标
 
 signals:
     void select(Rect *rect);  // 图形被选择

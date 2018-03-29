@@ -156,6 +156,9 @@ private:
     Eyelet *eyeletDialog ;//绘制鸡眼孔
     Text *textdialog;//文本的对话框传递
 
+    Rect *recttram;//矩形变化
+    Polygon *polygontram;//正多边形变化
+
 signals:
     void sceneScaleChanged(qreal scaleFactor);  // scene缩放事件
     void sceneItemsChanged();  // scene图元改变

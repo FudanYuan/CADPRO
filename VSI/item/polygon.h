@@ -16,6 +16,7 @@ public:
     void drawing(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 绘图开始
     bool updateFlag(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
+    void changetopolyline();//转变成polyline
 
     void setType(int type);
     int getType();
@@ -25,6 +26,9 @@ public:
     void setRadius(double value);
     qreal getAlpha() const;
     void setAlpha(const qreal &value);
+
+    QList<QPointF> getPoints() const;
+    void setPoints(const QList<QPointF> &value);
 
 protected:
     //鼠标事件
@@ -44,6 +48,7 @@ protected:
 
 private:
     QPointF cPoint, sPoint;
+    QList<QPointF> points;  // 各个点的坐标
 
     qreal r; // 半径
     qreal alpha=0;  // 旋转角度

@@ -72,8 +72,25 @@ void Polygon::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
     path.lineTo(sPoint);
     painter->drawPath(path);
     setPath(path);
-
     drawCrossPoint(painter, cPoint, 5, upright);
+}
+
+void Polygon::changetopolyline()
+{
+    int r=radius;
+    int num = line_num;
+    double angle=alpha;
+    QPointF sPoint(cPoint.rx()+r*qCos(M_PI*alpha/180),
+                   cPoint.ry()+r*qSin(M_PI*alpha/180));
+    points.append(sPoint);
+    qDebug()<<"spoint.x"<<sPoint.rx()<<"spoint.x"<<sPoint.ry();
+
+    for(int i=1;i < line_num;i++){
+       QPointF p(cPoint.rx()+r*qCos(2*M_PI/line_num * i+M_PI*alpha/180),
+                 cPoint.ry()+r*qSin(2*M_PI/line_num * i+M_PI*alpha/180));
+       points.append(p);
+    }
+    points.append(sPoint);
 }
 
 void Polygon::mousePressEvent(QGraphicsSceneMouseEvent *event)
@@ -171,6 +188,16 @@ void Polygon::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
         setPen(pen);
         QGraphicsItem::hoverLeaveEvent(event);
     }
+}
+
+QList<QPointF> Polygon::getPoints() const
+{
+    return points;
+}
+
+void Polygon::setPoints(const QList<QPointF> &value)
+{
+    points = value;
 }
 
 void Polygon::onSceneMoveableChanged(bool moveable)
