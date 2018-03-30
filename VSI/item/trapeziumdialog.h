@@ -28,15 +28,15 @@ public:
     void setAlp1(double value);
     double getAlp2() const;
     void setAlp2(double value);
-    double getH_size() const;
-    void setH_size(double value);
-    double getTop_length_size() const;
-    void setTop_length_size(double value);
+    double getHSize() const;
+    void setHSize(double value);
+    double getTopLengthSize() const;
+    void setTopLengthSize(double value);
     bool getOk() const;
     void setOk(bool value);
 
-    int getTrapezium_dialog_type() const;
-    void setTrapezium_dialog_type(int value);
+    int getTrapeziumDialogType() const;
+    void setTrapeziumDialogType(int value);
 
     int getPenstyle() const;
     void setPenstyle(int value);
@@ -50,26 +50,26 @@ private:
     QGroupBox *topGroupBox;
 
     QLabel *alpha1;//梯形的第一个角度
-    QLineEdit *alpha1_edit;
+    QLineEdit *alpha1Edit;
     QLabel *alpha2;//梯形的第二个角度
-    QLineEdit *alpha2_edit;
+    QLineEdit *alpha2Edit;
     QLabel  *H;//梯形的高度H
-    QLineEdit *H_edit;
-    QLabel  *top_length;//梯形的上底
-    QLineEdit *top_length_edit;
+    QLineEdit *HEdit;
+    QLabel  *topLength;//梯形的上底
+    QLineEdit *topLengthEdit;
 
-    QCheckBox *choose_check;//选择是否插入一半
+    QCheckBox *chooseCheck;//选择是否插入一半
 
-    QLabel  *line_type;//线属性
-    QComboBox *line_type_choose;
+    QLabel  *lineType;//线属性
+    QComboBox *lineTypeChoose;
 
-    RenderArea *paint_place;//显示区域
+    RenderArea *paintPlace;//显示区域
 
-    double alp1=30;
-    double alp2=30;
-    double H_size=50;
-    double top_length_size=50;
-    int trapezium_dialog_type=1;//没选择插入一半
+    double alp1;
+    double alp2;
+    double HSize;
+    double topLengthSize;
+    int trapeziumDialogType;//没选择插入一半
     int penstyle;//线条类型
     bool ok;//是否做好选择
 
@@ -81,9 +81,9 @@ public slots:
     void onalpha1change();
     void onalpha2change();
     void onHchange();
-    void ontop_lengthchange();
-    void online_typechange();
-    void onchoose_checkchange();
+    void ontopLengthchange();
+    void onlineTypechange();
+    void onchooseCheckchange();
 
 };
 

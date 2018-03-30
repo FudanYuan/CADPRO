@@ -7,7 +7,7 @@
 //! [0]
 PolygonDialog::PolygonDialog()
 {
-    len_num=4;
+    lenNum=4;
     raduii=100;
     angle=0;
     penstyle=1;
@@ -23,48 +23,48 @@ void PolygonDialog::createtopGroupBox(){
     len = new QLabel(tr("边数"));
     rad = new QLabel(tr("半径"));
     angel = new QLabel(tr("旋转"));
-    len_edit =new QLineEdit;
-    len_edit->setText("4");//设置初始边数
+    lenEdit =new QLineEdit;
+    lenEdit->setText("4");//设置初始边数
     //len_edit->setValidator(new QIntValidator(3,20,this));
-    len->setBuddy(len_edit);
+    len->setBuddy(lenEdit);
 
-    rad_edit =new QLineEdit;
-    rad->setBuddy(rad_edit);
-    rad_edit->setText("100");//设置初始半径
+    radEdit =new QLineEdit;
+    rad->setBuddy(radEdit);
+    radEdit->setText("100");//设置初始半径
     //rad_edit->setValidator(new QDoubleValidator(0,1000,this));
 
-    angel_edit =new QLineEdit;
-    angel->setBuddy(angel_edit);
-    angel_edit->setText("0.00");//设置初始的旋转角度
+    angelEdit =new QLineEdit;
+    angel->setBuddy(angelEdit);
+    angelEdit->setText("0.00");//设置初始的旋转角度
     //angel_edit->setValidator(new QDoubleValidator(0,360,this));
 
     line_type = new QLabel(tr("线类型"));
-    line_type_choose =new QComboBox;
-    line_type->setBuddy(line_type_choose);
-    line_type_choose->addItem(tr("通用"));
-    line_type_choose->addItem(tr("标记"));
-    line_type_choose->addItem(tr("周长"));
-    line_type_choose->addItem(tr("切割"));
-    line_type_choose->addItem(tr("缝线"));
+    lineTypeChoose =new QComboBox;
+    line_type->setBuddy(lineTypeChoose);
+    lineTypeChoose->addItem(tr("通用"));
+    lineTypeChoose->addItem(tr("标记"));
+    lineTypeChoose->addItem(tr("周长"));
+    lineTypeChoose->addItem(tr("切割"));
+    lineTypeChoose->addItem(tr("缝线"));
 
     layout->addWidget(len,0,0,1,1);
     layout->addWidget(rad,1,0,1,1);
     layout->addWidget(angel,2,0,1,1);
     layout->addWidget(line_type,3,0,1,1);
-    layout->addWidget(len_edit,0,1,1,1);
-    layout->addWidget(rad_edit,1,1,1,1);
-    layout->addWidget(angel_edit,2,1,1,1);
-    layout->addWidget(line_type_choose,3,1,1,1);
+    layout->addWidget(lenEdit,0,1,1,1);
+    layout->addWidget(radEdit,1,1,1,1);
+    layout->addWidget(angelEdit,2,1,1,1);
+    layout->addWidget(lineTypeChoose,3,1,1,1);
     layout->setColumnStretch(0,10);
     layout->setColumnStretch(1,10);
 
 
     topGroupBox->setLayout(layout);
 
-    QObject::connect(len_edit,SIGNAL(textChanged(QString)),this,SLOT(len_numchanged()));
-    QObject::connect(rad_edit,SIGNAL(textChanged(QString)),this,SLOT(radchanged()));
-    QObject::connect(angel_edit,SIGNAL(textChanged(QString)),this,SLOT(angelchanged()));
-    QObject::connect(line_type_choose,SIGNAL(activated(QString)),this,SLOT(typechanged()));
+    QObject::connect(lenEdit,SIGNAL(textChanged(QString)),this,SLOT(lenNumchanged()));
+    QObject::connect(radEdit,SIGNAL(textChanged(QString)),this,SLOT(radchanged()));
+    QObject::connect(angelEdit,SIGNAL(textChanged(QString)),this,SLOT(angelchanged()));
+    QObject::connect(lineTypeChoose,SIGNAL(activated(QString)),this,SLOT(typechanged()));
 
 
 }
@@ -99,7 +99,7 @@ void PolygonDialog::initdialog(){
 
     QHBoxLayout *layout1 = new QHBoxLayout();
 
-    originalRenderArea = new RenderArea(this,len_num,angle,penstyle,1);//显示绘图区域,1表示绘制正多边形的框
+    originalRenderArea = new RenderArea(this,lenNum,angle,penstyle,1);//显示绘图区域,1表示绘制正多边形的框
 
     layout1->addWidget(originalRenderArea);
     layout1->addWidget(topGroupBox);
@@ -161,14 +161,14 @@ void PolygonDialog::setRaduii(double value)
     raduii = value;
 }
 
-int PolygonDialog::getLen_num() const
+int PolygonDialog::getLenNum() const
 {
-    return len_num;
+    return lenNum;
 }
 
-void PolygonDialog::setLen_num(int value)
+void PolygonDialog::setLenNum(int value)
 {
-    len_num = value;
+    lenNum = value;
 }
 
 void PolygonDialog::onclickedok(){
@@ -179,27 +179,27 @@ void PolygonDialog::onclickedcancel(){
     setOk(false);
     this->reject();
 }
-void PolygonDialog::len_numchanged(){
-    this->setLen_num(len_edit->text().toInt());
-    len_num=len_edit->text().toInt();
-    originalRenderArea->setLine_num(len_num);
+void PolygonDialog::lenNumchanged(){
+    this->setLenNum(lenEdit->text().toInt());
+    lenNum=lenEdit->text().toInt();
+    originalRenderArea->setLineNum(lenNum);
 //    qDebug()<<"输出边数"<<len_edit->text().toInt();
 }
 void PolygonDialog::radchanged(){
-    this->setRaduii(rad_edit->text().toDouble());
+    this->setRaduii(radEdit->text().toDouble());
 }
 
 void PolygonDialog::angelchanged(){
-    this->setAngle(angel_edit->text().toDouble());
-    angle=angel_edit->text().toDouble();
+    this->setAngle(angelEdit->text().toDouble());
+    angle=angelEdit->text().toDouble();
     originalRenderArea->setAlpha(angle);
 }
 
 //获取线对象
 void PolygonDialog::typechanged(){
-    int line=line_type_choose->currentIndex();
+    int line=lineTypeChoose->currentIndex();
     this->setPenstyle(line);
-    qDebug()<<"线类型："<<line_type_choose->currentIndex();
+    qDebug()<<"线类型："<<lineTypeChoose->currentIndex();
  /*   switch (this->line_type_choose->currentIndex()){
 
     case 0:

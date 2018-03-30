@@ -26,14 +26,14 @@ public:
     bool getOk() const;
     void setOk(bool value);
 
-    int getPenstyle() const;
-    void setPenstyle(int value);
+    int getPenStyle() const;
+    void setPenStyle(int value);
 
-    int getEyeletwidth() const;
-    void setEyeletwidth(int value);
+    int getEyeletWidth() const;
+    void setEyeletWidth(int value);
 
-    int getEyeletheight() const;
-    void setEyeletheight(int value);
+    int getEyeletHeight() const;
+    void setEyeletHeight(int value);
 
 private:
     //设置对话框的布局
@@ -44,18 +44,18 @@ private:
     QGroupBox *topGroupBox;
 
     QLabel  *H;//鸡眼孔的高度H
-    QLineEdit *H_edit;
+    QLineEdit *HEdit;
     QLabel  *W;//梯形的宽
-    QLineEdit *W_edit;
+    QLineEdit *WEdit;
 
-    QLabel  *line_type;//线属性
-    QComboBox *line_type_choose;
+    QLabel  *lineType;//线属性
+    QComboBox *lineTypeChoose;
 
-    RenderArea *paint_place;//显示区域
+    RenderArea *paintPlace;//显示区域
 
-    int eyeletwidth =100;//鸡眼孔的宽
-    int eyeletheight =100;//鸡眼孔的高
-    int penstyle = 0;//线条类型
+    int eyeleWidth;//鸡眼孔的宽
+    int eyeletHeight;//鸡眼孔的高
+    int penStyle;//线条类型
     bool ok;//是否做好选择
 
 

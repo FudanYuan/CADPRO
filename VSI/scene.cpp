@@ -14,6 +14,14 @@ Scene::Scene(QObject *parent) :
     scaleFactor(1)
 {
     setSceneRect(SHRT_MIN, SHRT_MIN, SHRT_MAX * 2, SHRT_MAX * 2);
+    polygonType=1;
+    polygonLineNum=4;
+    polygonRadius=100;
+    polygonAlpha=0;
+    trapeziumH=100;
+    trapeziumToplength=100;
+    trapeziumAlpha1=60;
+    trapeziumAlpha2=60;
     eyeletDialog = new Eyelet;
     textdialog =new Text;
     recttram =new Rect;
@@ -254,94 +262,94 @@ void Scene::clearCustomItem(){
     clear();
 }
 
-int Scene::getPolygon_type() const
+int Scene::getpolygonType() const
 {
-    return polygon_type;
+    return polygonType;
 }
 
-void Scene::setPolygon_type(int value)
+void Scene::setpolygonType(int value)
 {
-    polygon_type = value;
+    polygonType = value;
 }
 
-int Scene::getPolygon_line_num() const
+int Scene::getpolygonLineNum() const
 {
-    return polygon_line_num;
+    return polygonLineNum;
 }
 
-void Scene::setPolygon_line_num(int value)
+void Scene::setpolygonLineNum(int value)
 {
-    polygon_line_num = value;
+    polygonLineNum = value;
 }
 
-double Scene::getPolygon_radius() const
+double Scene::getpolygonRadius() const
 {
-    return polygon_radius;
+    return polygonRadius;
 }
 
-void Scene::setPolygon_radius(double value)
+void Scene::setpolygonRadius(double value)
 {
-    polygon_radius = value;
+    polygonRadius = value;
 }
 
-qreal Scene::getPolygon_alpha() const
+qreal Scene::getpolygonAlpha() const
 {
-    return polygon_alpha;
+    return polygonAlpha;
 }
 
-void Scene::setPolygon_alpha(const qreal &value)
+void Scene::setpolygonAlpha(const qreal &value)
 {
-    polygon_alpha = value;
+    polygonAlpha = value;
 }
 
-double Scene::getTrapezium_H() const
+double Scene::gettrapeziumH() const
 {
-    return trapezium_H;
+    return trapeziumH;
 }
 
-void Scene::setTrapezium_H(double value)
+void Scene::settrapeziumH(double value)
 {
-    trapezium_H = value;
+    trapeziumH = value;
 }
 
-double Scene::getTrapezium_toplength() const
+double Scene::gettrapeziumToplength() const
 {
-    return trapezium_toplength;
+    return trapeziumToplength;
 }
 
-void Scene::setTrapezium_toplength(double value)
+void Scene::settrapeziumToplength(double value)
 {
-    trapezium_toplength = value;
+    trapeziumToplength = value;
 }
 
-double Scene::getTrapezium_alpha1() const
+double Scene::gettrapeziumAlpha1() const
 {
-    return trapezium_alpha1;
+    return trapeziumAlpha1;
 }
 
-void Scene::setTrapezium_alpha1(double value)
+void Scene::settrapeziumAlpha1(double value)
 {
-    trapezium_alpha1 = value;
+    trapeziumAlpha1 = value;
 }
 
-double Scene::getTrapezium_alpha2() const
+double Scene::gettrapeziumAlpha2() const
 {
-    return trapezium_alpha2;
+    return trapeziumAlpha2;
 }
 
-void Scene::setTrapezium_alpha2(double value)
+void Scene::settrapeziumAlpha2(double value)
 {
-    trapezium_alpha2 = value;
+    trapeziumAlpha2 = value;
 }
 
-int Scene::getTrapezium_type() const
+int Scene::gettrapeziumType() const
 {
-    return trapezium_type;
+    return trapeziumType;
 }
 
-void Scene::setTrapezium_type(int value)
+void Scene::settrapeziumType(int value)
 {
-    trapezium_type = value;
+    trapeziumType = value;
 }
 
 
@@ -364,7 +372,7 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                         {
                             //转换类型
                             Polyline *polyline = new Polyline;
-                            polyline->setPoints(recttram->topolyline());
+                            polyline->setPoints(recttram->toPolyline());
                             polylineList.append(polyline);
                         }
                         /*
@@ -398,6 +406,10 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                                 qDebug()<<"线宽"<<polyline->getPenStyle().width;
                             }
                         }*/
+                        default:
+                        {
+                            break;
+                        }
                     }
                 }
             } else {
@@ -573,10 +585,10 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                 {
                     Polygon *polygon = new Polygon;
 
-                    polygon->setLine_num(this->getPolygon_line_num());
-                    polygon->setRadius(this->getPolygon_radius());
-                    polygon->setAlpha(this->getPolygon_alpha());
-                    polygon->setType(this->getPolygon_type());
+                    polygon->setLineNum(this->getpolygonLineNum());
+                    polygon->setRadius(this->getpolygonRadius());
+                    polygon->setAlpha(this->getpolygonAlpha());
+                    polygon->setType(this->getpolygonType());
 
                    /* Polygon_dialog *polygon_dialog = new Polygon_dialog;//正多边形绘制的对话框
                     polygon_dialog->exec();
@@ -586,7 +598,7 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     polygon->setAlpha(polygon_dialog->getAngle());
                     */
                     polygon->setShapeId(id+1);
-                    switch(this->getPolygon_type()){
+                    switch(this->getpolygonType()){
                         case 0:polygon->setPenStyle(eStyle.generic);break;
                         case 1:polygon->setPenStyle(eStyle.mark);break;
                         case 2:polygon->setPenStyle(eStyle.perimeterLine);break;
@@ -605,14 +617,14 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                 {
                     Trapezium *trapezium = new Trapezium;
 
-                    trapezium->setTrapezium_alpha1(this->getTrapezium_alpha1());
-                    trapezium->setTrapezium_alpha2(this->getTrapezium_alpha2());
-                    trapezium->setTrapezium_H(this->getTrapezium_H());
-                    trapezium->setTrapezium_toplength(this->getTrapezium_toplength());
-                    trapezium->setTrapezium_type(this->getTrapezium_type());
+                    trapezium->setTrapeziumAlpha1(this->gettrapeziumAlpha1());
+                    trapezium->setTrapeziumAlpha2(this->gettrapeziumAlpha2());
+                    trapezium->setTrapeziumH(this->gettrapeziumH());
+                    trapezium->setTrapeziumToplength(this->gettrapeziumToplength());
+                    trapezium->setTrapeziumType(this->gettrapeziumType());
 
                     trapezium->setShapeId(id+1);
-                    switch(this->getPolygon_type()){
+                    switch(this->getpolygonType()){
                         case 0:trapezium->setPenStyle(eStyle.generic);break;
                         case 1:trapezium->setPenStyle(eStyle.mark);break;
                         case 2:trapezium->setPenStyle(eStyle.perimeterLine);break;
@@ -630,11 +642,11 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                 {
                     Eyelet *eyelet = new Eyelet;
 
-                    eyelet->setEyeletH(this->eyeletDialog->eyeletdialog->getEyeletheight());
-                    eyelet->setEyeletW(this->eyeletDialog->eyeletdialog->getEyeletwidth());
+                    eyelet->setEyeletH(this->eyeletDialog->eyeletdialog->getEyeletHeight());
+                    eyelet->setEyeletW(this->eyeletDialog->eyeletdialog->getEyeletWidth());
 
                     eyelet->setShapeId(id+1);
-                    switch(this->eyeletDialog->eyeletdialog->getPenstyle()){
+                    switch(this->eyeletDialog->eyeletdialog->getPenStyle()){
                         case 0:eyelet->setPenStyle(eStyle.generic);break;
                         case 1:eyelet->setPenStyle(eStyle.mark);break;
                         case 2:eyelet->setPenStyle(eStyle.perimeterLine);break;

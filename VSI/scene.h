@@ -79,26 +79,26 @@ public:
     void clearCustomItem();  // 清空自定义图元
 
     //绘制正多边形传递参数
-    int getPolygon_type() const;
-    void setPolygon_type(int value);
-    int getPolygon_line_num() const;
-    void setPolygon_line_num(int value);
-    double getPolygon_radius() const;
-    void setPolygon_radius(double value);
-    qreal getPolygon_alpha() const;
-    void setPolygon_alpha(const qreal &value);
+    int getpolygonType() const;
+    void setpolygonType(int value);
+    int getpolygonLineNum() const;
+    void setpolygonLineNum(int value);
+    double getpolygonRadius() const;
+    void setpolygonRadius(double value);
+    qreal getpolygonAlpha() const;
+    void setpolygonAlpha(const qreal &value);
 
     //绘制梯边形的传递参数
-    double getTrapezium_H() const;
-    void setTrapezium_H(double value);
-    double getTrapezium_toplength() const;
-    void setTrapezium_toplength(double value);
-    double getTrapezium_alpha1() const;
-    void setTrapezium_alpha1(double value);
-    double getTrapezium_alpha2() const;
-    void setTrapezium_alpha2(double value);
-    int getTrapezium_type() const;
-    void setTrapezium_type(int value);
+    double gettrapeziumH() const;
+    void settrapeziumH(double value);
+    double gettrapeziumToplength() const;
+    void settrapeziumToplength(double value);
+    double gettrapeziumAlpha1() const;
+    void settrapeziumAlpha1(double value);
+    double gettrapeziumAlpha2() const;
+    void settrapeziumAlpha2(double value);
+    int gettrapeziumType() const;
+    void settrapeziumType(int value);
 
     Eyelet *getEyeletDialog() const;
     void setEyeletDialog(Eyelet *value);
@@ -107,16 +107,16 @@ public:
     void setTextdialog(Text *value);
 
 protected:
-    int polygon_type=1;  //绘制正多边形传递的线类型
-    int polygon_line_num=4;//绘制正多边形传递的边数
-    double polygon_radius=100;//绘制正多边形传递的半径
-    qreal polygon_alpha=0;  // 绘制正多边形传递的旋转角度
+    int polygonType;  //绘制正多边形传递的线类型
+    int polygonLineNum;//绘制正多边形传递的边数
+    double polygonRadius;//绘制正多边形传递的半径
+    qreal polygonAlpha;  // 绘制正多边形传递的旋转角度
 
-    double trapezium_H=100;//梯形的高
-    double trapezium_toplength=100;//梯形的上底
-    double trapezium_alpha1=60;//梯形的角度1
-    double trapezium_alpha2=60;//梯形的角度2
-    int trapezium_type;//梯形的类型
+    double trapeziumH;//梯形的高
+    double trapeziumToplength;//梯形的上底
+    double trapeziumAlpha1;//梯形的角度1
+    double trapeziumAlpha2;//梯形的角度2
+    int trapeziumType;//梯形的类型
 
     void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;

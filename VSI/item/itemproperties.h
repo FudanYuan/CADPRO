@@ -35,7 +35,7 @@ private:
     QPen pen;
 
     QVBoxLayout *mainLayout;
-    QTableWidget *table_widget;
+    QTableWidget *tableWidget;
     QComboBox *linestyle;
     QComboBox *linecolor;
 

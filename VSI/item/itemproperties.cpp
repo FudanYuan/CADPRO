@@ -13,57 +13,57 @@ void ItemProperties::initdialog(){
 
     mainLayout = new QVBoxLayout;
 
-    table_widget =new QTableWidget();
+    tableWidget =new QTableWidget();
 
-    table_widget->setColumnCount(2);
-    table_widget->setFrameShape(QFrame::Box);//设置边框
-    table_widget->setShowGrid(true); //设置显示格子线
+    tableWidget->setColumnCount(2);
+    tableWidget->setFrameShape(QFrame::Box);//设置边框
+    tableWidget->setShowGrid(true); //设置显示格子线
     //table_widget->setEditTriggers(QAbstractItemView::NoEditTriggers); //设置不可编辑
     //表头内容
     QStringList m_Header;
     m_Header<<tr("属性")<<tr("值");
-    table_widget->setHorizontalHeaderLabels(m_Header);
-    table_widget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    tableWidget->setHorizontalHeaderLabels(m_Header);
+    tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     //设置表头字体加粗
     QFont font;
     font.setBold(true);
-    table_widget->horizontalHeader()->setFont(font);
+    tableWidget->horizontalHeader()->setFont(font);
     //设置表格内容
 
     //显示ShapeId
-    table_widget->insertRow(0);
+    tableWidget->insertRow(0);
     QTableWidgetItem *tableitem= new QTableWidgetItem(tr("ID"));
-    table_widget->setItem(0,0,tableitem);
+    tableWidget->setItem(0,0,tableitem);
     tableitem->setTextAlignment(Qt::AlignCenter);
     //tableitem->setFlags(false);//设置为不可编辑
 
     QString string = QString::number(shapeid, 10);//将int变成QString类
     tableitem = new QTableWidgetItem(string);
-    table_widget->setItem(0,1,tableitem);
+    tableWidget->setItem(0,1,tableitem);
     tableitem->setTextAlignment(Qt::AlignCenter);
     //类型
-    table_widget->insertRow(1);
+    tableWidget->insertRow(1);
     tableitem = new QTableWidgetItem(tr("类型"));
-    table_widget->setItem(1,0,tableitem);
+    tableWidget->setItem(1,0,tableitem);
     tableitem->setTextAlignment(Qt::AlignCenter);
     tableitem = new QTableWidgetItem(tr("线"));
-    table_widget->setItem(1,1,tableitem);
+    tableWidget->setItem(1,1,tableitem);
     tableitem->setTextAlignment(Qt::AlignCenter);
     //显示线段长度
-    table_widget->insertRow(2);
+    tableWidget->insertRow(2);
     tableitem = new QTableWidgetItem(tr("长度"));
-    table_widget->setItem(2,0,tableitem);
+    tableWidget->setItem(2,0,tableitem);
     tableitem->setTextAlignment(Qt::AlignCenter);
     string = QString::number(length,'g',6);
     tableitem = new QTableWidgetItem(string);
-    table_widget->setItem(2,1,tableitem);
+    tableWidget->setItem(2,1,tableitem);
     tableitem->setTextAlignment(Qt::AlignCenter);
     //QObject::connect(tableitem,signal())
 
     //显示线形
-    table_widget->insertRow(3);
+    tableWidget->insertRow(3);
     tableitem = new QTableWidgetItem(tr("线形"));
-    table_widget->setItem(3,0,tableitem);
+    tableWidget->setItem(3,0,tableitem);
     tableitem->setTextAlignment(Qt::AlignCenter);
     linestyle =new QComboBox;
     linestyle->addItem(tr("SolidLine"));
@@ -72,25 +72,25 @@ void ItemProperties::initdialog(){
     linestyle->addItem(tr("DashDotLine"));
     linestyle->addItem(tr("DashDotDotLine"));
     linestyle->addItem(tr("CustomDashLine"));
-    table_widget->setCellWidget(3,1,linestyle);
+    tableWidget->setCellWidget(3,1,linestyle);
     QObject::connect(linestyle,SIGNAL(activated(QString)),this,SLOT(linestylechange()));
 
     //显示颜色
-    table_widget->insertRow(4);
+    tableWidget->insertRow(4);
     tableitem = new QTableWidgetItem(tr("颜色"));
-    table_widget->setItem(4,0,tableitem);
+    tableWidget->setItem(4,0,tableitem);
     tableitem->setTextAlignment(Qt::AlignCenter);
     linecolor = new QComboBox;
     linecolor->addItem(tr("红"));
     linecolor->addItem(tr("黄"));
     linecolor->addItem(tr("蓝"));
     linecolor->addItem(tr("绿"));
-    table_widget->setCellWidget(4,1,linecolor);
+    tableWidget->setCellWidget(4,1,linecolor);
     QObject::connect(linecolor,SIGNAL(activated(QString)),this,SLOT(linecolorchange()));
     //属性
-    table_widget->insertRow(5);
+    tableWidget->insertRow(5);
     tableitem = new QTableWidgetItem(tr("属性"));
-    table_widget->setItem(5,0,tableitem);
+    tableWidget->setItem(5,0,tableitem);
     tableitem->setTextAlignment(Qt::AlignCenter);
     QComboBox *line_type_choose =new QComboBox;
     line_type_choose->addItem(tr("通用"));
@@ -98,9 +98,9 @@ void ItemProperties::initdialog(){
     line_type_choose->addItem(tr("周长"));
     line_type_choose->addItem(tr("切割"));
     line_type_choose->addItem(tr("缝线"));
-    table_widget->setCellWidget(5,1,line_type_choose);
+    tableWidget->setCellWidget(5,1,line_type_choose);
 
-    mainLayout->addWidget(table_widget);
+    mainLayout->addWidget(tableWidget);
     setLayout(mainLayout);
 }
 

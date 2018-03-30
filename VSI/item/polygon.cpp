@@ -18,6 +18,10 @@ Polygon::Polygon(QGraphicsItem *parent) :
     setAcceptDrops(true);
     // 设置图元为可接受hover事件
     setAcceptHoverEvents(true);
+    alpha=0;  // 旋转角度
+    type;  //线类型
+    lineNum=4;//边的个数
+    radius=100;//半径
 }
 
 void Polygon::startDraw(QGraphicsSceneMouseEvent *event)
@@ -58,7 +62,7 @@ void Polygon::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
     painter->setPen(pen);
 
     int r=radius;
-    int num = line_num;
+    int num = lineNum;
     double angle=alpha;
     QPainterPath path;
     QPointF sPoint(cPoint.rx()+r*qCos(M_PI*angle/180),
@@ -78,16 +82,16 @@ void Polygon::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
 void Polygon::changetopolyline()
 {
     int r=radius;
-    int num = line_num;
+    int num = lineNum;
     double angle=alpha;
     QPointF sPoint(cPoint.rx()+r*qCos(M_PI*alpha/180),
                    cPoint.ry()+r*qSin(M_PI*alpha/180));
     points.append(sPoint);
     qDebug()<<"spoint.x"<<sPoint.rx()<<"spoint.x"<<sPoint.ry();
 
-    for(int i=1;i < line_num;i++){
-       QPointF p(cPoint.rx()+r*qCos(2*M_PI/line_num * i+M_PI*alpha/180),
-                 cPoint.ry()+r*qSin(2*M_PI/line_num * i+M_PI*alpha/180));
+    for(int i=1;i < lineNum;i++){
+       QPointF p(cPoint.rx()+r*qCos(2*M_PI/lineNum * i+M_PI*alpha/180),
+                 cPoint.ry()+r*qSin(2*M_PI/lineNum * i+M_PI*alpha/180));
        points.append(p);
     }
     points.append(sPoint);
@@ -239,17 +243,17 @@ void Polygon::setRadius(double value)
     radius = value;
 }
 
-int Polygon::getLine_num() const
+int Polygon::getLineNum() const
 {
 
-    return line_num;
+    return lineNum;
 }
 
-void Polygon::setLine_num(int value)
+void Polygon::setLineNum(int value)
 {
     if(value==NULL||value<0)
         value=4;
-    line_num = value;
+    lineNum = value;
 }
 
 

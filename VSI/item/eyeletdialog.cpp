@@ -7,6 +7,9 @@
 //! [0]
 EyeletDialog::EyeletDialog()
 {
+    eyeleWidth =100;//鸡眼孔的宽
+    eyeletHeight =100;//鸡眼孔的高
+    penStyle = 0;//线条类型
     intidialog();
 }
 
@@ -31,8 +34,8 @@ void EyeletDialog::intidialog()
 
 
     //将绘图区域和各种信息输入框加入布局
-    paint_place = new RenderArea(this,3,0);//显示绘图区域
-    layout1->addWidget(paint_place);
+    paintPlace = new RenderArea(this,3,0);//显示绘图区域
+    layout1->addWidget(paintPlace);
     layout1->addWidget(topGroupBox);
 
 
@@ -53,31 +56,31 @@ void EyeletDialog::creatlayout3()
      topGroupBox->setMinimumSize(250,230);
 
      H = new QLabel(tr("鸡眼孔高度"));
-     H_edit = new QLineEdit;
-     H_edit->setText(tr("100"));
+     HEdit = new QLineEdit;
+     HEdit->setText(tr("100"));
      W = new QLabel(tr("鸡眼孔的宽"));
-     W_edit = new QLineEdit;
-     W_edit->setText(tr("100"));
+     WEdit = new QLineEdit;
+     WEdit->setText(tr("100"));
 
-     line_type = new QLabel(tr("线类型"));
-     line_type_choose =new QComboBox;
-     line_type->setBuddy(line_type_choose);
-     line_type_choose->addItem(tr("通用"));
-     line_type_choose->addItem(tr("标记"));
-     line_type_choose->addItem(tr("周长"));
-     line_type_choose->addItem(tr("切割"));
-     line_type_choose->addItem(tr("缝线"));
+     lineType = new QLabel(tr("线类型"));
+     lineTypeChoose =new QComboBox;
+     lineType->setBuddy(lineTypeChoose);
+     lineTypeChoose->addItem(tr("通用"));
+     lineTypeChoose->addItem(tr("标记"));
+     lineTypeChoose->addItem(tr("周长"));
+     lineTypeChoose->addItem(tr("切割"));
+     lineTypeChoose->addItem(tr("缝线"));
 
-     QObject::connect(line_type_choose,SIGNAL(activated(QString)),this,SLOT(onlineTypechange()));
-     QObject::connect(H_edit,SIGNAL(textChanged(QString)),this,SLOT(onHchange()));
-     QObject::connect(W_edit,SIGNAL(textChanged(QString)),this,SLOT(onWchange()));
+     QObject::connect(lineTypeChoose,SIGNAL(activated(QString)),this,SLOT(onlineTypechange()));
+     QObject::connect(HEdit,SIGNAL(textChanged(QString)),this,SLOT(onHchange()));
+     QObject::connect(WEdit,SIGNAL(textChanged(QString)),this,SLOT(onWchange()));
 
      layout3->addWidget(H,0,0,1,1);
-     layout3->addWidget(H_edit,0,1,1,1);
+     layout3->addWidget(HEdit,0,1,1,1);
      layout3->addWidget(W,1,0,1,1);
-     layout3->addWidget(W_edit,1,1,1,1);
-     layout3->addWidget(line_type,2,0,1,1);
-     layout3->addWidget(line_type_choose,2,1,1,2);
+     layout3->addWidget(WEdit,1,1,1,1);
+     layout3->addWidget(lineType,2,0,1,1);
+     layout3->addWidget(lineTypeChoose,2,1,1,2);
 
      layout3->setColumnStretch(0,10);
      layout3->setColumnStretch(1,10);
@@ -97,34 +100,34 @@ void EyeletDialog::setOk(bool value)
     ok = value;
 }
 
-int EyeletDialog::getPenstyle() const
+int EyeletDialog::getPenStyle() const
 {
-    return penstyle;
+    return penStyle;
 }
 
-void EyeletDialog::setPenstyle(int value)
+void EyeletDialog::setPenStyle(int value)
 {
-    penstyle = value;
+    penStyle = value;
 }
 
-int EyeletDialog::getEyeletwidth() const
+int EyeletDialog::getEyeletWidth() const
 {
-    return eyeletwidth;
+    return eyeleWidth;
 }
 
-void EyeletDialog::setEyeletwidth(int value)
+void EyeletDialog::setEyeletWidth(int value)
 {
-    eyeletwidth = value;
+    eyeleWidth = value;
 }
 
-int EyeletDialog::getEyeletheight() const
+int EyeletDialog::getEyeletHeight() const
 {
-    return eyeletheight;
+    return eyeletHeight;
 }
 
-void EyeletDialog::setEyeletheight(int value)
+void EyeletDialog::setEyeletHeight(int value)
 {
-    eyeletheight = value;
+    eyeletHeight = value;
 }
 
 void EyeletDialog::onclickedok()
@@ -141,16 +144,16 @@ void EyeletDialog::onclickedcancel()
 
 void EyeletDialog::onHchange()
 {
-    this->setEyeletheight(H_edit->text().toInt());
+    this->setEyeletHeight(HEdit->text().toInt());
 }
 
 void EyeletDialog::onWchange()
 {
-    this->setEyeletwidth(W_edit->text().toInt());
+    this->setEyeletWidth(WEdit->text().toInt());
 }
 
 void EyeletDialog::onlineTypechange()
 {
-    int line=line_type_choose->currentIndex();
-    this->setPenstyle(line);
+    int line=lineTypeChoose->currentIndex();
+    this->setPenStyle(line);
 }

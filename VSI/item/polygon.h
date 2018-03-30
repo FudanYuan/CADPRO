@@ -20,8 +20,8 @@ public:
 
     void setType(int type);
     int getType();
-    int getLine_num() const;
-    void setLine_num(int value);
+    int getLineNum() const;
+    void setLineNum(int value);
     double getRadius() const;
     void setRadius(double value);
     qreal getAlpha() const;
@@ -51,11 +51,11 @@ private:
     QList<QPointF> points;  // 各个点的坐标
 
     qreal r; // 半径
-    qreal alpha=0;  // 旋转角度
+    qreal alpha;  // 旋转角度
 
     int type;  //线类型
-    int line_num=4;//边的个数
-    double radius=100;//半径
+    int lineNum;//边的个数
+    double radius;//半径
 
 
 

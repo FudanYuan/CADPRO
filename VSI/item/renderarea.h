@@ -32,8 +32,8 @@ public:
 
     void drawCoordinates(QPainter &painter);
 
-    int getLine_num() const;
-    void setLine_num(int value);
+    int getLineNum() const;
+    void setLineNum(int value);
 
     int getType() const;
     void setType(int value);
@@ -41,11 +41,11 @@ public:
     double getAlpha() const;
     void setAlpha(double value);
 
-    int getDialog_type() const;
-    void setDialog_type(int value);
+    int getDialogType() const;
+    void setDialogType(int value);
 
-    int getTrapezium_dialog_type() const;
-    void setTrapezium_dialog_type(int value);
+    int getTrapeziumDialogType() const;
+    void setTrapeziumDialogType(int value);
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -59,12 +59,12 @@ private:
     void drawtrapezium(QPainter &painter);
     void draweyelet(QPainter &painter);
 
-    int line_num;
+    int lineNum;
     double alpha;
     int type;
-    int dialog_type;
+    int dialogType;
 
-    int trapezium_dialog_type;//梯形对话框中的选择类型
+    int trapeziumDialogType;//梯形对话框中的选择类型
 };
 //! [2]
 

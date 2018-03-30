@@ -87,7 +87,7 @@ void Rect::rotateAndPaintRect(QPainter *painter, const QRect &rect, int angle) {
     painter->restore();
 }
 
-QList<QPointF> Rect::topolyline()
+QList<QPointF> Rect::toPolyline()
 {
     QList<QPointF> points;
     points.append(this->rect().topLeft());

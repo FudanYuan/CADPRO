@@ -1847,12 +1847,12 @@ void Sketch::onActionDrawTrapezium()
 
    if(trapezium_dialog->getOk())
    {
-     scene_active->setTrapezium_alpha1(trapezium_dialog->getAlp1());
-     scene_active->setTrapezium_alpha2(trapezium_dialog->getAlp2());
-     scene_active->setTrapezium_H(trapezium_dialog->getH_size());
-     scene_active->setTrapezium_toplength(trapezium_dialog->getTop_length_size());
-     scene_active->setTrapezium_type(trapezium_dialog->getTrapezium_dialog_type());
-     scene_active->setPolygon_type(trapezium_dialog->getPenstyle());//线类型
+     scene_active->settrapeziumAlpha1(trapezium_dialog->getAlp1());
+     scene_active->settrapeziumAlpha2(trapezium_dialog->getAlp2());
+     scene_active->settrapeziumH(trapezium_dialog->getHSize());
+     scene_active->settrapeziumToplength(trapezium_dialog->getTopLengthSize());
+     scene_active->settrapeziumType(trapezium_dialog->getTrapeziumDialogType());
+     scene_active->setpolygonType(trapezium_dialog->getPenstyle());//线类型
 
      scene_active->setCurShape(Shape::Trapezium);
    }
@@ -1868,10 +1868,10 @@ void Sketch::onActionDrawPolygon()
     polygondialog->exec();
     if(polygondialog->getOk())
     {
-        scene_active->setPolygon_line_num(polygondialog->getLen_num());
-        scene_active->setPolygon_radius(polygondialog->getRaduii());
-        scene_active->setPolygon_alpha(polygondialog->getAngle());
-        scene_active->setPolygon_type(polygondialog->getPenstyle());
+        scene_active->setpolygonLineNum(polygondialog->getLenNum());
+        scene_active->setpolygonRadius(polygondialog->getRaduii());
+        scene_active->setpolygonAlpha(polygondialog->getAngle());
+        scene_active->setpolygonType(polygondialog->getPenstyle());
         scene_active->setCurShape(Shape::Polygon);
     }
     else
