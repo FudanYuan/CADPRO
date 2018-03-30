@@ -70,7 +70,8 @@ void DxfFilter::addArc(const DL_ArcData &data)
              << "ARC: "
              << "cPoint: (" << data.cx << ", " <<data.cy << ")"
              << "radius: " << data.radius
-             << "angle1: " << data.angle1 << ", " << "angle2: " << data.angle2;
+             << "angle1: " << data.angle1 << ", "
+             << "angle2: " << data.angle2;
 #endif
 }
 
@@ -266,7 +267,7 @@ QColor DxfFilter::transformColor(const int color) const
         ret = Qt::magenta;
         break;
     case 7:
-        ret = Qt::white;
+        ret = Qt::red;
         break;
     case 8:
     case 252:
@@ -330,7 +331,7 @@ int DxfFilter::transformColor(const QColor color) const
 
 int DxfFilter::transformWidth(const int width) const
 {
-    int w = 0;
+    int w = 0;    
     switch (width) {
     case -1:
     case -2:

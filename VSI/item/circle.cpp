@@ -94,10 +94,7 @@ void Circle::setCircle(qreal px, qreal py, qreal radius)
     pen.setWidthF(penStyle.width);
     setPen(pen);
 
-    QPointF cPoint, sPoint; // 圆心
-    qreal r; // 半径
-    cPoint.setX(px);
-    cPoint.setY(py);
+    cPoint = QPointF(px, py);
     sPoint = cPoint + QPointF(0, radius);
     r = radius;
     setRect(cPoint.rx()-r, cPoint.ry()-r, r*2, r*2);

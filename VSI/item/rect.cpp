@@ -58,7 +58,6 @@ void Rect::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     pen.setWidthF(pen.widthF() / scaleFactor);
     painter->setPen(pen);
     painter->drawRect(this->rect());
-    qDebug()<<"绘制";
 /*
 //    QRect rect1(100, 100, 100, 100);
 //    QRect rect2(300, 100, 100, 100);
@@ -96,12 +95,6 @@ QList<QPointF> Rect::toPolyline()
     points.append(this->rect().bottomLeft());
     points.append(this->rect().topLeft());
     return points;
-/*
-    qDebug()<<"点：x:"<<rect().topLeft().rx()<<"y:"<<rect().topLeft().ry();
-    qDebug()<<"点：x:"<<rect().topRight().rx()<<"y:"<<rect().topRight().ry();
-    qDebug()<<"点：x:"<<rect().bottomLeft().rx()<<"y:"<<rect().bottomLeft().ry();
-    qDebug()<<"点：x:"<<rect().bottomRight().rx()<<"y:"<<rect().bottomRight().ry();
-    */
 }
 
 void Rect::mousePressEvent(QGraphicsSceneMouseEvent *event)
@@ -123,19 +116,19 @@ void Rect::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
 void Rect::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-    qDebug() << "Rect::mouseMoveEvent";
+//    qDebug() << "Rect::mouseMoveEvent";
     QGraphicsItem::mouseMoveEvent(event);
 }
 
 void Rect::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-    qDebug() << "Rect::mouseReleaseEvent";
+//    qDebug() << "Rect::mouseReleaseEvent";
     QGraphicsItem::mouseReleaseEvent(event);
 }
 
 void Rect::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
 {
-    qDebug() << "Rect::dragEnterEvent";
+//    qDebug() << "Rect::dragEnterEvent";
     QGraphicsItem::dragEnterEvent(event);
 }
 
