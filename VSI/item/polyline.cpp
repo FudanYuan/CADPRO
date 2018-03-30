@@ -208,12 +208,17 @@ void Polyline::setPolyline(QList<QPointF> pList, int flag, qreal ele, qreal angl
     setPen(pen);
 
     points.append(pList);
-    type = (Type)flag;
+    type = (Type)(flag == 0 ? 1 : flag);
     elevation = ele;
     alpha = angle;
     offset = off;
     update();
     overFlag = true;
+}
+
+void Polyline::setPoints(const QList<QPointF> &value)
+{
+    points = value;
 }
 
 QList<QPointF> Polyline::getPoints()
@@ -337,11 +342,6 @@ void Polyline::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
         setPen(pen);
         QGraphicsItem::hoverLeaveEvent(event);
     }
-}
-
-void Polyline::setPoints(const QList<QPointF> &value)
-{
-    points = value;
 }
 
 void Polyline::onSceneMoveableChanged(bool moveable)

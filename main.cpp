@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 
     gettimeofday(&tpstart,NULL);
 
-    Nest w;// Nest w; Sketch w;
+    Sketch w;// Nest w; Sketch w;
     w.show();
 
     gettimeofday(&tpend,NULL);

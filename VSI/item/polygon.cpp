@@ -75,7 +75,7 @@ void Polygon::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
     drawCrossPoint(painter, cPoint, 5, upright);
 }
 
-void Polygon::changetopolyline()
+void Polygon::toPolyline()
 {
     int r=radius;
     int num = line_num;
@@ -190,9 +190,10 @@ void Polygon::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
     }
 }
 
-QList<QPointF> Polygon::getPoints() const
+void Polygon::onSceneMoveableChanged(bool moveable)
 {
-    return points;
+    this->moveable = moveable;
+    setFlag(QGraphicsItem::ItemIsMovable, moveable);
 }
 
 void Polygon::setPoints(const QList<QPointF> &value)
@@ -200,21 +201,19 @@ void Polygon::setPoints(const QList<QPointF> &value)
     points = value;
 }
 
-void Polygon::onSceneMoveableChanged(bool moveable)
+QList<QPointF> Polygon::getPoints() const
 {
-    this->moveable = moveable;
-    setFlag(QGraphicsItem::ItemIsMovable, moveable);
-}
-
-
-qreal Polygon::getAlpha() const
-{
-    return alpha;
+    return points;
 }
 
 void Polygon::setAlpha(const qreal &value)
 {
     alpha = value;
+}
+
+qreal Polygon::getAlpha() const
+{
+    return alpha;
 }
 
 void Polygon::setType(int type)
@@ -227,11 +226,6 @@ int Polygon::getType()
     return this->type;
 }
 
-double Polygon::getRadius() const
-{
-    return radius;
-}
-
 void Polygon::setRadius(double value)
 {
     if(value==NULL||value<=0)
@@ -239,10 +233,9 @@ void Polygon::setRadius(double value)
     radius = value;
 }
 
-int Polygon::getLine_num() const
+double Polygon::getRadius() const
 {
-
-    return line_num;
+    return radius;
 }
 
 void Polygon::setLine_num(int value)
@@ -252,7 +245,11 @@ void Polygon::setLine_num(int value)
     line_num = value;
 }
 
+int Polygon::getLine_num() const
+{
 
+    return line_num;
+}
 
 void Polygon::on_commandLinkButton_2_clicked()
 {

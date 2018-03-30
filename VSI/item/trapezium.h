@@ -14,7 +14,6 @@ class Trapezium : public Shape, public QGraphicsPathItem
     Q_OBJECT
 
 public:
-
     Trapezium(QGraphicsItem *parent=0);
     void startDraw(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 开始绘图
     void drawing(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 绘图开始
@@ -51,7 +50,6 @@ protected:
     void hoverMoveEvent(QGraphicsSceneHoverEvent *event) Q_DECL_OVERRIDE;
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) Q_DECL_OVERRIDE;
 
-
 private:
 
     QPointF cPoint;
@@ -61,8 +59,6 @@ private:
     double trapezium_H = 100;//高
     double trapezium_toplength = 100;//上底
     double trapezium_type = 1;//是否插入一半
-
-
 
 public slots:
     void on_commandLinkButton_2_clicked();

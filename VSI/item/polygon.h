@@ -16,19 +16,22 @@ public:
     void drawing(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 绘图开始
     bool updateFlag(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
-    void changetopolyline();//转变成polyline
-
-    void setType(int type);
-    int getType();
-    int getLine_num() const;
-    void setLine_num(int value);
-    double getRadius() const;
-    void setRadius(double value);
-    qreal getAlpha() const;
-    void setAlpha(const qreal &value);
+    void toPolyline();//转变成polyline
 
     QList<QPointF> getPoints() const;
     void setPoints(const QList<QPointF> &value);
+    
+	void setType(int type);
+    int getType();
+    
+	int getLine_num() const;
+    void setLine_num(int value);
+    
+	double getRadius() const;
+    void setRadius(double value);
+    
+	qreal getAlpha() const;
+    void setAlpha(const qreal &value);
 
 protected:
     //鼠标事件
@@ -56,8 +59,6 @@ private:
     int type;  //线类型
     int line_num=4;//边的个数
     double radius=100;//半径
-
-
 
 public slots:
     void on_commandLinkButton_2_clicked();
