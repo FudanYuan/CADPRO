@@ -241,6 +241,9 @@ public slots:
     void onProjectNameChanged(QString lastName, QString presentName);  // 响应项目名称改变
     void onMousePositionChanged(QPointF pos);  // 鼠标位置更新
 
+protected:
+    void closeEvent(QCloseEvent *event);
+
 private slots:
     // FILE
     void onActionFileNew();             // 新建项目操作

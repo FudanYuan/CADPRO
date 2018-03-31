@@ -14,18 +14,18 @@ Scene::Scene(QObject *parent) :
     scaleFactor(1)
 {
     setSceneRect(SHRT_MIN, SHRT_MIN, SHRT_MAX * 2, SHRT_MAX * 2);
-    polygonType=1;
-    polygonLineNum=4;
-    polygonRadius=100;
-    polygonAlpha=0;
-    trapeziumH=100;
-    trapeziumToplength=100;
-    trapeziumAlpha1=60;
-    trapeziumAlpha2=60;
+    polygonType = 1;
+    polygonLineNum = 4;
+    polygonRadius = 100;
+    polygonAlpha = 0;
+    trapeziumH = 100;
+    trapeziumToplength = 100;
+    trapeziumAlpha1 = 60;
+    trapeziumAlpha2 = 60;
     eyeletDialog = new Eyelet;
-    textdialog =new Text;
-    recttram =new Rect;
-    polygontram =new Polygon;
+    textdialog = new Text;
+    recttram = new Rect;
+    polygontram = new Polygon;
 }
 
 Scene::~Scene()
@@ -174,12 +174,20 @@ void Scene::addCustomPointItem(Point *point)
     if(itemList.contains(point)){
         return;
     }
-
     point->setShapeId(getItemListLength()+1);
+
+    qDebug() << "shapeType: " << point->getShapeType();
+    Configure::PenStyle pen(eStyle.referPoint.color, Qt::SolidLine, 1);
+    point->setPenStyle(pen);
+    point->setOffset(eStyle.referPoint.sizeInPix);
+    point->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
+    point->setSelectStyle(eStyle.selectedEntity);
+
     itemList.append(point);
     pointList.append(point);
     addItem(point);
     connect(point, &Shape::sceneMoveableChanged, point, &Point::onSceneMoveableChanged);
+    connect(point, &Point::select, this, &Scene::onPointSelected);
 }
 
 void Scene::addCustomLineItem(Line *line)
@@ -188,10 +196,26 @@ void Scene::addCustomLineItem(Line *line)
         return;
     }
     line->setShapeId(getItemListLength()+1);
+    switch (line->getShapeType()) {
+    case Shape::Line:
+        line->setPenStyle(eStyle.perimeterLine);
+        line->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
+        line->setSelectStyle(eStyle.selectedEntity);
+        break;
+    case Shape::MiddleAxis:
+    case Shape::Direction:
+        line->setPenStyle(eStyle.middleAxis);
+        line->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
+        line->setSelectStyle(eStyle.selectedEntity);
+        break;
+    default:
+        break;
+    }
     itemList.append(line);
     lineList.append(line);
     addItem(line);
     connect(line, &Shape::sceneMoveableChanged, line, &Line::onSceneMoveableChanged);
+    connect(line, &Line::select, this, &Scene::onLineSelected);
 }
 
 void Scene::addCustomPolylineItem(Polyline *polyline)
@@ -200,10 +224,16 @@ void Scene::addCustomPolylineItem(Polyline *polyline)
         return;
     }
     polyline->setShapeId(getItemListLength()+1);
+
+    polyline->setPenStyle(eStyle.perimeterLine);
+    polyline->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
+    polyline->setSelectStyle(eStyle.selectedEntity);
+
     itemList.append(polyline);
     polylineList.append(polyline);
     addItem(polyline);
     connect(polyline, &Shape::sceneMoveableChanged, polyline, &Polyline::onSceneMoveableChanged);
+    connect(polyline, &Polyline::select, this, &Scene::onPolylineSelected);
 }
 
 void Scene::addCustomRectItem(Rect *rect)
@@ -212,6 +242,11 @@ void Scene::addCustomRectItem(Rect *rect)
         return;
     }
     rect->setShapeId(getItemListLength()+1);
+
+    rect->setPenStyle(eStyle.cut);
+    rect->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
+    rect->setSelectStyle(eStyle.selectedEntity);
+
     itemList.append(rect);
     addItem(rect);
     connect(rect, &Shape::sceneMoveableChanged, rect, &Rect::onSceneMoveableChanged);
@@ -223,6 +258,11 @@ void Scene::addCustomEllipseItem(Ellipse *ellipse)
         return;
     }
     ellipse->setShapeId(getItemListLength()+1);
+
+    ellipse->setPenStyle(eStyle.cut);
+    ellipse->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
+    ellipse->setSelectStyle(eStyle.selectedEntity);
+
     itemList.append(ellipse);
     ellipseList.append(ellipse);
     addItem(ellipse);
@@ -231,20 +271,62 @@ void Scene::addCustomEllipseItem(Ellipse *ellipse)
 
 void Scene::addCustomCircleItem(Circle *circle)
 {
+    if(itemList.contains(circle)){
+        return;
+    }
     circle->setShapeId(getItemListLength()+1);
+
+    switch (circle->getShapeType()) {
+    case Shape::Circle:
+        circle->setPenStyle(eStyle.cut);
+        circle->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
+        circle->setSelectStyle(eStyle.selectedEntity);
+        break;
+    case Shape::Hole:
+        circle->setFilled(true);
+        circle->setPenStyle(eStyle.cut);
+        circle->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
+        circle->setSelectStyle(eStyle.selectedEntity);
+        break;
+    default:
+        break;
+    }
+
     itemList.append(circle);
     circleList.append(circle);
     addItem(circle);
     connect(circle, &Shape::sceneMoveableChanged, circle, &Circle::onSceneMoveableChanged);
+    connect(circle, &Circle::select, this, &Scene::onCircleSelected);
 }
 
 void Scene::addCustomArcItem(Arc *arc)
 {
+    if(itemList.contains(arc)){
+        return;
+    }
     arc->setShapeId(getItemListLength()+1);
+
+    switch (arc->getShapeType()) {
+    case Shape::Arc:
+        arc->setPenStyle(eStyle.cut);
+        arc->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
+        arc->setSelectStyle(eStyle.selectedEntity);
+        break;
+    case Shape::Arc2:
+        arc->setType(Arc::updated);
+        arc->setPenStyle(eStyle.cut);
+        arc->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
+        arc->setSelectStyle(eStyle.selectedEntity);
+        break;
+    default:
+        break;
+    }
+
     itemList.append(arc);
     arcList.append(arc);
     addItem(arc);
     connect(arc, &Shape::sceneMoveableChanged, arc, &Arc::onSceneMoveableChanged);
+    connect(arc, &Arc::select, this, &Scene::onArcSelected);
 }
 
 void Scene::addCustomItem()
@@ -368,26 +450,45 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     //变化成polyline
                     switch(curShape)
                     {
-                        case Shape::Rectangle:
-                        {
-                            //转换类型
-                            Polyline *polyline = new Polyline;
-                            polyline->setPoints(recttram->toPolyline());
-                            polylineList.append(polyline);
-                        }
-                        case Shape::Polygon:
-                        {
-                            //转换类型
-                            Polyline *polyline = new Polyline;
-                            polygontram->toPolyline();
-                            polygontram->setPoints(polygontram->getPoints());
-                            polylineList.append(polyline);
+                    case Shape::Rectangle:
+                    {
+                        //转换类型
+                        Polyline *polyline = new Polyline;
+                        polyline->setPoints(recttram->toPolyline());
+                        polylineList.append(polyline);
+                    }
+                    case Shape::Polygon:
+                    {
+                        //转换类型
+                        Polyline *polyline = new Polyline;
+                        polygontram->toPolyline();
+                        polygontram->setPoints(polygontram->getPoints());
+                        polylineList.append(polyline);
 
-                            polyline->setPenStyle(recttram->getPenStyle());
-                            polyline->setLayer(recttram->getLayer());
-                        }
-                        default:
-                            break;
+                        polyline->setPenStyle(recttram->getPenStyle());
+                        polyline->setLayer(recttram->getLayer());
+//                        if(polyline->getPoints().isEmpty())
+//                            qDebug()<<"没有点集";
+//                        else
+//                        {
+//                            QPointF p;
+//                            p=polyline->getPoints().at(0);
+//                            qDebug()<<"点：x:"<<p.rx()<<"y:"<<p.ry();
+//                            p=polyline->getPoints().at(1);
+//                            qDebug()<<"点：x:"<<p.rx()<<"y:"<<p.ry();
+//                            p=polyline->getPoints().at(2);
+//                            qDebug()<<"点：x:"<<p.rx()<<"y:"<<p.ry();
+//                            p=polyline->getPoints().at(3);
+//                            qDebug()<<"点：x:"<<p.rx()<<"y:"<<p.ry();
+//                            qDebug()<<"点集长度："<<polyline->getPoints().length();
+//                            qDebug()<<"线类型："<<polyline->getType();
+//                            qDebug()<<"不知道是啥："<<polyline->getLayer();
+//                            qDebug()<<"颜色"<<polyline->getPenStyle().color;
+//                            qDebug()<<"线宽"<<polyline->getPenStyle().width;
+//                        }
+                    }
+                    default:
+                        break;
                     }
                 }
             } else {
@@ -417,6 +518,7 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                 {
                     Line *line = new Line;
                     line->setShapeId(id+1);
+                    line->setShapeType(Shape::Line);
                     line->setPenStyle(eStyle.perimeterLine);
                     line->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
                     line->setSelectStyle(eStyle.selectedEntity);
@@ -430,8 +532,8 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                 case Shape::MiddleAxis:
                 {
                     Line *line = new Line;
-                    line->setShapeType(Shape::MiddleAxis);
                     line->setShapeId(id+1);
+                    line->setShapeType(Shape::MiddleAxis);
                     line->setPenStyle(eStyle.middleAxis);
                     line->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
                     line->setSelectStyle(eStyle.selectedEntity);
@@ -445,8 +547,8 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                 case Shape::Direction:
                 {
                     Line *line = new Line;
-                    line->setShapeType(Shape::Direction);
                     line->setShapeId(id+1);
+                    line->setShapeType(Shape::Direction);
                     line->setPenStyle(eStyle.middleAxis);
                     line->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
                     line->setSelectStyle(eStyle.selectedEntity);
@@ -519,6 +621,7 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                 {
                     Circle *circle = new Circle;
                     circle->setShapeId(id+1);
+                    circle->setShapeType(Shape::Hole);
                     circle->setFilled(true);
                     circle->setPenStyle(eStyle.cut);
                     circle->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
@@ -685,6 +788,8 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                 itemList.at(i)->setMoveable(true);
             }
         }
+
+        // 编辑标识为真，表示目前可编辑图元
         if(editable){
             if(curItem && curItem->updateFlag(event)) {
                 drawing = false;
@@ -713,9 +818,11 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
             }
             drawable = !drawable;
         }
+
         if(moveable){
             moveable = false;
         }
+
         for(int i=0; i<itemList.length();i++){
             itemList.at(i)->setSelectable(!drawable);
             itemList.at(i)->setSelected(false);
@@ -870,6 +977,7 @@ void Scene::onGridChanged(bool show)
 
 void Scene::onNewItem()
 {
+    qDebug() << "有新实体";
     emit sceneItemsChanged();
 }
 

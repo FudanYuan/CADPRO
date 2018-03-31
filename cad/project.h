@@ -39,14 +39,17 @@ public:
     QString getNewSceneName();  // 获取新图层名称
     QString getSceneName(Scene *Scene);  // 获取图层名称
     QString getSceneName(const int i);  // 获取第i层图层名称
+
+    // dxf 读
+    Scene* getDXFLayer(QString name);  //  获取dxf图层对象
     void dxfFileReader(const QString fileName);  // 解析dxf文件
     void dxfLayerReader(const DxfFilter dxfFilter);  // 解析layer
     void dxfPointReader(const DxfFilter dxfFilter);  // 解析point实体
     void dxfLineReader(const DxfFilter dxfFilter);  // 解析line实体
+    void dxfPolylineReader(const DxfFilter dxfFilter);  // 解析polyline实体
     void dxfArcReader(const DxfFilter dxfFilter);  // 解析arc实体
     void dxfCircleReader(const DxfFilter dxfFilter);  // 解析circle实体
     void dxfEllipseReader(const DxfFilter dxfFilter);  // 解析ellipse实体
-    void dxfPolylineReader(const DxfFilter dxfFilter);  // 解析polyline实体
     void dxfTextReader(const DxfFilter dxfFilter);  // 解析text实体
 
     // dxf 写
@@ -70,6 +73,8 @@ private:
     DxfFilter dxfFilter;  // dxf 操作
     DL_Dxf dxf;
     QList<QString> offLayers; // 关闭的layer
+    bool entityFlag;  // 实体标识，有实体的话为true
+
 signals:
     void projectNameChanged(QString, QString);
 };

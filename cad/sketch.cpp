@@ -1737,7 +1737,6 @@ void Sketch::onActionFileImportDXF()
             item_scene->setCheckState(0, Qt::Checked);
         }
         scene_active = project_active->getScene(0);
-
         project_active->setActiveScene(scene_active);
         updateScene();
     }

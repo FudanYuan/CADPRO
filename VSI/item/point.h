@@ -38,6 +38,8 @@ public:
     int type() const Q_DECL_OVERRIDE;
 
     crossType getCrossType();
+
+    Point *copy();
 protected:
     //鼠标事件
     void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
@@ -58,6 +60,7 @@ private:
     int offset;  //  点的偏移量
     QPen pen_style;  // 笔类型
     crossType ctype;  // 交叉类型
+
 signals:
     void select(Point *point);  // 图形被选择
 

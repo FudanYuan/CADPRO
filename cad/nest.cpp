@@ -653,6 +653,17 @@ void Nest::onMousePositionChanged(QPointF pos)
     mousePositionLabel->setText(tr("X=") + QString::number(pos.rx()) + " Y=" + QString::number(-pos.ry()));
 }
 
+void Nest::closeEvent(QCloseEvent *event)
+{
+    if(maybeSave()) {
+        qApp->quit();
+        //saveLayout();
+    }
+    else {
+        event->ignore();
+    }
+}
+
 void Nest::onActionFileNew()
 {
     qDebug() << "新建一个项目，即导入一个dxf文件"
@@ -731,7 +742,9 @@ void Nest::onActionFileConfiguration()
 
 void Nest::onActionFileExit()
 {
-
+    if(maybeSave()) {
+        qApp->quit();
+    }
 }
 
 void Nest::onActionTreeExpandAll()

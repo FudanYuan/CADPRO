@@ -246,6 +246,13 @@ qreal Polyline::getElevation()
     return this->elevation;
 }
 
+Polyline *Polyline::copy()
+{
+    Polyline *p = new Polyline(this);
+    p->setPolyline(points, type, elevation, alpha, offset);
+    return p;
+}
+
 void Polyline::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(selectable){

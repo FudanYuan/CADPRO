@@ -29,6 +29,8 @@ public:
     void setArrowSize(qreal size);  // 设置箭头大小
     qreal getArrowSize();  // 获取箭头大小
 
+    Line *copy();
+
     ItemProperties *lineproperties;
 protected:
     //鼠标事件

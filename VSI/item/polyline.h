@@ -40,6 +40,7 @@ public:
     void setElevation(qreal elevation);  // 设置高程
     qreal getElevation();  // 获取高程
 
+    Polyline *copy();
 protected:
     //鼠标事件
     void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;

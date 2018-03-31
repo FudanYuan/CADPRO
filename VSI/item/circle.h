@@ -28,6 +28,8 @@ public:
     void setCircle(qreal px, qreal py, qreal radius);  // 设置圆形
     Circle circle();  // 圆形
 
+    Circle *copy();
+
 protected:
     //鼠标事件
     void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;

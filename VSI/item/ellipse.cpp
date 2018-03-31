@@ -8,6 +8,8 @@
 Ellipse::Ellipse(QGraphicsItem *parent) :
     QGraphicsEllipseItem(parent),
     alpha(0),
+    sAngle(0),
+    eAngle(360),
     cFlag(false),
     r1Flag(false),
     r2Flag(false)
@@ -31,7 +33,6 @@ void Ellipse::startDraw(QGraphicsSceneMouseEvent *event)
     pen.setWidthF(penStyle.width);
     setPen(pen);
     cPoint = event->scenePos();
-    sPoint = event->scenePos();
     cFlag = true;
 }
 
@@ -54,6 +55,9 @@ bool Ellipse::updateFlag(QGraphicsSceneMouseEvent *event)
 {
     if(!r1Flag){ // 确定r1
         sPoint = event->scenePos();
+        if(sPoint == cPoint){
+            return false;
+        }
         alpha = getLineAngle(cPoint, sPoint);
         r1 = qSqrt((sPoint.rx() - cPoint.rx()) * (sPoint.rx() - cPoint.rx())
                 + (sPoint.ry() - cPoint.ry()) * (sPoint.ry() - cPoint.ry()));
@@ -63,6 +67,9 @@ bool Ellipse::updateFlag(QGraphicsSceneMouseEvent *event)
     }
     if(!r2Flag){// 确定r2
         ePoint = event->scenePos();
+        if(ePoint == cPoint){
+            return false;
+        }
         r2 = qSqrt((ePoint.rx() - cPoint.rx()) * (ePoint.rx() - cPoint.rx())
                 + (ePoint.ry() - cPoint.ry()) * (ePoint.ry() - cPoint.ry()));
         setRect(cPoint.rx()-r1, cPoint.ry()-r2, r1*2, r2*2);
@@ -113,25 +120,20 @@ void Ellipse::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
         painter->save();
         painter->translate(cPoint);
         painter->rotate(-alpha); //以中心点为中心，顺时针旋转alpha
-        painter->drawEllipse(QRect(-r1, -r2, 2*r1, 2*r2));
+        painter->drawEllipse(QRectF(-r1, -r2, 2*r1, 2*r2));
         painter->restore();
 
-        setRect(QRect(cPoint.rx()-W/2, cPoint.ry()-H/2, W, H));
+        setRect(QRectF(cPoint.rx()-W/2, cPoint.ry()-H/2, W, H));
         return;
     }
     if(r1Flag){
         painter->setPen(pen);
         drawCrossPoint(painter, cPoint, 2, upright);
 
-        if(r1 > r2){
-            qDebug() << "r1 > r2" << alpha;
-        } else{
-            qDebug() << "r1 < r2" << alpha;
-        }
         painter->save();
         painter->translate(cPoint);
         painter->rotate(-alpha); //以原点为中心，顺时针旋转alpha度
-        painter->drawEllipse(QRect(-r1, -r2, 2*r1, 2*r2));
+        painter->drawEllipse(QRectF(-r1, -r2, 2*r1, 2*r2));
         painter->restore();
 
         pen.setColor(Qt::black);
@@ -213,6 +215,43 @@ qreal Ellipse::getRadius2()
     return this->r2;
 }
 
+QPointF Ellipse::getMajorPoint()
+{
+    QPointF mPointOrigin = cPoint + QPointF(r1, 0);
+    return transformRotate(cPoint, mPointOrigin, alpha);
+}
+
+QPointF Ellipse::getMinorPoint()
+{
+    QPointF mPointOrigin = cPoint + QPointF(0, r2);
+    return transformRotate(cPoint, mPointOrigin, alpha);
+}
+
+qreal Ellipse::getRatio()
+{
+    return r2/r1;
+}
+
+void Ellipse::setSAngle(qreal angle)
+{
+    this->sAngle = angle;
+}
+
+qreal Ellipse::getSAngle()
+{
+    return this->sAngle;
+}
+
+void Ellipse::setEAngle(qreal angle)
+{
+    this->eAngle = angle;
+}
+
+qreal Ellipse::getEAngle()
+{
+    return this->eAngle;
+}
+
 void Ellipse::setAlpha(qreal a)
 {
     this->alpha = a;
@@ -223,7 +262,8 @@ qreal Ellipse::getAlpha()
     return this->alpha;
 }
 
-void Ellipse::setEllipse(qreal px, qreal py, qreal radius1, qreal radius2, qreal angle)
+void Ellipse::setEllipse(qreal px, qreal py, qreal mx, qreal my,
+                         qreal ratio, qreal angle1, qreal angle2)
 {
     QPen pen = QPen();
     pen.setColor(penStyle.color);
@@ -231,23 +271,44 @@ void Ellipse::setEllipse(qreal px, qreal py, qreal radius1, qreal radius2, qreal
     pen.setWidthF(penStyle.width);
     setPen(pen);
 
-    cPoint.setX(px);
-    cPoint.setY(py);
-    r1 = radius1;
-    r2 = radius2;
-    alpha = angle;
-    sPoint = transformRotate(cPoint, r1, alpha);
-    ePoint = transformRotate(cPoint, r2, 90 - alpha);  //// 不确定
+    cPoint = QPointF(px, py);
+    sPoint = QPointF(mx, my);
+    r1 = getDistance(cPoint, sPoint);
+    r2 = r1 * ratio;
+    alpha = getLineAngle(cPoint, sPoint);
+    ePoint = getMinorPoint();
+    sAngle = angle1;
+    eAngle = angle2;
     setRect(cPoint.rx()-r1, cPoint.ry()-r2, r1*2, r2*2);
     cFlag = true;
     r1Flag = true;
     r2Flag = true;
+#ifdef DXFDEBUG
+    qDebug() << "cPoint: " << cPoint;
+    qDebug() << "sPoint: " << sPoint;
+    qDebug() << "sPoint2: " << getMajorPoint();
+    qDebug() << "ePoint: " << ePoint;
+    qDebug() << "alpha: " << alpha;
+    qDebug() << "r1: " << r1;
+    qDebug() << "r2: " << r2;
+#endif
     update();
 }
 
 Ellipse Ellipse::ellipse()
 {
 
+}
+
+Ellipse *Ellipse::copy()
+{
+    Ellipse *e = new Ellipse(this);
+    QPointF mPoint = getMajorPoint();
+    e->setShapeType(this->getShapeType());
+    e->setEllipse(cPoint.rx(), cPoint.ry(),
+                  mPoint.rx(), mPoint.ry(),
+                  r2/r1, sAngle, eAngle);
+    return e;
 }
 
 void Ellipse::mousePressEvent(QGraphicsSceneMouseEvent *event)
