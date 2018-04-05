@@ -29,9 +29,11 @@ public:
     QList<Scene *> getSceneList();  // 获取项目图层列表
     Scene* getScene(const int index);  // 获取项目图层
     Scene* getSceneByName(const QString name);  // 通过名称获取项目图层
+    int getSceneIdByName(const QString name);  // 通过名称获取图层序号
     bool removeScene(const int index);  // 删除项目图层
     bool removeSceneByName(const QString name); // 通过名称删除项目图层
     Scene* getActiveScene();  // 获取项目活动图层
+    bool changeScene(int i, int j);  // 交换两scene的位置
     void setSaved(const bool saved);  // 设置项目保存状态
     bool isSaved();  // 判断项目是否被保存过
     bool isModified();  // 判断项目是否被更改过

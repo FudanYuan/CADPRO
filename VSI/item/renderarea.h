@@ -11,19 +11,17 @@ QT_BEGIN_NAMESPACE
 class QPaintEvent;
 QT_END_NAMESPACE
 
-
-
 class RenderArea : public QWidget
 {
     Q_OBJECT
-
 public:
     /*value表示当前属于哪个对话框,
      * value=1,绘制正多边形的
      * value=2,绘制梯形的
+     * value=3,绘制鸡眼孔
     */
-    RenderArea(QWidget *parent, int value, int tra_dialog_type);
-    RenderArea(QWidget *parent, int lin, double alp, int typ, int value);
+    explicit RenderArea(QWidget *parent, int value, int tra_dialog_type);
+    explicit RenderArea(QWidget *parent, int lin, double alp, int typ, int value);
 
     void setShape(const QPainterPath &shape);
 
@@ -51,7 +49,6 @@ protected:
     void paintEvent(QPaintEvent *event) override;
 
 private:
-
     void drawOutline(QPainter &painter);
     void drawShape(QPainter &painter);
 

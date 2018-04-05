@@ -2701,6 +2701,19 @@ void Sketch::onActionTreeProjectSceneChangeTo()
 void Sketch::onActionTreeProjectSceneMoveUpOne()
 {
     qDebug() << tree_project_scene_active_item->text(0) << "上移一层";
+    QString currentSceneName = tree_project_scene_active_item->text(0);
+    int currentId = project_active->getSceneIdByName(currentSceneName);
+
+    if(currentId < 1){
+        return;
+    }
+    int lastId = currentId - 1;
+    QString lastSceneName = project_active->getScene(lastId)->getName();
+
+    tree_project_scene_active_item->setText(0, lastSceneName);
+    tree_project_active_item->child(lastId)->setText(0, currentSceneName);
+
+    project_active->changeScene(lastId, currentId);
 }
 
 void Sketch::onActionTreeProjectSceneMoveUpTop()

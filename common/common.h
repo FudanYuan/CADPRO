@@ -22,5 +22,4 @@ void drawCrossPoint(QPainter* painter, QPointF point, int offset, crossType type
 void drawNodePoint(QPainter* painter, QPointF point, int radius);  // 画点
 void drawRectPoint(QPainter* painter, QPointF point, int length);  // 画矩形点
 void drawLineWithArrow(QPainter *painter, QLineF line, int offset); // 画点箭头的直线
-
 #endif // COMMON_H

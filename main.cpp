@@ -1,6 +1,6 @@
 #include <QApplication>
 #include "sketch.h"
- #include "nest.h"
+#include "nest.h"
 #include <QDebug>
 //#include "binarytree.h"
 #include <sys/time.h>
@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 
     gettimeofday(&tpstart,NULL);
 
-    Sketch w;// Nest w; Sketch w;
+    Nest w;// Nest w; Sketch w;
     w.show();
 
     gettimeofday(&tpend,NULL);

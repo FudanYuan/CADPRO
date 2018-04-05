@@ -93,6 +93,16 @@ Scene *Project::getSceneByName(const QString name)
     return NULL;
 }
 
+int Project::getSceneIdByName(const QString name)
+{
+    for(int i=0;i<sceneList.length();i++){
+        if(sceneList.at(i)->getName() == name){
+            return i;
+        }
+    }
+    return -1;
+}
+
 bool Project::removeScene(const int index)
 {
     int length = this->sceneList.length();
@@ -117,6 +127,13 @@ bool Project::removeSceneByName(const QString name)
 Scene *Project::getActiveScene()
 {
     return this->sceneActive;
+}
+
+bool Project::changeScene(int i, int j)
+{
+    Scene *currentScene = sceneList[i];
+    sceneList[i] = sceneList[j];
+    sceneList[j] = currentScene;
 }
 
 void Project::setSaved(const bool saved)
@@ -302,7 +319,6 @@ void Project::dxfPointReader(const DxfFilter dxfFilter)
         // 添加点元素
         Point *point = new Point;
         sceneActive->addCustomPointItem(point);
-        sceneList[0]->addCustomPointItem(point->copy());
         point->setPoint(QPointF(x,y));
 
         Point *pointCopy = new Point(point);
@@ -425,7 +441,6 @@ void Project::dxfPolylineReader(const DxfFilter dxfFilter)
         Polyline *polyline = new Polyline;
         polyline->setShapeType(Shape::Polyline);
         sceneActive->addCustomPolylineItem(polyline);
-        sceneList[0]->addCustomPolylineItem(polyline->copy());
         polyline->setPolyline(points, flag, elevation);
 
         Polyline *polylineCopy = new Polyline(polyline);
