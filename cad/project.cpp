@@ -131,9 +131,7 @@ Scene *Project::getActiveScene()
 
 bool Project::changeScene(int i, int j)
 {
-    Scene *currentScene = sceneList[i];
-    sceneList[i] = sceneList[j];
-    sceneList[j] = currentScene;
+    sceneList.swap(i,j);
 }
 
 void Project::setSaved(const bool saved)
