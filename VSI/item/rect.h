@@ -5,6 +5,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include "shape.h"
 #include <QPointF>
+#include "itemproperties.h"
 
 class Rect : public Shape, public QGraphicsRectItem
 {
@@ -17,6 +18,10 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
     void rotateAndPaintRect(QPainter *painter, const QRect &rect, int angle);
     QList<QPointF> toPolyline();//转变成polyline
+    ItemProperties *rectproperties;
+
+    double getOffset() const;
+    void setOffset(double value);
 
 protected:
     //鼠标事件
@@ -35,12 +40,14 @@ protected:
 
 private:
     QPointF topLeftPoint, bottomRightPoint;  // 顶点
+    double offset;//偏移量
 
 signals:
     void select(Rect *rect);  // 图形被选择
 
 public slots:
     void onSceneMoveableChanged(bool moveable) Q_DECL_OVERRIDE;  //  响应场景可移动性改变
+    void typechange();
 };
 
 #endif // RECT_H

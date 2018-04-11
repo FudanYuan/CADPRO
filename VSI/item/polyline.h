@@ -5,6 +5,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include "shape.h"
 #include <QPointF>
+#include "itemproperties.h"
 
 //!
 //! 折线类，所有的多边形、曲线、
@@ -39,8 +40,9 @@ public:
 
     void setElevation(qreal elevation);  // 设置高程
     qreal getElevation();  // 获取高程
-
     Polyline *copy();
+    ItemProperties *polylineproperties;
+
 protected:
     //鼠标事件
     void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
@@ -69,6 +71,7 @@ signals:
 
 public slots:
     void onSceneMoveableChanged(bool moveable) Q_DECL_OVERRIDE;  //  响应场景可移动性改变
+    void typechange();
 };
 
 #endif // POLYLINE_H

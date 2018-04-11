@@ -105,7 +105,7 @@ private:
     Scene *pieceScene;   // 切割件图层
     QMap<QString, ProSheetMap*> proSheetMap;  // 使用材料列表
     Sheet* curSheet;  // 当前使用材料
-
+    Sheet sheet;  // 当前使用材料
     QWidget *widget;
     QLabel *label;
     QLineEdit *lineEdit;

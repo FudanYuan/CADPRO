@@ -22,9 +22,6 @@ public:
     void initlayout3();
     void initlayout4();
 
-    QColor getTextcolor() const;
-    void setTextcolor(const QColor &value);
-
     int getTextsize() const;
     void setTextsize(int value);
 
@@ -33,6 +30,9 @@ public:
 
     bool getOk() const;
     void setOk(bool value);
+
+    QColor getTextcolor() const;
+    void setTextcolor(const QColor &value);
 
 private:
     //设置对话框的布局
@@ -45,7 +45,6 @@ private:
     QGroupBox *bottom;
     QLineEdit *textheight1;
     QLineEdit *textcontent1;
-    ColorComboBox *textcolor1;
 
     QString text;//文本内容
     QColor textcolor;//文本颜色
@@ -57,6 +56,6 @@ public slots:
     void onclickedcancel();
     void textsizechanged();
     void textchanged();
-    void onColorChanged();
+    void onColorChanged(QString string, QColor color);
 };
 #endif // TEXTDIALOG_H

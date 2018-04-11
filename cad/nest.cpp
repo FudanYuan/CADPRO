@@ -459,12 +459,8 @@ void Nest::updateSheetTree()
     qreal rateTotal = 0.0;
 
     // 更新sheet窗口
-    if(!tree_sheet){
-        tree_sheet = new QTreeWidget(dock_project);
-    } else{
-        tree_sheet->clear();
-    }
-    tree_sheet->setColumnCount(1); //设置列数
+    tree_sheet = new QTreeWidget(dock_project);
+    //tree_sheet->setColumnCount(1); //设置列数
 
     for(int i=0;i<sheetNum;i++){
         QString sheetName = sheetList[i]->name;
@@ -664,7 +660,7 @@ void Nest::showTreeMenu(QPoint pos)
     if(tree_project_active_item == NULL){     // 项目栏
         tree_project_active_item = tree_project_scene_active_item;
         tree_project_scene_active_item = NULL;
-        menu_tree_project = new QMenu(tree_project);        
+        menu_tree_project = new QMenu(tree_project);
         action_tree_project_nest_scene = new QAction(tr("排版"), tree_project);
         action_tree_project_add_scene = new QAction(tr("添加切割件"), tree_project);
         action_tree_project_save = new QAction(tr("保存"), tree_project);

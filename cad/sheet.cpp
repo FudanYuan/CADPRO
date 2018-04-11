@@ -1,4 +1,4 @@
-﻿#include "sheet.h"
+#include "sheet.h"
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QHBoxLayout>

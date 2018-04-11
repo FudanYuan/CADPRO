@@ -19,6 +19,8 @@ Circle::Circle(QGraphicsItem *parent) :
     setAcceptDrops(true);
     // 设置图元为可接受hover事件
     setAcceptHoverEvents(true);
+    circleproperties =new ItemProperties();
+    offset = 50;
 }
 
 void Circle::startDraw(QGraphicsSceneMouseEvent *event)
@@ -67,7 +69,12 @@ void Circle::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QW
     painter->setPen(pen);
     painter->drawEllipse(cPoint, r, r);
     crossSize /= scaleFactor;
-    drawCrossPoint(painter, cPoint, crossSize, upright);
+    drawCrossPoint(painter, cPoint, 5, upright);
+    if(isoffset)
+    {
+        double newr=r+offset;
+        painter->drawEllipse(cPoint, newr, newr);
+    }
 }
 
 void Circle::setCPoint(QPointF p)
@@ -126,17 +133,24 @@ void Circle::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(selectable){
         selected = true;
-        qDebug() << "type: " << getShapeType();
-        qDebug() << "id: " << getShapeId();
         setCursor(Qt::ClosedHandCursor);
-        QPen pen = QPen();
-        pen.setColor(selectedEntity.color);
-        pen.setStyle(selectedEntity.style);
-        pen.setWidthF(selectedEntity.width);
-        if(this->filled){
-            setBrush(QBrush(selectedEntity.color, Qt::SolidPattern));
+        if(!itemp)
+        {
+            qDebug() << "type: " << getShapeType();
+            qDebug() << "id: " << getShapeId();
+            QPen pen = QPen();
+            pen.setColor(selectedEntity.color);
+            pen.setStyle(selectedEntity.style);
+            pen.setWidthF(selectedEntity.width);
+            if(this->filled){
+                setBrush(QBrush(selectedEntity.color, Qt::SolidPattern));
+            }
+            setPen(pen);
         }
-        setPen(pen);
+        if(selected)
+        {
+            setFlag(QGraphicsItem::ItemIsMovable, true);
+        }
         emit select(this);
     }
     QGraphicsItem::mousePressEvent(event);
@@ -180,7 +194,7 @@ void Circle::dropEvent(QGraphicsSceneDragDropEvent *event)
 
 void Circle::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
-    if(selectable){
+    if(selectable && !itemp){
         QPen pen = QPen();
         if(!selected){
             pen.setColor(underCursorStyle.color);
@@ -205,7 +219,7 @@ void Circle::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 
 void Circle::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
-    if(selectable){
+    if(selectable && !itemp){
         setCursor(Qt::OpenHandCursor);
         QGraphicsItem::hoverMoveEvent(event);
     }
@@ -213,7 +227,7 @@ void Circle::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 
 void Circle::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
-    if(selectable){
+    if(selectable && !itemp){
         QPen pen = QPen();
         if(!selected){
             pen.setColor(penStyle.color);
@@ -239,4 +253,16 @@ void Circle::onSceneMoveableChanged(bool moveable)
 {
     this->moveable = moveable;
     setFlag(QGraphicsItem::ItemIsMovable, moveable);
+}
+
+void Circle::typechange()
+{
+    if(itemp = this->circleproperties->getOk())
+    {
+        this->setPen(this->circleproperties->getPen());
+        this->setPenStyle(this->circleproperties->getPenstyle());
+        this->setRadius(this->circleproperties->getPolygonEdgeLength());
+        offset = this->circleproperties->getOffset();
+        isoffset = this->circleproperties->getIsinsertoffset();
+    }
 }

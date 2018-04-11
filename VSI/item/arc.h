@@ -5,6 +5,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include "shape.h"
 #include <QPointF>
+#include "itemproperties.h"
 
 class Arc : public Shape, public QGraphicsEllipseItem
 {
@@ -37,8 +38,9 @@ public:
 
     void setArc(qreal px, qreal py, qreal radius, qreal angle1, qreal angle2);  // 设置圆弧
     Arc arc();
+    Arc *copy(); 
+    ItemProperties *arcproperties;
 
-    Arc *copy();
 protected:
     //鼠标事件
     void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
@@ -72,11 +74,14 @@ private:
     QLineF getLine(QPointF p1, QPointF p2, QPointF p0);  // 判断是否在线段内
     qreal getLineAngle(QPointF sPoint, QPointF ePoint);
 
+    bool itemp;//属性状态改变
+
 signals:
     void select(Arc *arc);  // 图形被选择
 
 public slots:
     void onSceneMoveableChanged(bool moveable) Q_DECL_OVERRIDE;  //  响应场景可移动性改变
+    void typechange();
 };
 
 #endif // ARC_H

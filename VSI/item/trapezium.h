@@ -8,6 +8,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include "shape.h"
 #include <QPointF>
+#include "itemproperties.h"
 
 class Trapezium : public Shape, public QGraphicsPathItem
 {
@@ -19,6 +20,7 @@ public:
     void drawing(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 绘图开始
     bool updateFlag(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
+    QList<QPointF> toPolyline();
 
     double getTrapeziumAlpha1() const;
     void setTrapeziumAlpha1(double value);
@@ -34,6 +36,8 @@ public:
 
     double getTrapeziumType() const;
     void setTrapeziumType(double value);
+
+    ItemProperties *trapeziumproperties;
 
 protected:
     //鼠标事件
@@ -60,9 +64,13 @@ private:
     double trapeziumToplength;//上底
     double trapeziumType;//是否插入一半
 
+signals:
+    void select(Trapezium *trapezium);
+
 public slots:
     void on_commandLinkButton_2_clicked();
     void onSceneMoveableChanged(bool moveable) Q_DECL_OVERRIDE;  //  响应场景可移动性改变
+    void typechange();
 };
 
 #endif // TRAPEZIUM_H

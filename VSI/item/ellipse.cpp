@@ -23,6 +23,7 @@ Ellipse::Ellipse(QGraphicsItem *parent) :
     setAcceptDrops(true);
     // 设置图元为可接受hover事件
     setAcceptHoverEvents(true);
+    ellipseproperties = new ItemProperties();
 }
 
 void Ellipse::startDraw(QGraphicsSceneMouseEvent *event)
@@ -413,4 +414,13 @@ void Ellipse::onSceneMoveableChanged(bool moveable)
 {
     this->moveable = moveable;
     setFlag(QGraphicsItem::ItemIsMovable, moveable);
+}
+
+void Ellipse::typechange()
+{
+    if(this->ellipseproperties->getOk())
+    {
+        this->setPen(this->ellipseproperties->getPen());
+        this->setPenStyle(this->ellipseproperties->getPenstyle());
+    }
 }

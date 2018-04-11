@@ -16,6 +16,7 @@ Rect::Rect(QGraphicsItem *parent) :
     setAcceptDrops(true);
     // 设置图元为可接受hover事件
     setAcceptHoverEvents(true);
+    rectproperties =new ItemProperties();
 }
 
 void Rect::startDraw(QGraphicsSceneMouseEvent *event)
@@ -194,8 +195,29 @@ void Rect::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
     }
 }
 
+double Rect::getOffset() const
+{
+    return offset;
+}
+
+void Rect::setOffset(double value)
+{
+    offset = value;
+}
+
 void Rect::onSceneMoveableChanged(bool moveable)
 {
     this->moveable = moveable;
     setFlag(QGraphicsItem::ItemIsMovable, moveable);
+}
+
+void Rect::typechange()
+{
+    if(this->rectproperties->getOk())
+    {
+        this->setPen(this->rectproperties->getPen());
+        this->setPenStyle(this->rectproperties->getPenstyle());
+        isoffset = this->rectproperties->getIsinsertoffset();
+        this->setOffset(this->rectproperties->getOffset());
+    }
 }
