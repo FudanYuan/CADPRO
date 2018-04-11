@@ -640,6 +640,7 @@ LanguageTab::LanguageTab(Configure::Language &language, QWidget *parent) :
     CustomTabWidget(parent)
 {
 
+
 }
 
 CustomTabWidget::CustomTabWidget(QWidget *parent) :
@@ -671,4 +672,7 @@ void CustomTabWidget::onCheckChanged(QString key, bool value)
 {
     emit tabChanged(key, QVariant(value));
 }
+
+//        qtTranslator.load("CADPRO_sp_CN.qm",":/");
+//        qApp->installTranslator(&qtTranslator);
 

@@ -251,6 +251,13 @@ Arc Arc::arc()
 
 }
 
+Arc *Arc::copy()
+{
+    Arc *a = new Arc(this);
+    a->setArc(cPoint.rx(), cPoint.ry(), r, sAngle, eAngle);
+    return a;
+}
+
 void Arc::setType(Arc::Type type)
 {
     this->type = type;

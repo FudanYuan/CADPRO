@@ -56,16 +56,17 @@ SOURCES += \
     VSI/item/renderarea.cpp \
     VSI/item/trapezium.cpp \
     VSI/item/trapeziumdialog.cpp \
-    cad/project.cpp \
-    cad/sketch.cpp \
-    cad/nest.cpp \
     VSI/item/polygondialog.cpp \
     VSI/item/eyelet.cpp \
     VSI/item/eyeletdialog.cpp \
     VSI/item/text.cpp \
     VSI/item/textdialog.cpp \
     VSI/item/itemproperties.cpp \
-    VSI/item/insertoffsetdialog.cpp
+    VSI/item/insertoffsetdialog.cpp \
+    cad/project.cpp \
+    cad/sketch.cpp \
+    cad/nest.cpp \
+    cad/sheet.cpp
 
 HEADERS += \
     common/debug.h \
@@ -105,18 +106,22 @@ HEADERS += \
     VSI/item/renderarea.h \
     VSI/item/trapezium.h \
     VSI/item/trapeziumdialog.h \
-    cad/project.h \
-    cad/sketch.h \
-    cad/nest.h \
     VSI/item/polygondialog.h \
     VSI/item/eyelet.h \
     VSI/item/eyeletdialog.h \
     VSI/item/text.h \
     VSI/item/textdialog.h \
     VSI/item/itemproperties.h \
-    VSI/item/insertoffsetdialog.h
+    VSI/item/insertoffsetdialog.h \
+    cad/project.h \
+    cad/sketch.h \
+    cad/nest.h \
+    common/binaryfile.h \
+    cad/sheet.h
 
 FORMS += \
     configure/configuredialog.ui \
     cad/sketch.ui \
     cad/nest.ui
+
+TRANSLATIONS = CADPRO_en_CN.ts

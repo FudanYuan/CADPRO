@@ -64,7 +64,6 @@ void Point::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
 QRectF Point::boundingRect() const
 {
     QPointF p = this->pos;
-    qDebug() << p.rx() << "   " << p.ry();
     return QRectF(p.rx()-offset,
                   p.ry()-offset,
                   offset * 2,
@@ -75,7 +74,6 @@ QPainterPath Point::shape() const
 {
     QPainterPath path;
     QPointF p = this->pos;
-    qDebug() << p.rx() << "   " << p.ry();
     path.addRect(QRectF(p.rx()-offset,
                         p.ry()-offset,
                         offset * 2,
@@ -135,6 +133,13 @@ int Point::type() const
 crossType Point::getCrossType()
 {
     return this->ctype;
+}
+
+Point *Point::copy()
+{
+    Point *p = new Point(this);
+    p->setPoint(this->pos);
+    return p;
 }
 
 void Point::mousePressEvent(QGraphicsSceneMouseEvent *event)

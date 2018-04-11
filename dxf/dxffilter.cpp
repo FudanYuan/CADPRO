@@ -211,6 +211,9 @@ void DxfFilter::getEntityAttributy()
     qDebug() << "----------- attribute -------- end ";
     qDebug() << " ";
 #endif
+    qDebug() << "Type: " << QString::fromStdString(attributes.getLinetype());
+    qDebug() << "----------- attribute -------- end ";
+    qDebug() << " ";
 }
 
 QString DxfFilter::transformText(const std::string text) const
@@ -323,7 +326,7 @@ int DxfFilter::transformColor(const QColor color) const
         ret = 256;  //  bylayer = 256
     case Qt::black:
     default:
-        ret = 250;
+        ret = color.rgba();
         break;
     }
     return ret;
@@ -353,5 +356,5 @@ Qt::PenStyle DxfFilter::transformStyle(std::string style) const
     if(s == "DASH"){
         return Qt::DashLine;
     }
-    return Qt::SolidLine;
+    return Qt::NoPen;
 }

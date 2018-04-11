@@ -113,6 +113,13 @@ Circle Circle::circle()
 
 }
 
+Circle *Circle::copy()
+{
+    Circle *c = new Circle;
+    c->setCircle(cPoint.rx(), cPoint.ry(), r);
+    return c;
+}
+
 void Circle::setFilled(bool filled)
 {
     this->filled = filled;

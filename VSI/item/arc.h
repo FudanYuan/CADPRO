@@ -38,8 +38,9 @@ public:
 
     void setArc(qreal px, qreal py, qreal radius, qreal angle1, qreal angle2);  // 设置圆弧
     Arc arc();
-
+    Arc *copy(); 
     ItemProperties *arcproperties;
+
 protected:
     //鼠标事件
     void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;

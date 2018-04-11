@@ -1675,25 +1675,38 @@ bool Sketch::onActionFileSave()
 bool Sketch::onActionFileSaveAs()
 {
     qDebug() << "saving files as ...";
-    QString fileName = QFileDialog::getSaveFileName(this,tr("保存为"),project_active->getName());
+    QString fileName = QFileDialog::getSaveFileName(this,
+                                                    tr("导出DXF文件"),
+                                                    tr("export.dxf"));
     if(fileName.isEmpty()) {
         return false;
     } else{
-        if(fileName != project_active->getName()){
-            project_active->changeName(fileName);
+        if (!fileName.isEmpty()) {
+            try{
+                project_active->dxfFileWriter(fileName);
+            } catch(QString exception){
+                QMessageBox::warning(this, tr("错误"), exception);
+            }
         }
         // 保存逻辑
-        project_active->saveProject();
-        bool res = saveFile(fileName);
-        project_active->setSaved(res);
-        return res;
     }
+
 }
 
 bool Sketch::onActionFileSaveAll()
 {
-    qDebug() << "saving all files";
-    return true;
+    qDebug() << "saving all files";    
+    for(int i=0;i<project_list.length();i++){
+        project_active = project_list.at(i);
+        if(project_active->isSaved()) {
+            // 如果项目被修改过，直接保存修改后的项目
+            if(project_active->isModified()){
+                saveFile(project_active->getName());
+            }
+        } else{
+           onActionFileSaveAs();
+        }
+    }
 }
 
 void Sketch::onActionFilePrint()
@@ -1741,7 +1754,6 @@ void Sketch::onActionFileImportDXF()
             item_scene->setCheckState(0, Qt::Checked);
         }
         scene_active = project_active->getScene(0);
-
         project_active->setActiveScene(scene_active);
         updateScene();
     }
@@ -1792,6 +1804,15 @@ void Sketch::onActionFileConfiguration()
 void Sketch::onActionFileExit()
 {
     qDebug() << "退出提示保存文件";
+    if(project_active->isSaved()) {
+        // 如果项目被修改过，直接保存修改后的项目
+        if(project_active->isModified()){
+            // saveFile(project_active->getName());
+        }
+    } else{
+         onActionFileSaveAs();
+    }
+    QApplication::exit();
 }
 
 void Sketch::onActionDrawLine()
@@ -2670,11 +2691,23 @@ void Sketch::onActionTreeProjectAddScene()
 void Sketch::onActionTreeProjectSave()
 {
     qDebug() << tree_project_active_item->text(0) << "保存项目";
+    QString project_name = tree_project_active_item->text(0);
+    project_active = getProjectByName(project_name);
+    if(project_active->isSaved()) {
+        // 如果项目被修改过，直接保存修改后的项目
+        if(project_active->isModified()){
+            saveFile(project_active->getName());
+        }
+    } else{
+       onActionFileSaveAs();
+    }
+
 }
 
 void Sketch::onActionTreeProjectSaveAs()
 {
     qDebug() << tree_project_active_item->text(0) << "另存为项目";
+     onActionFileSaveAs();
 }
 
 void Sketch::onActionTreeProjectRename()
@@ -2696,6 +2729,12 @@ void Sketch::onActionTreeProjectRename()
 void Sketch::onActionTreeProjectClose()
 {
     qDebug() << tree_project_active_item->text(0) << "关闭项目";
+    QString project_name = tree_project_active_item->text(0);
+    project_active = getProjectByName(project_name);
+    if(!project_active->isSaved()) {
+        onActionFileSaveAs();
+    }
+    delete tree_project_active_item;
 }
 
 void Sketch::onActionTreeProjectSceneChangeTo()
@@ -2706,21 +2745,69 @@ void Sketch::onActionTreeProjectSceneChangeTo()
 void Sketch::onActionTreeProjectSceneMoveUpOne()
 {
     qDebug() << tree_project_scene_active_item->text(0) << "上移一层";
+    QString currentSceneName = tree_project_scene_active_item->text(0);
+    int currentId = project_active->getSceneIdByName(currentSceneName);
+
+    if(currentId < 1){
+        return;
+    }
+    int lastId = currentId - 1;
+    QString lastSceneName = project_active->getScene(lastId)->getName();
+
+    tree_project_scene_active_item->setText(0, lastSceneName);
+    tree_project_active_item->child(lastId)->setText(0, currentSceneName);
+
+    project_active->changeScene(lastId, currentId);
 }
 
 void Sketch::onActionTreeProjectSceneMoveUpTop()
 {
     qDebug() << tree_project_scene_active_item->text(0) << "上移至顶";
+    QString currentSceneName = tree_project_scene_active_item->text(0);
+    int currentId = project_active->getSceneIdByName(currentSceneName);
+
+    if(currentId < 1){
+        return;
+    }
+    int topId = 0;
+    QString topSceneName = project_active->getScene(topId)->getName();
+
+    tree_project_scene_active_item->setText(0, topSceneName);
+    tree_project_active_item->child(topId)->setText(0, currentSceneName);
+
+    project_active->changeScene(topId, currentId);
 }
 
 void Sketch::onActionTreeProjectSceneMoveDownOne()
 {
     qDebug() << tree_project_scene_active_item->text(0) << "下移一层";
+    QString currentSceneName = tree_project_scene_active_item->text(0);
+    int currentId = project_active->getSceneIdByName(currentSceneName);
+
+    if(currentId >= project_active->getSceneList().length()-1){
+        return;
+    }
+    int nextId = currentId + 1;
+    QString nextSceneName = project_active->getScene(nextId)->getName();
+    tree_project_scene_active_item->setText(0, nextSceneName);
+    tree_project_active_item->child(nextId)->setText(0, currentSceneName);
+    project_active->changeScene(nextId, currentId);
 }
 
 void Sketch::onActionTreeProjectSceneMoveDownBottom()
 {
     qDebug() << tree_project_scene_active_item->text(0) << "下移至底";
+    QString currentSceneName = tree_project_scene_active_item->text(0);
+    int currentId = project_active->getSceneIdByName(currentSceneName);
+
+    if(currentId >= project_active->getSceneList().length()-1){
+        return;
+    }
+    int bottomId = project_active->getSceneList().length()-1;
+    QString bottomSceneName = project_active->getScene(bottomId)->getName();
+    tree_project_scene_active_item->setText(0, bottomSceneName);
+    tree_project_active_item->child(bottomId)->setText(0, currentSceneName);
+    project_active->changeScene(bottomId, currentId);
 }
 
 void Sketch::onActionTreeProjectSceneRename()
@@ -2744,6 +2831,12 @@ void Sketch::onActionTreeProjectSceneRename()
 void Sketch::onActionTreeProjectSceneDelete()
 {
     qDebug() << tree_project_scene_active_item->text(0) << "删除";
+    QString project_name = tree_project_active_item->text(0);
+    project_active = getProjectByName(project_name);
+    QString scene_name = tree_project_scene_active_item->text(0);
+    scene_active = project_active->getSceneByName(scene_name);
+    scene_active->clearCustomItem();
+    delete tree_project_scene_active_item;
 }
 
 void Sketch::onToolSlideChanged()

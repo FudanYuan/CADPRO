@@ -40,7 +40,7 @@ public:
 
     void setElevation(qreal elevation);  // 设置高程
     qreal getElevation();  // 获取高程
-
+    Polyline *copy();
     ItemProperties *polylineproperties;
 
 protected:

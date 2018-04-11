@@ -40,10 +40,12 @@ Nest::Nest(QWidget *parent) :
     initConfiguration();// 初始化配置
     initProjectView();  // 初始化项目视图
     initPieceView();  // 初始化切割件视图
-    initMaterial();  // 初始化材料
+    initSheet();  // 初始化材料
     initNestView();  // 初始化排版视图
     addProject();   // 添加项目
     initStatusBar();    // 初始化状态栏
+    SheetDialog mDialog;
+    mDialog.exec();
 }
 
 Nest::~Nest()
@@ -102,6 +104,99 @@ void Nest::initActions()
     action_file_exit->setStatusTip(tr("退出应用程序；提示保存项目"));
     connect(action_file_exit, &QAction::triggered, this, &Nest::onActionFileExit);
 // ![1] 文件
+
+// ![2] 编辑
+    action_edit_undo = new QAction(tr("&撤销"), this);
+    action_edit_undo->setShortcut(QKeySequence::Undo);
+    action_edit_undo->setStatusTip(tr("撤销上一个操作"));
+    action_edit_undo->setDisabled(true);
+    connect(action_edit_undo, &QAction::triggered, this, &Nest::onActionEditUndo);
+
+    action_edit_redo = new QAction(tr("&重做"), this);
+    action_edit_redo->setShortcut(QKeySequence::Redo);
+    action_edit_redo->setDisabled(true);
+    action_edit_redo->setStatusTip(tr("重做撤销的操作"));
+    connect(action_edit_redo, &QAction::triggered, this, &Nest::onActionEditRedo);
+
+    action_edit_clear = new QAction(tr("&清空"), this);
+    action_edit_clear->setStatusTip(tr("清空排版区"));
+    action_edit_clear->setDisabled(true);
+    connect(action_edit_clear, &QAction::triggered, this, &Nest::onActionEditClear);
+
+    action_edit_delete = new QAction(tr("&删除"), this);
+    action_edit_delete->setShortcut(QKeySequence::Delete);
+    action_edit_delete->setStatusTip(tr("删除实体"));
+    action_edit_delete->setDisabled(true);
+    connect(action_edit_delete, &QAction::triggered, this, &Nest::onActionEditDelete);
+
+    action_edit_cut = new QAction(tr("&剪切"), this);
+    action_edit_cut->setShortcut(QKeySequence::Cut);
+    action_edit_cut->setStatusTip(tr("剪切选择并将其放在剪贴板上"));
+    action_edit_cut->setDisabled(true);
+    connect(action_edit_cut, &QAction::triggered, this, &Nest::onActionEditCut);
+
+    action_edit_copy = new QAction(tr("&复制"), this);
+    action_edit_copy->setShortcut(QKeySequence::Copy);
+    action_edit_copy->setStatusTip(tr("将所选线复制到粘贴板"));
+    action_edit_copy->setDisabled(true);
+    connect(action_edit_copy, &QAction::triggered, this, &Nest::onActionEditCopy);
+
+    action_edit_paste = new QAction(tr("&粘贴"), this);
+    action_edit_paste->setShortcut(QKeySequence::Paste);
+    action_edit_paste->setStatusTip(tr("粘贴先前复制的实体"));
+    action_edit_paste->setDisabled(true);
+    connect(action_edit_paste, &QAction::triggered, this, &Nest::onActionEditPaste);
+// ![2] 编辑
+
+// ![3] 材料
+    action_sheet_manager = new QAction(tr("材料管理"));
+    action_sheet_manager->setStatusTip(tr("创建或编辑材料"));
+    connect(action_sheet_manager, &QAction::triggered, this, &Nest::onActionSheetManager);
+
+    action_sheet_add = new QAction(tr("增加材料"));
+    action_sheet_add->setStatusTip(tr("增加新的材料"));
+    connect(action_sheet_add, &QAction::triggered, this, &Nest::onActionSheetAdd);
+
+    action_sheet_remove = new QAction(tr("删除材料"));
+    action_sheet_remove->setStatusTip(tr("删除当前材料"));
+    action_sheet_remove->setDisabled(true);
+    connect(action_sheet_remove, &QAction::triggered, this, &Nest::onActionSheetRemove);
+
+    action_sheet_duplicate = new QAction(tr("重复材料"));
+    action_sheet_duplicate->setStatusTip(tr("重复当前材料"));
+    action_sheet_duplicate->setDisabled(true);
+    connect(action_sheet_duplicate, &QAction::triggered, this, &Nest::onActionSheetDuplicate);
+
+    action_sheet_auto_duplicate = new QAction(tr("自动重复材料"));
+    action_sheet_auto_duplicate->setStatusTip(tr("自动重复当前材料"));
+    action_sheet_auto_duplicate->setDisabled(true);
+    connect(action_sheet_auto_duplicate, &QAction::triggered, this, &Nest::onActionSheetAutoDuplicate);
+
+    action_sheet_previous = new QAction(tr("上一张"));
+    action_sheet_previous->setStatusTip(tr("转到上一张材料"));
+    action_sheet_previous->setDisabled(true);
+    connect(action_sheet_previous, &QAction::triggered, this, &Nest::onActionSheetPrevious);
+
+    action_sheet_next = new QAction(tr("下一张"));
+    action_sheet_next->setStatusTip(tr("转到下一张材料"));
+    action_sheet_next->setDisabled(true);
+    connect(action_sheet_next, &QAction::triggered, this, &Nest::onActionSheetNext);
+
+    action_sheet_sheet_number = new QAction(tr("输入材料序号"));
+    action_sheet_sheet_number->setStatusTip(tr("跳转至排版中的材料序号"));
+    action_sheet_sheet_number->setDisabled(true);
+    connect(action_sheet_sheet_number, &QAction::triggered, this, &Nest::onActionSheetSheetNumber);
+
+    action_sheet_use_last_sheet = new QAction(tr("使用最后的材料"));
+    action_sheet_use_last_sheet->setStatusTip(tr("重复使用最后一张已切割过的材料"));
+    action_sheet_use_last_sheet->setDisabled(true);
+    connect(action_sheet_use_last_sheet, &QAction::triggered, this, &Nest::onActionSheetUseLastSheet);
+
+    action_sheet_sheet_property = new QAction(tr("属性"));
+    action_sheet_sheet_property->setStatusTip(tr("更改材料&余良/边距"));
+    action_sheet_sheet_property->setDisabled(true);
+    connect(action_sheet_sheet_property, &QAction::triggered, this, &Nest::onActionSheetProperty);
+// ![3] 材料
 }
 
 void Nest::initMenuBar()
@@ -121,6 +216,35 @@ void Nest::initMenuBar()
     menu_file->addAction(action_file_configuration);
     menu_file->addAction(action_file_exit);
 // ![1] 文件栏
+
+// ![2] 编辑栏
+    menu_edit = ui->menuBar->addMenu(tr("编辑(&E)"));
+    menu_edit->addAction(action_edit_undo);
+    menu_edit->addAction(action_edit_redo);
+    menu_edit->addAction(action_edit_clear);
+    menu_edit->addSeparator();
+    menu_edit->addAction(action_edit_delete);
+    menu_edit->addAction(action_edit_copy);
+    menu_edit->addAction(action_edit_paste);
+// ![2] 编辑栏
+
+// ![3] 材料栏
+    menu_sheet = ui->menuBar->addMenu(tr("材料(&M)"));
+    menu_sheet->addAction(action_sheet_manager);
+    menu_sheet->addSeparator();
+    menu_sheet->addAction(action_sheet_add);
+    menu_sheet->addAction(action_sheet_remove);
+    menu_sheet->addAction(action_sheet_duplicate);
+    menu_sheet->addAction(action_sheet_auto_duplicate);
+    menu_sheet->addSeparator();
+    menu_sheet->addAction(action_sheet_previous);
+    menu_sheet->addAction(action_sheet_next);
+    menu_sheet->addAction(action_sheet_sheet_number);
+    menu_sheet->addSeparator();
+    menu_sheet->addAction(action_sheet_use_last_sheet);
+    menu_sheet->addSeparator();
+    menu_sheet->addAction(action_sheet_sheet_property);
+// ![3] 材料栏
 }
 
 void Nest::initToolBar()
@@ -183,15 +307,15 @@ void Nest::initNestView()
     // 该部分要移至材料选择结束后
     nestScene = new Scene(nestView);
     nestScene->setSceneRect(-10, -10,
-                            material.layoutRect.width(),
-                            material.layoutRect.height());
+                            sheet.layoutRect().width(),
+                            sheet.layoutRect().height());
 
     // 画出边缘
     Rect *rect = new Rect;
     Configure::PenStyle pen;
     pen.setPenStyle(Qt::black, Qt::SolidLine, 2);
     rect->setPenStyle(pen);
-    rect->setRect(material.layoutRect);
+    rect->setRect(sheet.layoutRect());
     nestScene->addCustomRectItem(rect);
 
     nestView->setScene(nestScene);
@@ -202,15 +326,15 @@ void Nest::updateNestView()
 {
     nestScene = new Scene(nestView);
     nestScene->setSceneRect(-10, -10,
-                            material.layoutRect.width(),
-                            material.layoutRect.height());
+                            sheet.layoutRect().width(),
+                            sheet.layoutRect().height());
 
     // 画出边缘
     Rect *rect = new Rect;
     Configure::PenStyle pen;
     pen.setPenStyle(Qt::black, Qt::SolidLine, 2);
     rect->setPenStyle(pen);
-    rect->setRect(material.layoutRect);
+    rect->setRect(sheet.layoutRect());
     nestScene->addCustomRectItem(rect);
 
     nestView->setScene(nestScene);
@@ -297,15 +421,15 @@ void Nest::addProject()
 
     item_scene->setCheckState(0, Qt::Checked);
     item_project->addChild(item_scene); //添加子节点
-//    tree_project->expandAll(); //结点全部展开
+    tree_project->expandAll(); //结点全部展开
     updateAll();
 }
 
-void Nest::initMaterial()
+void Nest::initSheet()
 {
-    material.leftMargin = 2;
-    material.topMargin = 2;
-    material.rightMargin = 2;
+    sheet.leftMargin = 2;
+    sheet.topMargin = 2;
+    sheet.rightMargin = 2;
 }
 
 void Nest::initRectNestEngine()
@@ -351,7 +475,7 @@ void Nest::initRectNestEngine()
     int totalNum = RectNestEngine::compMinRects.length();
 
     // 初始化空白矩形集合
-    QRectF r = material.layoutRect;
+    QRectF r = sheet.layoutRect();
     RectNestEngine::mWidth = r.width();
     RectNestEngine::mHeight = r.height();
 
@@ -653,6 +777,17 @@ void Nest::onMousePositionChanged(QPointF pos)
     mousePositionLabel->setText(tr("X=") + QString::number(pos.rx()) + " Y=" + QString::number(-pos.ry()));
 }
 
+void Nest::closeEvent(QCloseEvent *event)
+{
+    if(maybeSave()) {
+        qApp->quit();
+        //saveLayout();
+    }
+    else {
+        event->ignore();
+    }
+}
+
 void Nest::onActionFileNew()
 {
     qDebug() << "新建一个项目，即导入一个dxf文件"
@@ -706,7 +841,7 @@ bool Nest::onActionFileSaveAs()
 
 bool Nest::onActionFileSaveAll()
 {
-
+    return true;
 }
 
 void Nest::onActionFilePrint()
@@ -731,7 +866,96 @@ void Nest::onActionFileConfiguration()
 
 void Nest::onActionFileExit()
 {
+    if(maybeSave()) {
+        qApp->quit();
+    }
+}
 
+void Nest::onActionEditUndo()
+{
+    qDebug() << "撤销上个操作";
+}
+
+void Nest::onActionEditRedo()
+{
+    qDebug() << "重做撤销操作";
+}
+
+void Nest::onActionEditClear()
+{
+    qDebug() << "清空";
+}
+
+void Nest::onActionEditDelete()
+{
+    qDebug() << "删除";
+}
+
+void Nest::onActionEditCut()
+{
+    qDebug() << "剪切";
+}
+
+void Nest::onActionEditCopy()
+{
+    qDebug() << "复制";
+}
+
+void Nest::onActionEditPaste()
+{
+    qDebug() << "粘贴";
+}
+
+void Nest::onActionSheetManager()
+{
+    qDebug() << "创建或编辑材料";
+    SheetDialog mDialog;
+    mDialog.exec();
+}
+
+void Nest::onActionSheetAdd()
+{
+    qDebug() << "增加新的材料";
+}
+
+void Nest::onActionSheetRemove()
+{
+    qDebug() << "删除当前材料";
+}
+
+void Nest::onActionSheetDuplicate()
+{
+    qDebug() << "重复当前材料";
+}
+
+void Nest::onActionSheetAutoDuplicate()
+{
+    qDebug() << "自动重复当前材料";
+}
+
+void Nest::onActionSheetPrevious()
+{
+    qDebug() << "转到上一张材料";
+}
+
+void Nest::onActionSheetNext()
+{
+    qDebug() << "转到下一张材料";
+}
+
+void Nest::onActionSheetSheetNumber()
+{
+    qDebug() << "跳转至排版中的材料序号";
+}
+
+void Nest::onActionSheetUseLastSheet()
+{
+    qDebug() << "重复使用最后一张已切割过的材料";
+}
+
+void Nest::onActionSheetProperty()
+{
+    qDebug() << "更改材料&余良/边距";
 }
 
 void Nest::onActionTreeExpandAll()

@@ -220,30 +220,29 @@ void RenderArea::setLineNum(int value)
 
 void RenderArea::drawCoordinates(QPainter &painter)
 {
-    switch (dialogType)
+    switch (dialogType) {
+    //绘制正多边形的区域
+    case 1:
     {
-        //绘制正多边形的区域
-        case 1:
-        {
-            drawpolygon(painter);
-            break;
-        }
-        //绘制梯形的区域
-        case 2:
-        {
-            drawtrapezium(painter);
-            break;
-        }
-        //显示鸡眼孔
-        case 3:
-        {
-            draweyelet(painter);
-            break;
-        }
-        default:
-        {
-            break;
-        }
+        drawpolygon(painter);
+        break;
+    }
+    //绘制梯形的区域
+    case 2:
+    {
+        drawtrapezium(painter);
+        break;
+    }
+    //显示鸡眼孔
+    case 3:
+    {
+        draweyelet(painter);
+        break;
+    }
+    default:
+    {
+        break;
+    }
     }
     return;
 }

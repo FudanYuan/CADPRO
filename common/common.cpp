@@ -92,12 +92,28 @@ QPointF transformRotate(QPointF o, qreal r, qreal angle)
 
 QPointF transformRotate(QPointF o, QPointF p, qreal angle)
 {
+    // 将点映射到普通平面直角坐标系
     qreal ox = o.rx();
-    qreal oy = o.ry();
+    qreal oy = -o.ry();
     qreal px = p.rx();
-    qreal py = p.ry();
+    qreal py = -p.ry();
     qreal a = M_PI*angle/180;
     qreal rx= (px - ox)*qCos(a) - (py - oy)*qSin(a) + ox;
     qreal ry= (px - ox)*qSin(a) + (py - oy)*qCos(a) + oy;
-    return QPointF(rx, ry);
+    return QPointF(rx, -ry);
+}
+
+qreal getDistance(QPointF p1, QPointF p2)
+{
+    qreal px1 = p1.rx();
+    qreal py1 = p1.ry();
+
+    qreal px2 = p2.rx();
+    qreal py2 = p2.ry();
+
+    qreal mid1 = qPow((px2-px1), 2);
+    qreal mid2 = qPow((py2-py1), 2);
+    qreal dis = qSqrt(mid1 + mid2);
+
+    return dis;
 }

@@ -30,6 +30,8 @@ public:
     Circle circle();  // 圆形
     ItemProperties *circleproperties;
 
+    Circle *copy();
+
 protected:
     //鼠标事件
     void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
