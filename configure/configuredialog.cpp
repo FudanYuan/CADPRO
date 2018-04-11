@@ -10,6 +10,7 @@
 #include <QCheckBox>
 #include <QDebug>
 #include <debug.h>
+#include <QTranslator>
 
 ConfigureDialog::ConfigureDialog(Configure *config, QWidget *parent) :
     QDialog(parent),
@@ -639,6 +640,23 @@ OffsetTab::OffsetTab(QList<Configure::Offset> &offset, QWidget *parent) :
 LanguageTab::LanguageTab(Configure::Language &language, QWidget *parent) :
     CustomTabWidget(parent)
 {
+    QGroupBox *languageGroupBox = new QGroupBox(tr("语言"), this);
+    QLabel *langguageGridType = new QLabel(tr("网格类型"), this);
+    QGridLayout *languageLayout = new QGridLayout(this);
+    ComboBox *languageType = new ComboBox(tr("langauge"), this);
+    languageType->addItem(tr("中文"), QVariant((int)Configure::Chinese));
+    languageType->addItem(tr("英语"), QVariant((int)Configure::English));
+    languageType->addItem(tr("西班牙语"), QVariant((int)Configure::Spanish));
+    languageType->setCurrentIndex(language);
+    connect(languageType, &ComboBox::customActivated, this, &LanguageTab::onLanguageChanged);
+    languageLayout->addWidget(langguageGridType, 1, 0, 1, 2);
+    languageLayout->addWidget(languageType, 1, 2, 1, 1);
+    languageLayout->addItem(new QSpacerItem(languageGroupBox->width(),
+                                             languageGroupBox->height(),
+                                             QSizePolicy::Expanding,
+                                             QSizePolicy::Expanding),
+                             5, 0, 1, 3);
+    languageGroupBox->setLayout(languageLayout);
 
 
 }
@@ -673,6 +691,37 @@ void CustomTabWidget::onCheckChanged(QString key, bool value)
     emit tabChanged(key, QVariant(value));
 }
 
-//        qtTranslator.load("CADPRO_sp_CN.qm",":/");
-//        qApp->installTranslator(&qtTranslator);
+void CustomTabWidget::onLanguageChanged(QString key, int value)
+{
+    qDebug() << key << " langguage" << (Qt::PenStyle)value;
+    emit tabChanged(key, QVariant(value));
+    switch (value) {
+    case 0:{
+        QTranslator* qtTranslator;
+        qtTranslator = new QTranslator();
+        qtTranslator->load("CADPRO_zh_CN.qm");
+        qApp->installTranslator(qtTranslator);
+        qDebug()<<"chinese";
+        break;
+    }
+    case 1:{
+        QTranslator* qtTranslator;
+        qtTranslator = new QTranslator();
+        qtTranslator->load("CADPRO_en_CN.qm");
+        qApp->installTranslator(qtTranslator);
+        qDebug()<<"english";
+        break;
+    }
+    case 2:{
+        QTranslator* qtTranslator;
+        qtTranslator = new QTranslator();
+        qtTranslator->load("CADPRO_sp_CN.qm");
+        qApp->installTranslator(qtTranslator);
+        qDebug()<<"spanish";
+        break;
+    }
+    default:
+        break;
+    }
 
+}

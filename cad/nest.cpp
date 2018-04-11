@@ -1244,22 +1244,70 @@ void Nest::onActionTreeProjectSceneChangeTo()
 
 void Nest::onActionTreeProjectSceneMoveUpOne()
 {
+    qDebug() << tree_project_scene_active_item->text(0) << "上移一层";
+    QString currentSceneName = tree_project_scene_active_item->text(0);
+    int currentId = projectActive->getSceneIdByName(currentSceneName);
 
+    if(currentId < 1){
+        return;
+    }
+    int lastId = currentId - 1;
+    QString lastSceneName = projectActive->getScene(lastId)->getName();
+
+    tree_project_scene_active_item->setText(0, lastSceneName);
+    tree_project_active_item->child(lastId)->setText(0, currentSceneName);
+
+    projectActive->changeScene(lastId, currentId);
 }
 
 void Nest::onActionTreeProjectSceneMoveUpTop()
 {
+    qDebug() << tree_project_scene_active_item->text(0) << "上移至顶";
+    QString currentSceneName = tree_project_scene_active_item->text(0);
+    int currentId = projectActive->getSceneIdByName(currentSceneName);
 
+    if(currentId < 1){
+        return;
+    }
+    int topId = 0;
+    QString topSceneName = projectActive->getScene(topId)->getName();
+
+    tree_project_scene_active_item->setText(0, topSceneName);
+    tree_project_active_item->child(topId)->setText(0, currentSceneName);
+
+    projectActive->changeScene(topId, currentId);
 }
 
 void Nest::onActionTreeProjectSceneMoveDownOne()
 {
+    qDebug() << tree_project_scene_active_item->text(0) << "下移一层";
+    QString currentSceneName = tree_project_scene_active_item->text(0);
+    int currentId = projectActive->getSceneIdByName(currentSceneName);
 
+    if(currentId >= projectActive->getSceneList().length()-1){
+        return;
+    }
+    int nextId = currentId + 1;
+    QString nextSceneName = projectActive->getScene(nextId)->getName();
+    tree_project_scene_active_item->setText(0, nextSceneName);
+    tree_project_active_item->child(nextId)->setText(0, currentSceneName);
+    projectActive->changeScene(nextId, currentId);
 }
 
 void Nest::onActionTreeProjectSceneMoveDownBottom()
 {
+    qDebug() << tree_project_scene_active_item->text(0) << "下移至底";
+    QString currentSceneName = tree_project_scene_active_item->text(0);
+    int currentId = projectActive->getSceneIdByName(currentSceneName);
 
+    if(currentId >= projectActive->getSceneList().length()-1){
+        return;
+    }
+    int bottomId = projectActive->getSceneList().length()-1;
+    QString bottomSceneName = projectActive->getScene(bottomId)->getName();
+    tree_project_scene_active_item->setText(0, bottomSceneName);
+    tree_project_active_item->child(bottomId)->setText(0, currentSceneName);
+    projectActive->changeScene(bottomId, currentId);
 }
 
 void Nest::onActionTreeProjectSceneRename()

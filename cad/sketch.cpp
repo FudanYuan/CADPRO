@@ -2834,8 +2834,18 @@ void Sketch::onActionTreeProjectSceneDelete()
     project_active = getProjectByName(project_name);
     QString scene_name = tree_project_scene_active_item->text(0);
     scene_active = project_active->getSceneByName(scene_name);
-    scene_active->clearCustomItem();
-    delete tree_project_scene_active_item;
+    bool ret = project_active->removeSceneByName(scene_name);
+    if(ret){
+        // 优化此部分至槽函数
+        scene_active->clearCustomItem();
+        tree_project_active_item->removeChild(tree_project_scene_active_item);
+        //QMessageBox::information(this, tr("通知"), tr("删除成功！"));
+        if(project_active->getScene(0)){
+            project_active->setActiveScene(project_active->getScene(0));
+        }
+    } else{
+        QMessageBox::warning(this, tr("警告"), tr("删除失败！"));
+    }
 }
 
 void Sketch::onToolSlideChanged()

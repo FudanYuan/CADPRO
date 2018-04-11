@@ -23,6 +23,7 @@ public slots:
     void onTextChanged(QString key, QString value);
     void onComboBoxChanged(QString key, int value);
     void onCheckChanged(QString key, bool value);
+    void onLanguageChanged(QString key, int value);
 };
 
 //! [0]
