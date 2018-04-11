@@ -8,9 +8,15 @@ ItemProperties::ItemProperties():
     shapeid(0),
     length(0)
 {
+    rows = 0;
+    polygonEdge = 4;
+    polygonEdgeLength = 50;
+    polygonRad = 0;
 }
-void ItemProperties::initdialog(){
 
+//属性中通用的
+void ItemProperties::initdialog()
+{
     mainLayout = new QVBoxLayout;
 
     tableWidget =new QTableWidget();
@@ -25,83 +31,193 @@ void ItemProperties::initdialog(){
     tableWidget->setHorizontalHeaderLabels(m_Header);
     tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     //设置表头字体加粗
+
     QFont font;
     font.setBold(true);
     tableWidget->horizontalHeader()->setFont(font);
     //设置表格内容
 
-    //显示ShapeId
-    tableWidget->insertRow(0);
-    QTableWidgetItem *tableitem= new QTableWidgetItem(tr("ID"));
-    tableWidget->setItem(0,0,tableitem);
+    //显示图形的ShapeId
+    rows = 0;//列表第一行
+    tableWidget->insertRow(rows);
+    tableitem= new QTableWidgetItem(tr("ID"));
+    tableWidget->setItem(rows,0,tableitem);
     tableitem->setTextAlignment(Qt::AlignCenter);
-    //tableitem->setFlags(false);//设置为不可编辑
-
     QString string = QString::number(shapeid, 10);//将int变成QString类
     tableitem = new QTableWidgetItem(string);
-    tableWidget->setItem(0,1,tableitem);
+    tableWidget->setItem(rows,1,tableitem);
     tableitem->setTextAlignment(Qt::AlignCenter);
-    //类型
-    tableWidget->insertRow(1);
+
+    //图形类型
+    tableWidget->insertRow(++rows);//加一行
     tableitem = new QTableWidgetItem(tr("类型"));
-    tableWidget->setItem(1,0,tableitem);
+    tableWidget->setItem(rows,0,tableitem);
     tableitem->setTextAlignment(Qt::AlignCenter);
-    tableitem = new QTableWidgetItem(tr("线"));
-    tableWidget->setItem(1,1,tableitem);
+    tableitem = new QTableWidgetItem(this->getShapetype());
+    tableWidget->setItem(rows,1,tableitem);
     tableitem->setTextAlignment(Qt::AlignCenter);
-    //显示线段长度
-    tableWidget->insertRow(2);
-    tableitem = new QTableWidgetItem(tr("长度"));
-    tableWidget->setItem(2,0,tableitem);
-    tableitem->setTextAlignment(Qt::AlignCenter);
-    string = QString::number(length,'g',6);
-    tableitem = new QTableWidgetItem(string);
-    tableWidget->setItem(2,1,tableitem);
-    tableitem->setTextAlignment(Qt::AlignCenter);
-    //QObject::connect(tableitem,signal())
 
     //显示线形
-    tableWidget->insertRow(3);
+    tableWidget->insertRow(++rows);
     tableitem = new QTableWidgetItem(tr("线形"));
-    tableWidget->setItem(3,0,tableitem);
+    tableWidget->setItem(rows,0,tableitem);
     tableitem->setTextAlignment(Qt::AlignCenter);
-    linestyle =new QComboBox;
-    linestyle->addItem(tr("SolidLine"));
-    linestyle->addItem(tr("DashLine"));
-    linestyle->addItem(tr("DotLine"));
-    linestyle->addItem(tr("DashDotLine"));
-    linestyle->addItem(tr("DashDotDotLine"));
-    linestyle->addItem(tr("CustomDashLine"));
-    tableWidget->setCellWidget(3,1,linestyle);
-    QObject::connect(linestyle,SIGNAL(activated(QString)),this,SLOT(linestylechange()));
+    lineStyleComboBox *itemlinestyle = new lineStyleComboBox(tr("属性框中的线形"),this);
+    tableWidget->setCellWidget(rows,1,itemlinestyle);
+    QObject::connect(itemlinestyle,&lineStyleComboBox::customActivated,this,linestylechange);
 
     //显示颜色
-    tableWidget->insertRow(4);
+    tableWidget->insertRow(++rows);
     tableitem = new QTableWidgetItem(tr("颜色"));
-    tableWidget->setItem(4,0,tableitem);
+    tableWidget->setItem(rows,0,tableitem);
     tableitem->setTextAlignment(Qt::AlignCenter);
-    linecolor = new QComboBox;
-    linecolor->addItem(tr("红"));
-    linecolor->addItem(tr("黄"));
-    linecolor->addItem(tr("蓝"));
-    linecolor->addItem(tr("绿"));
-    tableWidget->setCellWidget(4,1,linecolor);
-    QObject::connect(linecolor,SIGNAL(activated(QString)),this,SLOT(linecolorchange()));
+    ColorComboBox *itemcolor = new ColorComboBox(tr("12332"),this);
+    tableWidget->setCellWidget(rows,1,itemcolor);
+    QObject::connect(itemcolor,&ColorComboBox::colorChanged,this,linecolorchange);
+
     //属性
-    tableWidget->insertRow(5);
+    tableWidget->insertRow(++rows);
     tableitem = new QTableWidgetItem(tr("属性"));
-    tableWidget->setItem(5,0,tableitem);
+    tableWidget->setItem(rows,0,tableitem);
     tableitem->setTextAlignment(Qt::AlignCenter);
-    QComboBox *line_type_choose =new QComboBox;
-    line_type_choose->addItem(tr("通用"));
-    line_type_choose->addItem(tr("标记"));
-    line_type_choose->addItem(tr("周长"));
-    line_type_choose->addItem(tr("切割"));
-    line_type_choose->addItem(tr("缝线"));
-    tableWidget->setCellWidget(5,1,line_type_choose);
+    lineTypeChoose =new QComboBox;
+    lineTypeChoose->addItem(tr("通用"));
+    lineTypeChoose->addItem(tr("标记"));
+    lineTypeChoose->addItem(tr("周长"));
+    lineTypeChoose->addItem(tr("切割"));
+    lineTypeChoose->addItem(tr("缝线"));
+    tableWidget->setCellWidget(rows,1,lineTypeChoose);
+    QObject::connect(lineTypeChoose,SIGNAL(activated(QString)),this,SLOT(linetypechange()));
+
+    switch (this->getCurShape())
+    {
+        case Shape::Line:
+            initLineItemproperties();
+            break;
+        case Shape::Arc:
+            initArcItemproperties();
+            break;
+        case Shape::Polygon:
+            initPolygonItemproperties();
+            break;
+        case Shape::Circle:
+            initCircleItemproperties();
+            break;
+        default:
+            break;
+    }
 
     mainLayout->addWidget(tableWidget);
     setLayout(mainLayout);
+}
+
+//设置直线中一些特殊的属性
+void ItemProperties::initLineItemproperties()
+{
+    //显示线段长度
+    tableWidget->insertRow(++rows);
+    tableitem = new QTableWidgetItem(tr("长度"));
+    tableWidget->setItem(rows,0,tableitem);
+    tableitem->setTextAlignment(Qt::AlignCenter);
+    QString string = QString::number(length,'g',6);
+    tableitem = new QTableWidgetItem(string);
+    tableWidget->setItem(rows,1,tableitem);
+    tableitem->setTextAlignment(Qt::AlignCenter);
+    //QObject::connect(tableitem,signal())
+}
+
+//设置圆弧的一些特殊属性
+void ItemProperties::initArcItemproperties()
+{
+
+}
+
+//设置正多边形的特殊属性
+void ItemProperties::initPolygonItemproperties()
+{
+    //显示正多边形边数
+    tableWidget->insertRow(++rows);
+    tableitem = new QTableWidgetItem(tr("边数"));
+    tableWidget->setItem(rows,0,tableitem);
+    tableitem->setTextAlignment(Qt::AlignCenter);
+    QString string = QString::number(polygonEdge,'g',6);
+    QLineEdit *edge =new QLineEdit(string);
+    edge->setAlignment(Qt::AlignCenter);
+    tableWidget->setCellWidget(rows,1,edge);
+    connect(edge,&QLineEdit::textEdited,this,polygonEdgeChange);
+
+    //显示正多边形边长
+    tableWidget->insertRow(++rows);
+    tableitem = new QTableWidgetItem(tr("半径"));
+    tableWidget->setItem(rows,0,tableitem);
+    tableitem->setTextAlignment(Qt::AlignCenter);
+    string = QString::number(polygonEdgeLength,'g',6);
+    QLineEdit *edgelength =new QLineEdit(string);
+    edgelength->setAlignment(Qt::AlignCenter);
+    tableWidget->setCellWidget(rows,1,edgelength);
+    connect(edgelength,&QLineEdit::textEdited,this,polygonEdgeLengthChange);
+
+    //显示正多边形旋转
+    tableWidget->insertRow(++rows);
+    tableitem = new QTableWidgetItem(tr("旋转度数"));
+    tableWidget->setItem(rows,0,tableitem);
+    tableitem->setTextAlignment(Qt::AlignCenter);
+    string = QString::number(polygonRad,'g',6);
+    QLineEdit *rad =new QLineEdit(string);
+    rad->setAlignment(Qt::AlignCenter);
+    tableWidget->setCellWidget(rows,1,rad);
+    connect(rad,&QLineEdit::textEdited,this,polygonRadChange);
+
+    //偏移
+    tableWidget->insertRow(++rows);
+    tableitem = new QTableWidgetItem(tr("偏移"));
+    tableWidget->setItem(rows,0,tableitem);
+    tableitem->setTextAlignment(Qt::AlignCenter);
+    QCheckBox *isoffset = new QCheckBox(tr("选择"));
+    tableWidget->setCellWidget(rows,1,isoffset);
+    connect(isoffset,&QCheckBox::clicked,this,insertoffset);
+
+    tableWidget->insertRow(++rows);
+    tableitem= new QTableWidgetItem(tr("偏移量"));
+    tableWidget->setItem(rows,0,tableitem);
+    tableitem->setTextAlignment(Qt::AlignCenter);
+    QLineEdit *offset =new QLineEdit(tr("50"));
+    offset->setAlignment(Qt::AlignCenter);
+    connect(offset,&QLineEdit::textEdited,this,setOffset);
+    tableWidget->setCellWidget(rows,1,offset);
+
+}
+
+//设置圆的特殊属性
+void ItemProperties::initCircleItemproperties()
+{
+    tableWidget->insertRow(++rows);
+    tableitem = new QTableWidgetItem(tr("半径"));
+    tableWidget->setItem(rows,0,tableitem);
+    tableitem->setTextAlignment(Qt::AlignCenter);
+    QString string = QString::number(polygonEdgeLength,'g',6);
+    QLineEdit *edgelength =new QLineEdit(string);
+    edgelength->setAlignment(Qt::AlignCenter);
+    tableWidget->setCellWidget(rows,1,edgelength);
+    connect(edgelength,&QLineEdit::textEdited,this,polygonEdgeLengthChange);
+
+    //偏移
+    tableWidget->insertRow(++rows);
+    tableitem = new QTableWidgetItem(tr("偏移"));
+    tableWidget->setItem(rows,0,tableitem);
+    tableitem->setTextAlignment(Qt::AlignCenter);
+    QCheckBox *isoffset = new QCheckBox(tr("选择"));
+    tableWidget->setCellWidget(rows,1,isoffset);
+    connect(isoffset,&QCheckBox::clicked,this,insertoffset);
+
+    tableWidget->insertRow(++rows);
+    tableitem= new QTableWidgetItem(tr("偏移量"));
+    tableWidget->setItem(rows,0,tableitem);
+    tableitem->setTextAlignment(Qt::AlignCenter);
+    QLineEdit *offset =new QLineEdit(tr("50"));
+    offset->setAlignment(Qt::AlignCenter);
+    connect(offset,&QLineEdit::textEdited,this,setOffset);
+    tableWidget->setCellWidget(rows,1,offset);
 }
 
 int ItemProperties::getShapeid() const
@@ -145,55 +261,173 @@ void ItemProperties::setPen(const QPen &value)
     pen = value;
 }
 
+Shape::ShapeType ItemProperties::getCurShape() const
+{
+    return curShape;
+}
+
+void ItemProperties::setCurShape(const Shape::ShapeType &value)
+{
+    curShape = value;
+}
+
+Configure::PenStyle ItemProperties::getPenstyle() const
+{
+    return penstyle;
+}
+
+void ItemProperties::setPenstyle(const Configure::PenStyle &value)
+{
+    penstyle = value;
+}
+
+QString ItemProperties::getShapetype() const
+{
+    return shapetype;
+}
+
+void ItemProperties::setShapetype(const QString &value)
+{
+    shapetype = value;
+}
+
+bool ItemProperties::getIsinsertoffset() const
+{
+    return isinsertoffset;
+}
+
+void ItemProperties::setIsinsertoffset(bool value)
+{
+    isinsertoffset = value;
+}
+
+double ItemProperties::getOffset()
+{
+    return this->offset;
+}
+
+int ItemProperties::getPolygonEdge() const
+{
+    return polygonEdge;
+}
+
+void ItemProperties::setPolygonEdge(int value)
+{
+    polygonEdge = value;
+}
+
+double ItemProperties::getPolygonEdgeLength() const
+{
+    return polygonEdgeLength;
+}
+
+void ItemProperties::setPolygonEdgeLength(double value)
+{
+    polygonEdgeLength = value;
+}
+
+double ItemProperties::getPolygonRad() const
+{
+    return polygonRad;
+}
+
+void ItemProperties::setPolygonRad(double value)
+{
+    polygonRad = value;
+}
+
 void ItemProperties::typechanged()
 {
     emit this->PropertiesChanged();
     //    qDebug()<<"发出信号";
 }
 
-void ItemProperties::linestylechange()
+void ItemProperties::linestylechange(QString name, int index)
 {
-    switch (linestyle->currentIndex())
+    switch (index)
     {
         case 0:
-            pen.setStyle(Qt::SolidLine);
+            pen.setStyle(Qt::CustomDashLine);
             break;
         case 1:
-            pen.setStyle(Qt::DashLine);
+            pen.setStyle(Qt::SolidLine);
             break;
         case 2:
-            pen.setStyle(Qt::DotLine);
+            pen.setStyle(Qt::DashLine);
             break;
         case 3:
-            pen.setStyle(Qt::DashDotLine);
+            pen.setStyle(Qt::DotLine);
             break;
         case 4:
-            pen.setStyle(Qt::DashDotDotLine);
+            pen.setStyle(Qt::DashDotLine);
             break;
         case 5:
-            pen.setStyle(Qt::CustomDashLine);
+            pen.setStyle(Qt::DashDotDotLine);
+            break;
+        default:
             break;
     }
     typechanged();
 }
 
-void ItemProperties::linecolorchange()
+void ItemProperties::linecolorchange(QString key, QColor color)
 {
-    switch (linecolor->currentIndex())
+    //qDebug() << "颜色：" << key << " " << color.rgba();
+    pen.setColor(color);
+    typechanged();
+}
+
+void ItemProperties::linetypechange()
+{
+    switch (lineTypeChoose->currentIndex())
     {
         case 0:
-            pen.setColor(Qt::red);
+            this->setPenstyle(eStyle.generic);
             break;
         case 1:
-            pen.setColor(Qt::yellow);
+            this->setPenstyle(eStyle.mark);
             break;
         case 2:
-            pen.setColor(Qt::blue);
+            this->setPenstyle(eStyle.perimeterLine);
             break;
         case 3:
-            pen.setColor(Qt::green);
+            this->setPenstyle(eStyle.cut);
+            break;
+        case 4:
+            this->setPenstyle(eStyle.stitch);
+            break;
+        default:
             break;
     }
     typechanged();
-//    qDebug()<<"换色";
+}
+
+void ItemProperties::polygonEdgeChange(QString key)
+{
+    this->setPolygonEdge(key.toInt());
+    typechanged();
+}
+
+void ItemProperties::polygonEdgeLengthChange(QString key)
+{
+    this->setPolygonEdgeLength(key.toDouble());
+    typechanged();
+}
+
+void ItemProperties::polygonRadChange(QString key)
+{
+    this->setPolygonRad(key.toDouble());
+    typechanged();
+}
+
+void ItemProperties::insertoffset(bool isoffset)
+{
+    this->setIsinsertoffset(isoffset);
+    typechanged();
+}
+
+void ItemProperties::setOffset(QString offset)
+{
+    this->offset = offset.toDouble();
+    typechanged();
 }

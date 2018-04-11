@@ -291,5 +291,6 @@ void Line::typechange()
     if(itemp)
     {
         this->setPen(this->lineproperties->getPen());
+        this->setPenStyle(this->lineproperties->getPenstyle());
     }
 }

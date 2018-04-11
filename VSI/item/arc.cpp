@@ -25,6 +25,7 @@ Arc::Arc(QGraphicsItem *parent) :
     setAcceptDrops(true);
     // 设置图元为可接受hover事件
     setAcceptHoverEvents(true);
+    arcproperties = new ItemProperties;
 }
 
 void Arc::startDraw(QGraphicsSceneMouseEvent *event)
@@ -479,4 +480,14 @@ void Arc::onSceneMoveableChanged(bool moveable)
 {
     this->moveable = moveable;
     setFlag(QGraphicsItem::ItemIsMovable, moveable);
+}
+
+void Arc::typechange()
+{
+    itemp = this->arcproperties->getOk();
+    if(itemp)
+    {
+        this->setPen(this->arcproperties->getPen());
+        this->setPenStyle(this->arcproperties->getPenstyle());
+    }
 }

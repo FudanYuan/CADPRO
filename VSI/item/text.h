@@ -6,13 +6,12 @@
 #include "shape.h"
 #include <QPointF>
 #include "textdialog.h"
+#include "itemproperties.h"
 
 class Text : public Shape, public QGraphicsPathItem
 {
     Q_OBJECT
 public:
-    TextDialog *textdialog;
-
     Text(QGraphicsItem *parent=0);
     void startDraw(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 开始绘图
     void drawing(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 绘图开始
@@ -24,6 +23,11 @@ public:
 
     int getTextPixelSize() const;
     void setTextPixelSize(int value);
+
+    QColor getTextcolor() const;
+    void setTextcolor(const QColor &value);
+    ItemProperties *textproperties;
+    TextDialog *textdialog;
 
 protected:
     //鼠标事件
@@ -51,10 +55,15 @@ private:
     bool textItalic;//设置斜体
     bool textUnderline;//设置下划线
     QString textcontent;//文本内容
+    QColor textcolor;//文本字体颜色
+
+signals:
+    void select(Text *text);
 
 public slots:
     void on_commandLinkButton_2_clicked();
     void onSceneMoveableChanged(bool moveable) Q_DECL_OVERRIDE;  //  响应场景可移动性改变
+    void typechange();
 };
 
 

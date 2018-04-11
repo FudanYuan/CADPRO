@@ -13,7 +13,9 @@ Shape::Shape() :
     selected(false),
     showNode(false),
     editable(false),
-    editOverFlag(false)
+    editOverFlag(false),
+    isoffset(false),
+    itemp(false)
 {
 }
 

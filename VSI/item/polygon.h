@@ -5,6 +5,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include "shape.h"
 #include <QPointF>
+#include "itemproperties.h"
 
 class Polygon : public Shape, public QGraphicsPathItem
 {
@@ -16,10 +17,7 @@ public:
     void drawing(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 绘图开始
     bool updateFlag(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
-    void toPolyline();//转变成polyline
-
-    QList<QPointF> getPoints() const;
-    void setPoints(const QList<QPointF> &value);
+    QList<QPointF> toPolyline();//转变成polyline
     
 	void setType(int type);
     int getType();
@@ -32,6 +30,11 @@ public:
     
 	qreal getAlpha() const;
     void setAlpha(const qreal &value);
+
+    ItemProperties *polygonproperties;
+
+    double getOffset() const;
+    void setOffset(double value);
 
 protected:
     //鼠标事件
@@ -51,7 +54,7 @@ protected:
 
 private:
     QPointF cPoint, sPoint;
-    QList<QPointF> points;  // 各个点的坐标
+    bool movePointEdit;
 
     qreal r; // 半径
     qreal alpha;  // 旋转角度
@@ -59,10 +62,15 @@ private:
     int type;  //线类型
     int lineNum;//边的个数
     double radius;//半径
+    double offset;//偏移量
+
+signals:
+    void select(Polygon *polygon);  // 图形被选择
 
 public slots:
     void on_commandLinkButton_2_clicked();
     void onSceneMoveableChanged(bool moveable) Q_DECL_OVERRIDE;  //  响应场景可移动性改变
+    void typechange();
 };
 
 #endif // POLYGON_H

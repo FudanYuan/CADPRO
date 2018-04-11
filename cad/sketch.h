@@ -552,6 +552,10 @@ public slots:
     void onCircleSelected(Circle *circle);
     void onRectSelected(Rect *rect);
     void onPolylineSelected(Polyline *polyline);
+    void onPolygonSelected(Polygon *polygon);
+    void onTrapeziumSelected(Trapezium *trapezium);
+    void onEyeletSelected(Eyelet *eyelet);
+    void onTextSelected(Text *text);
 };
 
 #endif // SKETCH_H

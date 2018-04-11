@@ -23,6 +23,7 @@ Trapezium::Trapezium(QGraphicsItem *parent) :
     trapeziumH = 100;//高
     trapeziumToplength = 100;//上底
     trapeziumType = 1;//是否插入一半
+    trapeziumproperties = new ItemProperties();
 }
 
 void Trapezium::startDraw(QGraphicsSceneMouseEvent *event)
@@ -124,6 +125,60 @@ void Trapezium::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     drawCrossPoint(painter, cPoint, 5, upright);
 }
 
+QList<QPointF> Trapezium::toPolyline()
+{
+    QList<QPointF> points;
+    QPointF sPoint;
+    if(trapeziumType == 2){
+        points.append(cPoint);
+        if(trapeziumAlpha1<=90)
+        {
+            sPoint.setX(cPoint.rx()+trapeziumToplength+trapeziumH/(qTan(M_PI*trapeziumAlpha1/180)));sPoint.setY(cPoint.ry());
+        }
+        else
+        {
+            sPoint.setX(cPoint.rx()+trapeziumToplength-trapeziumH/(qTan(M_PI*(180-trapeziumAlpha1)/180)));sPoint.setY(cPoint.ry());
+        }
+        points.append(sPoint);
+        sPoint.setX(cPoint.rx()+trapeziumToplength);sPoint.setY(cPoint.ry()-trapeziumH);
+        points.append(sPoint);
+        sPoint.setX(cPoint.rx());sPoint.setY(cPoint.ry()-trapeziumH);
+        points.append(sPoint);
+        points.append(cPoint);
+    }
+    //画出整个梯形
+    if(trapeziumType == 1){
+        points.append(cPoint);
+        if(trapeziumAlpha1<=90)
+        {
+            sPoint.setX(cPoint.rx()+trapeziumToplength/2+trapeziumH/(qTan(M_PI*trapeziumAlpha1/180)));sPoint.setY(cPoint.ry());
+        }
+        else
+        {
+            sPoint.setX(cPoint.rx()+trapeziumToplength/2-trapeziumH/(qTan(M_PI*(180-trapeziumAlpha1)/180)));sPoint.setY(cPoint.ry());
+        }
+        points.append(sPoint);
+        sPoint.setX(cPoint.rx()+trapeziumToplength/2);sPoint.setY(cPoint.ry()-trapeziumH);
+        points.append(sPoint);
+        sPoint.setX(cPoint.rx());sPoint.setY(cPoint.ry()-trapeziumH);
+        points.append(sPoint);
+        sPoint.setX(cPoint.rx()-trapeziumToplength/2);sPoint.setY(cPoint.ry()-trapeziumH);
+        points.append(sPoint);
+
+        if(trapeziumAlpha2<=90)
+        {
+            sPoint.setX(cPoint.rx()-trapeziumToplength/2-trapeziumH/(qTan(M_PI*trapeziumAlpha2/180)));sPoint.setY(cPoint.ry());
+        }
+        else
+        {
+            sPoint.setX(cPoint.rx()-trapeziumToplength/2+trapeziumH/(qTan(M_PI*(180-trapeziumAlpha2)/180)));sPoint.setY(cPoint.ry());
+        }
+        points.append(sPoint);
+        points.append(cPoint);
+    }
+    return points;
+}
+
 void Trapezium::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(selectable){
@@ -136,6 +191,7 @@ void Trapezium::mousePressEvent(QGraphicsSceneMouseEvent *event)
         pen.setStyle(selectedEntity.style);
         pen.setWidthF(selectedEntity.width);
         setPen(pen);
+        select(this);
     }
     QGraphicsItem::mousePressEvent(event);
 }
@@ -275,6 +331,15 @@ void Trapezium::onSceneMoveableChanged(bool moveable)
 {
     this->moveable = moveable;
     setFlag(QGraphicsItem::ItemIsMovable, moveable);
+}
+
+void Trapezium::typechange()
+{
+    if(this->trapeziumproperties->getOk())
+    {
+        this->setPen(this->trapeziumproperties->getPen());
+        this->setPenStyle(this->trapeziumproperties->getPenstyle());
+    }
 }
 
 void Trapezium::on_commandLinkButton_2_clicked()

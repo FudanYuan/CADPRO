@@ -21,6 +21,7 @@ Polyline::Polyline(QGraphicsItem *parent) :
     setAcceptDrops(true);
     // 设置图元为可接受hover事件
     setAcceptHoverEvents(true);
+    polylineproperties =new ItemProperties();
 }
 
 void Polyline::startDraw(QGraphicsSceneMouseEvent *event)
@@ -348,5 +349,14 @@ void Polyline::onSceneMoveableChanged(bool moveable)
 {
     this->moveable = moveable;
     setFlag(QGraphicsItem::ItemIsMovable, moveable);
+}
+
+void Polyline::typechange()
+{
+    if(this->polylineproperties->getOk())
+    {
+        this->setPen(this->polylineproperties->getPen());
+        this->setPenStyle(this->polylineproperties->getPenstyle());
+    }
 }
 

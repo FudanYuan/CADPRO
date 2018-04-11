@@ -95,6 +95,8 @@ protected:
     bool showNode;  // 显示节点
     bool editable;  // 可编辑
     bool editOverFlag;  // 编辑结束
+    bool isoffset;//偏移
+    bool itemp;//属性框标志位
 
     Configure::ObjSize objSize;  // 对象大小
     Configure::PenStyle penStyle;  // 属性

@@ -1401,6 +1401,10 @@ void Sketch::addProject()
     connect(scene_active, &Scene::circleSelected, this, &Sketch::onCircleSelected);
     connect(scene_active, &Scene::arcSelected, this, &Sketch::onArcSelected);
     connect(scene_active, &Scene::rectSelected, this, &Sketch::onRectSelected);
+    connect(scene_active, &Scene::polygonSelected, this, &Sketch::onPolygonSelected);
+    connect(scene_active, &Scene::trapeziumSelected, this, &Sketch::onTrapeziumSelected);
+    connect(scene_active, &Scene::eyeletSelected, this, &Sketch::onEyeletSelected);
+    connect(scene_active, &Scene::textSelected, this, &Sketch::onTextSelected);
 
     QTreeWidgetItem *item_project = new QTreeWidgetItem(tree_project,QStringList(name_project_new));
     QTreeWidgetItem *item_scene = new QTreeWidgetItem(item_project,QStringList(name_scene_new)); //子节点1
@@ -2853,11 +2857,14 @@ void Sketch::onPointSelected(Point *point)
 
 void Sketch::onLineSelected(Line *line)
 {
-    qDebug() << line->getShapeId();
-    qDebug() << line->getPerimeter();
-
+    //qDebug() << line->getShapeId();
+    //qDebug() << line->getPerimeter();
+    qDebug() << "直线的属性框";
+    line->lineproperties->setCurShape(line->getShapeType());
+    line->lineproperties->setPenstyle(line->getPenStyle());
     line->lineproperties->setShapeid(line->getShapeId());
     line->lineproperties->setLength(line->getPerimeter());
+    line->lineproperties->setShapetype(tr("线"));
     line->lineproperties->setOk(true);
 
     dock_properties->setWidget(line->lineproperties);
@@ -2867,27 +2874,114 @@ void Sketch::onLineSelected(Line *line)
 
 void Sketch::onArcSelected(Arc *arc)
 {
-
+    qDebug() << "弧的属性框";
+    arc->arcproperties->setCurShape(arc->getShapeType());
+    arc->arcproperties->setPenstyle(arc->getPenStyle());
+    arc->arcproperties->setShapeid(arc->getShapeId());
+    arc->arcproperties->setShapetype(tr("圆弧"));
+    arc->arcproperties->setOk(true);
+    dock_properties->setWidget(arc->arcproperties);
+    QObject::connect(arc->arcproperties,SIGNAL(PropertiesChanged()),arc,SLOT(typechange()));
 }
 
 void Sketch::onEllipseSelected(Ellipse *ellipse)
 {
-
+    qDebug() << "椭圆的属性框";
+    ellipse->ellipseproperties->setCurShape(ellipse->getShapeType());
+    ellipse->ellipseproperties->setPenstyle(ellipse->getPenStyle());
+    ellipse->ellipseproperties->setShapeid(ellipse->getShapeId());
+    ellipse->ellipseproperties->setShapetype(tr("椭圆"));
+    ellipse->ellipseproperties->setOk(true);
+    dock_properties->setWidget(ellipse->ellipseproperties);
+    QObject::connect(ellipse->ellipseproperties,SIGNAL(PropertiesChanged()),ellipse,SLOT(typechange()));
 }
 
 
 void Sketch::onCircleSelected(Circle *circle)
 {
-
+    qDebug() << "圆的属性框";
+    circle->circleproperties->setCurShape(circle->getShapeType());
+    circle->circleproperties->setPenstyle(circle->getPenStyle());
+    circle->circleproperties->setShapeid(circle->getShapeId());
+    circle->circleproperties->setShapetype(tr("圆"));
+    circle->circleproperties->setPolygonRad(circle->getRadius());
+    circle->circleproperties->setOk(true);
+    dock_properties->setWidget(circle->circleproperties);
+    QObject::connect(circle->circleproperties,SIGNAL(PropertiesChanged()),circle,SLOT(typechange()));
 }
 
 void Sketch::onRectSelected(Rect *rect)
 {
-
+    qDebug() << "矩形的属性框";
+    rect->rectproperties->setCurShape(rect->getShapeType());
+    rect->rectproperties->setPenstyle(rect->getPenStyle());
+    rect->rectproperties->setShapeid(rect->getShapeId());
+    rect->rectproperties->setShapetype(tr("矩形"));
+    rect->rectproperties->setOk(true);
+    dock_properties->setWidget(rect->rectproperties);
+    QObject::connect(rect->rectproperties,SIGNAL(PropertiesChanged()),rect,SLOT(typechange()));
 }
 
 void Sketch::onPolylineSelected(Polyline *polyline)
 {
+    qDebug() << "曲折线的属性框";
+    polyline->polylineproperties->setCurShape(polyline->getShapeType());
+    polyline->polylineproperties->setPenstyle(polyline->getPenStyle());
+    polyline->polylineproperties->setShapeid(polyline->getShapeId());
+    polyline->polylineproperties->setShapetype(tr("曲折线"));
+    polyline->polylineproperties->setOk(true);
+    dock_properties->setWidget(polyline->polylineproperties);
+    QObject::connect(polyline->polylineproperties,SIGNAL(PropertiesChanged()),polyline,SLOT(typechange()));
+}
 
+void Sketch::onPolygonSelected(Polygon *polygon)
+{
+    qDebug() << "正多边形的属性框";
+    polygon->polygonproperties->setCurShape(polygon->getShapeType());
+    polygon->polygonproperties->setPenstyle(polygon->getPenStyle());
+    polygon->polygonproperties->setShapeid(polygon->getShapeId());
+    polygon->polygonproperties->setShapetype(tr("正多边形"));
+    polygon->polygonproperties->setPolygonEdge(polygon->getLineNum());
+    polygon->polygonproperties->setPolygonEdgeLength(polygon->getRadius());
+    polygon->polygonproperties->setPolygonRad(polygon->getAlpha());
+    polygon->polygonproperties->setOk(true);
+    dock_properties->setWidget(polygon->polygonproperties);
+    QObject::connect(polygon->polygonproperties,SIGNAL(PropertiesChanged()),polygon,SLOT(typechange()));
+}
+
+void Sketch::onTrapeziumSelected(Trapezium *trapezium)
+{
+    qDebug() << "梯形的属性框";
+    trapezium->trapeziumproperties->setCurShape(trapezium->getShapeType());
+    trapezium->trapeziumproperties->setPenstyle(trapezium->getPenStyle());
+    trapezium->trapeziumproperties->setShapeid(trapezium->getShapeId());
+    trapezium->trapeziumproperties->setShapetype(tr("梯形"));
+    trapezium->trapeziumproperties->setOk(true);
+    dock_properties->setWidget(trapezium->trapeziumproperties);
+    QObject::connect(trapezium->trapeziumproperties,SIGNAL(PropertiesChanged()),trapezium,SLOT(typechange()));
+}
+
+void Sketch::onEyeletSelected(Eyelet *eyelet)
+{
+    qDebug() << "鸡眼孔的属性框";
+    eyelet->eyeletproperties->setCurShape(eyelet->getShapeType());
+    eyelet->eyeletproperties->setPenstyle(eyelet->getPenStyle());
+    eyelet->eyeletproperties->setShapeid(eyelet->getShapeId());
+    eyelet->eyeletproperties->setShapetype(tr("鸡眼孔"));
+    eyelet->eyeletproperties->setOk(true);
+    dock_properties->setWidget(eyelet->eyeletproperties);
+    QObject::connect(eyelet->eyeletproperties,SIGNAL(PropertiesChanged()),eyelet,SLOT(typechange()));
+}
+
+void Sketch::onTextSelected(Text *text)
+{
+    qDebug() << "文本的属性框";
+    text->textproperties->setCurShape(text->getShapeType());
+    text->textproperties->setPenstyle(text->getPenStyle());
+    text->textproperties->setShapeid(text->getShapeId());
+    text->textproperties->setShapetype(tr("文本"));
+    text->textproperties->setOk(true);
+    dock_properties->setWidget(text->textproperties);
+    QObject::connect(text->textproperties,SIGNAL(PropertiesChanged()),text,SLOT(typechange()));
 }
 
