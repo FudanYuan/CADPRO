@@ -70,7 +70,8 @@ void DxfFilter::addArc(const DL_ArcData &data)
              << "ARC: "
              << "cPoint: (" << data.cx << ", " <<data.cy << ")"
              << "radius: " << data.radius
-             << "angle1: " << data.angle1 << ", " << "angle2: " << data.angle2;
+             << "angle1: " << data.angle1 << ", "
+             << "angle2: " << data.angle2;
 #endif
 }
 
@@ -96,7 +97,8 @@ void DxfFilter::addEllipse(const DL_EllipseData &data)
     qDebug() << "LAYER: " << transformText(attributes.getLayer())
              << "ELLIPSE: "
              << "cPoint: (" << data.cx << ", " <<data.cy << ")"
-             << "radius1: " << data.mx - data.cx << ", " << data.my - data.cy
+             << "radius1: " << data.mx - data.cx
+             << "radius2: " << data.my - data.cy
              << "sAngle: " << data.angle1 << ", "
              << "eAngle: " << data.angle2
              << "ratio: " << data.ratio;
@@ -163,11 +165,22 @@ void DxfFilter::endEntity()
 
 void DxfFilter::endSequence()
 {
-    for(int i=0; i<vertexs.length(); i++){
+    for(int i=0; i<vertexs.length();i++){
         polylines[polylineIndex].vertexList.append(vertexs[i].vertex);
     }
     vertexs.clear();
     polylineIndex++;
+
+#ifdef DXFDEBUG
+    qDebug()<<"-------endSequence----------";
+    int len = polylines[polylineIndex].vertexList.length();
+    qDebug() << "polyID:" << polylineIndex << ", 序列长度： " << len;
+    for(int i =0;i<len;i++){
+        qDebug() << polylines[polylineIndex].vertexList[i].x << ","
+                 << polylines[polylineIndex].vertexList[i].y;
+    }
+    qDebug() << "----------------";
+#endif
 }
 
 void DxfFilter::getEntityAttributy()
@@ -254,7 +267,7 @@ QColor DxfFilter::transformColor(const int color) const
         ret = Qt::magenta;
         break;
     case 7:
-        ret = Qt::white;
+        ret = Qt::red;
         break;
     case 8:
     case 252:
@@ -310,7 +323,7 @@ int DxfFilter::transformColor(const QColor color) const
         ret = 256;  //  bylayer = 256
     case Qt::black:
     default:
-        ret = 250;
+        ret = color.rgba();
         break;
     }
     return ret;
@@ -318,7 +331,7 @@ int DxfFilter::transformColor(const QColor color) const
 
 int DxfFilter::transformWidth(const int width) const
 {
-    int w = 0;
+    int w = 0;    
     switch (width) {
     case -1:
     case -2:
@@ -340,5 +353,5 @@ Qt::PenStyle DxfFilter::transformStyle(std::string style) const
     if(s == "DASH"){
         return Qt::DashLine;
     }
-    return Qt::SolidLine;
+    return Qt::NoPen;
 }

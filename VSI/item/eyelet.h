@@ -1,34 +1,31 @@
-#ifndef CIRCLE_H
-#define CIRCLE_H
+#ifndef EYELET_H
+#define EYELET_H
 
-#include <QGraphicsEllipseItem>
+#include <QGraphicsPathItem>
 #include <QGraphicsSceneMouseEvent>
 #include "shape.h"
 #include <QPointF>
+#include "eyeletdialog.h"
 
-class Circle : public Shape, public QGraphicsEllipseItem
+class Eyelet : public Shape, public QGraphicsPathItem
 {
     Q_OBJECT
+
 public:
-    Circle(QGraphicsItem *parent=0);
+
+    Eyelet(QGraphicsItem *parent=0);
     void startDraw(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 开始绘图
     void drawing(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 绘图开始
     bool updateFlag(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
 
-    void setCPoint(QPointF p);  // 设置圆心
-    QPointF getCPoint();  // 获取圆心
+    EyeletDialog *eyeletdialog;//鸡眼孔的对话框
 
-    void setRadius(qreal r);  // 设置半径
-    qreal getRadius();  // 获取半径
+    int getEyeletH() const;
+    void setEyeletH(int value);
 
-    void setFilled(bool filled);  // 设置填充
-    bool isFilled() const;  // 是否填充
-
-    void setCircle(qreal px, qreal py, qreal radius);  // 设置圆形
-    Circle circle();  // 圆形
-
-    Circle *copy();
+    int getEyeletW() const;
+    void setEyeletW(int value);
 
 protected:
     //鼠标事件
@@ -45,16 +42,17 @@ protected:
     void hoverMoveEvent(QGraphicsSceneHoverEvent *event) Q_DECL_OVERRIDE;
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) Q_DECL_OVERRIDE;
 
+
 private:
-    QPointF cPoint, sPoint; // 圆心
-    qreal r; // 半径
-    bool filled;  // 设置填充
-    qreal crossSize;  // 交叉线大小
-signals:
-    void select(Circle *circle);  // 图形被选择
+
+    QPointF cPoint;
+
+    int eyeletH ;
+    int eyeletW ;
 
 public slots:
+    void on_commandLinkButton_2_clicked();
     void onSceneMoveableChanged(bool moveable) Q_DECL_OVERRIDE;  //  响应场景可移动性改变
 };
 
-#endif // CIRCLE_H
+#endif // EYELET_H

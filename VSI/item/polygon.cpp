@@ -18,6 +18,10 @@ Polygon::Polygon(QGraphicsItem *parent) :
     setAcceptDrops(true);
     // 设置图元为可接受hover事件
     setAcceptHoverEvents(true);
+    alpha=0;  // 旋转角度
+    type;  //线类型
+    lineNum=4;//边的个数
+    radius=100;//半径
 }
 
 void Polygon::startDraw(QGraphicsSceneMouseEvent *event)
@@ -58,7 +62,7 @@ void Polygon::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
     painter->setPen(pen);
 
     int r=radius;
-    int num = line_num;
+    int num = lineNum;
     double angle=alpha;
     QPainterPath path;
     QPointF sPoint(cPoint.rx()+r*qCos(M_PI*angle/180),
@@ -72,8 +76,25 @@ void Polygon::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
     path.lineTo(sPoint);
     painter->drawPath(path);
     setPath(path);
-
     drawCrossPoint(painter, cPoint, 5, upright);
+}
+
+void Polygon::toPolyline()
+{
+    int r=radius;
+    int num = lineNum;
+    double angle=alpha;
+    QPointF sPoint(cPoint.rx()+r*qCos(M_PI*alpha/180),
+                   cPoint.ry()+r*qSin(M_PI*alpha/180));
+    points.append(sPoint);
+    qDebug()<<"spoint.x"<<sPoint.rx()<<"spoint.x"<<sPoint.ry();
+
+    for(int i=1;i < lineNum;i++){
+       QPointF p(cPoint.rx()+r*qCos(2*M_PI/lineNum * i+M_PI*alpha/180),
+                 cPoint.ry()+r*qSin(2*M_PI/lineNum * i+M_PI*alpha/180));
+       points.append(p);
+    }
+    points.append(sPoint);
 }
 
 void Polygon::mousePressEvent(QGraphicsSceneMouseEvent *event)
@@ -179,15 +200,24 @@ void Polygon::onSceneMoveableChanged(bool moveable)
     setFlag(QGraphicsItem::ItemIsMovable, moveable);
 }
 
-
-qreal Polygon::getAlpha() const
+void Polygon::setPoints(const QList<QPointF> &value)
 {
-    return alpha;
+    points = value;
+}
+
+QList<QPointF> Polygon::getPoints() const
+{
+    return points;
 }
 
 void Polygon::setAlpha(const qreal &value)
 {
     alpha = value;
+}
+
+qreal Polygon::getAlpha() const
+{
+    return alpha;
 }
 
 void Polygon::setType(int type)
@@ -200,11 +230,6 @@ int Polygon::getType()
     return this->type;
 }
 
-double Polygon::getRadius() const
-{
-    return radius;
-}
-
 void Polygon::setRadius(double value)
 {
     if(value==NULL||value<=0)
@@ -212,19 +237,22 @@ void Polygon::setRadius(double value)
     radius = value;
 }
 
-int Polygon::getLine_num() const
+int Polygon::getLineNum() const
 {
-
-    return line_num;
+    return lineNum;
 }
 
-void Polygon::setLine_num(int value)
+double Polygon::getRadius() const
+{
+    return radius;
+}
+
+void Polygon::setLineNum(int value)
 {
     if(value==NULL||value<0)
         value=4;
-    line_num = value;
+    lineNum = value;
 }
-
 
 
 void Polygon::on_commandLinkButton_2_clicked()

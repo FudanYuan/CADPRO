@@ -17,7 +17,7 @@ QColor intToColor(const int rgb, bool a)
 void drawCrossPoint(QPainter *painter, QPointF point, int offset=2, crossType type=upright)
 {
     qreal rx = point.rx();
-    qreal ry = point.rx();
+    qreal ry = point.ry();
     switch (type) {
     case normal:
         painter->drawLine(QPointF(rx-offset, ry+offset), QPointF(rx+offset, ry-offset));
@@ -26,6 +26,8 @@ void drawCrossPoint(QPainter *painter, QPointF point, int offset=2, crossType ty
     case upright:
         painter->drawLine(QPointF(rx, ry+offset), QPointF(rx, ry-offset));
         painter->drawLine(QPointF(rx+offset, ry), QPointF(rx-offset, ry));
+        break;
+    default:
         break;
     }
 }
@@ -38,7 +40,7 @@ void drawNodePoint(QPainter *painter, QPointF point, int radius=2)
 void drawRectPoint(QPainter *painter, QPointF point, int length=2)
 {
     qreal rx = point.rx();
-    qreal ry = point.rx();
+    qreal ry = point.ry();
     painter->drawRect(rx-length, ry-length, 2*length, 2*length);
 }
 
@@ -78,24 +80,40 @@ void drawLineWithArrow(QPainter *painter, QLineF line, int offset)
 
 QPointF transformY(QPointF p)
 {
-    return QPointF(p.rx(), -p.rx());
+    return QPointF(p.rx(), -p.ry());
 }
 
 QPointF transformRotate(QPointF o, qreal r, qreal angle)
 {
     QPointF res(o.rx()+r*qCos(M_PI*angle/180),
-                o.rx()+r*qSin(M_PI*angle/180));
+                o.ry()+r*qSin(M_PI*angle/180));
     return res;
 }
 
 QPointF transformRotate(QPointF o, QPointF p, qreal angle)
 {
+    // 将点映射到普通平面直角坐标系
     qreal ox = o.rx();
-    qreal oy = o.rx();
+    qreal oy = -o.ry();
     qreal px = p.rx();
-    qreal py = p.rx();
+    qreal py = -p.ry();
     qreal a = M_PI*angle/180;
     qreal rx= (px - ox)*qCos(a) - (py - oy)*qSin(a) + ox;
     qreal ry= (px - ox)*qSin(a) + (py - oy)*qCos(a) + oy;
-    return QPointF(rx, ry);
+    return QPointF(rx, -ry);
+}
+
+qreal getDistance(QPointF p1, QPointF p2)
+{
+    qreal px1 = p1.rx();
+    qreal py1 = p1.ry();
+
+    qreal px2 = p2.rx();
+    qreal py2 = p2.ry();
+
+    qreal mid1 = qPow((px2-px1), 2);
+    qreal mid2 = qPow((py2-py1), 2);
+    qreal dis = qSqrt(mid1 + mid2);
+
+    return dis;
 }

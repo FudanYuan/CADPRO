@@ -40,9 +40,7 @@ Nest::Nest(QWidget *parent) :
     initConfiguration();// 初始化配置
     initProjectView();  // 初始化项目视图
     initPieceView();  // 初始化切割件视图
-    initMaterial();  // 初始化材料
     initNestView();  // 初始化排版视图
-    addProject();   // 添加项目
     initStatusBar();    // 初始化状态栏
 }
 
@@ -102,6 +100,99 @@ void Nest::initActions()
     action_file_exit->setStatusTip(tr("退出应用程序；提示保存项目"));
     connect(action_file_exit, &QAction::triggered, this, &Nest::onActionFileExit);
 // ![1] 文件
+
+// ![2] 编辑
+    action_edit_undo = new QAction(tr("&撤销"), this);
+    action_edit_undo->setShortcut(QKeySequence::Undo);
+    action_edit_undo->setStatusTip(tr("撤销上一个操作"));
+    action_edit_undo->setDisabled(true);
+    connect(action_edit_undo, &QAction::triggered, this, &Nest::onActionEditUndo);
+
+    action_edit_redo = new QAction(tr("&重做"), this);
+    action_edit_redo->setShortcut(QKeySequence::Redo);
+    action_edit_redo->setDisabled(true);
+    action_edit_redo->setStatusTip(tr("重做撤销的操作"));
+    connect(action_edit_redo, &QAction::triggered, this, &Nest::onActionEditRedo);
+
+    action_edit_clear = new QAction(tr("&清空"), this);
+    action_edit_clear->setStatusTip(tr("清空排版区"));
+    action_edit_clear->setDisabled(true);
+    connect(action_edit_clear, &QAction::triggered, this, &Nest::onActionEditClear);
+
+    action_edit_delete = new QAction(tr("&删除"), this);
+    action_edit_delete->setShortcut(QKeySequence::Delete);
+    action_edit_delete->setStatusTip(tr("删除实体"));
+    action_edit_delete->setDisabled(true);
+    connect(action_edit_delete, &QAction::triggered, this, &Nest::onActionEditDelete);
+
+    action_edit_cut = new QAction(tr("&剪切"), this);
+    action_edit_cut->setShortcut(QKeySequence::Cut);
+    action_edit_cut->setStatusTip(tr("剪切选择并将其放在剪贴板上"));
+    action_edit_cut->setDisabled(true);
+    connect(action_edit_cut, &QAction::triggered, this, &Nest::onActionEditCut);
+
+    action_edit_copy = new QAction(tr("&复制"), this);
+    action_edit_copy->setShortcut(QKeySequence::Copy);
+    action_edit_copy->setStatusTip(tr("将所选线复制到粘贴板"));
+    action_edit_copy->setDisabled(true);
+    connect(action_edit_copy, &QAction::triggered, this, &Nest::onActionEditCopy);
+
+    action_edit_paste = new QAction(tr("&粘贴"), this);
+    action_edit_paste->setShortcut(QKeySequence::Paste);
+    action_edit_paste->setStatusTip(tr("粘贴先前复制的实体"));
+    action_edit_paste->setDisabled(true);
+    connect(action_edit_paste, &QAction::triggered, this, &Nest::onActionEditPaste);
+// ![2] 编辑
+
+// ![3] 材料
+    action_sheet_manager = new QAction(tr("材料管理"));
+    action_sheet_manager->setStatusTip(tr("创建或编辑材料"));
+    connect(action_sheet_manager, &QAction::triggered, this, &Nest::onActionSheetManager);
+
+    action_sheet_add = new QAction(tr("增加材料"));
+    action_sheet_add->setStatusTip(tr("增加新的材料"));
+    connect(action_sheet_add, &QAction::triggered, this, &Nest::onActionSheetAdd);
+
+    action_sheet_remove = new QAction(tr("删除材料"));
+    action_sheet_remove->setStatusTip(tr("删除当前材料"));
+    action_sheet_remove->setDisabled(true);
+    connect(action_sheet_remove, &QAction::triggered, this, &Nest::onActionSheetRemove);
+
+    action_sheet_duplicate = new QAction(tr("重复材料"));
+    action_sheet_duplicate->setStatusTip(tr("重复当前材料"));
+    action_sheet_duplicate->setDisabled(true);
+    connect(action_sheet_duplicate, &QAction::triggered, this, &Nest::onActionSheetDuplicate);
+
+    action_sheet_auto_duplicate = new QAction(tr("自动重复材料"));
+    action_sheet_auto_duplicate->setStatusTip(tr("自动重复当前材料"));
+    action_sheet_auto_duplicate->setDisabled(true);
+    connect(action_sheet_auto_duplicate, &QAction::triggered, this, &Nest::onActionSheetAutoDuplicate);
+
+    action_sheet_previous = new QAction(tr("上一张"));
+    action_sheet_previous->setStatusTip(tr("转到上一张材料"));
+    action_sheet_previous->setDisabled(true);
+    connect(action_sheet_previous, &QAction::triggered, this, &Nest::onActionSheetPrevious);
+
+    action_sheet_next = new QAction(tr("下一张"));
+    action_sheet_next->setStatusTip(tr("转到下一张材料"));
+    action_sheet_next->setDisabled(true);
+    connect(action_sheet_next, &QAction::triggered, this, &Nest::onActionSheetNext);
+
+    action_sheet_sheet_number = new QAction(tr("输入材料序号"));
+    action_sheet_sheet_number->setStatusTip(tr("跳转至排版中的材料序号"));
+    action_sheet_sheet_number->setDisabled(true);
+    connect(action_sheet_sheet_number, &QAction::triggered, this, &Nest::onActionSheetSheetNumber);
+
+    action_sheet_use_last_sheet = new QAction(tr("使用最后的材料"));
+    action_sheet_use_last_sheet->setStatusTip(tr("重复使用最后一张已切割过的材料"));
+    action_sheet_use_last_sheet->setDisabled(true);
+    connect(action_sheet_use_last_sheet, &QAction::triggered, this, &Nest::onActionSheetUseLastSheet);
+
+    action_sheet_sheet_property = new QAction(tr("属性"));
+    action_sheet_sheet_property->setStatusTip(tr("更改材料&余良/边距"));
+    action_sheet_sheet_property->setDisabled(true);
+    connect(action_sheet_sheet_property, &QAction::triggered, this, &Nest::onActionSheetProperty);
+// ![3] 材料
 }
 
 void Nest::initMenuBar()
@@ -121,6 +212,35 @@ void Nest::initMenuBar()
     menu_file->addAction(action_file_configuration);
     menu_file->addAction(action_file_exit);
 // ![1] 文件栏
+
+// ![2] 编辑栏
+    menu_edit = ui->menuBar->addMenu(tr("编辑(&E)"));
+    menu_edit->addAction(action_edit_undo);
+    menu_edit->addAction(action_edit_redo);
+    menu_edit->addAction(action_edit_clear);
+    menu_edit->addSeparator();
+    menu_edit->addAction(action_edit_delete);
+    menu_edit->addAction(action_edit_copy);
+    menu_edit->addAction(action_edit_paste);
+// ![2] 编辑栏
+
+// ![3] 材料栏
+    menu_sheet = ui->menuBar->addMenu(tr("材料(&M)"));
+    menu_sheet->addAction(action_sheet_manager);
+    menu_sheet->addSeparator();
+    menu_sheet->addAction(action_sheet_add);
+    menu_sheet->addAction(action_sheet_remove);
+    menu_sheet->addAction(action_sheet_duplicate);
+    menu_sheet->addAction(action_sheet_auto_duplicate);
+    menu_sheet->addSeparator();
+    menu_sheet->addAction(action_sheet_previous);
+    menu_sheet->addAction(action_sheet_next);
+    menu_sheet->addAction(action_sheet_sheet_number);
+    menu_sheet->addSeparator();
+    menu_sheet->addAction(action_sheet_use_last_sheet);
+    menu_sheet->addSeparator();
+    menu_sheet->addAction(action_sheet_sheet_property);
+// ![3] 材料栏
 }
 
 void Nest::initToolBar()
@@ -179,38 +299,29 @@ void Nest::initNestView()
     nestView = new View(dock_nest);  // 初始化nest view
     dock_nest->setWidget(nestView);  // 将该视图加入到dock_nest
     connect(nestView, &View::mousePositionChanged, this, &Nest::onMousePositionChanged);
-
-    // 该部分要移至材料选择结束后
-    nestScene = new Scene(nestView);
-    nestScene->setSceneRect(-10, -10,
-                            material.layoutRect.width(),
-                            material.layoutRect.height());
-
-    // 画出边缘
-    Rect *rect = new Rect;
-    Configure::PenStyle pen;
-    pen.setPenStyle(Qt::black, Qt::SolidLine, 2);
-    rect->setPenStyle(pen);
-    rect->setRect(material.layoutRect);
-    nestScene->addCustomRectItem(rect);
-
-    nestView->setScene(nestScene);
-    nestView->centerOn(nestView->mapFromScene(0,0));
 }
 
 void Nest::updateNestView()
 {
+    // 如果该项目为选择材料，则返回
+    if(!curSheet){
+        return;
+    }
+    QString pName = projectActive->getName();
+    if(outMap.contains(pName)){
+        outMap[pName].clear();
+    }
     nestScene = new Scene(nestView);
     nestScene->setSceneRect(-10, -10,
-                            material.layoutRect.width(),
-                            material.layoutRect.height());
+                            curSheet->layoutRect().width(),
+                            curSheet->layoutRect().height());
 
     // 画出边缘
     Rect *rect = new Rect;
     Configure::PenStyle pen;
     pen.setPenStyle(Qt::black, Qt::SolidLine, 2);
     rect->setPenStyle(pen);
-    rect->setRect(material.layoutRect);
+    rect->setRect(curSheet->layoutRect());
     nestScene->addCustomRectItem(rect);
 
     nestView->setScene(nestScene);
@@ -297,30 +408,103 @@ void Nest::addProject()
 
     item_scene->setCheckState(0, Qt::Checked);
     item_project->addChild(item_scene); //添加子节点
-//    tree_project->expandAll(); //结点全部展开
+    tree_project->expandAll(); //结点全部展开
+
+    // 选择材料
+    initSheet();
+
+    // 更新全部组件
     updateAll();
 }
 
-void Nest::initMaterial()
+void Nest::initSheet()
 {
-    material.leftMargin = 2;
-    material.topMargin = 2;
-    material.rightMargin = 2;
+    SheetDialog mDialog;
+    mDialog.setDialogRole(SheetDialog::Nest);
+    mDialog.exec();
+    curSheet = mDialog.getSheetActive();
+    if(!curSheet){
+        qDebug() << "curSheet = NULL";
+        return;
+    }
+    QString pName = projectActive->getName();
+    if(proSheetMap.contains(pName)){
+        ProSheetMap *map = proSheetMap[pName];
+        map->sheetList.append(curSheet);
+        map->usageList.append(0.0);
+        map->pieceNumList.append(0);
+        proSheetMap[pName] = map;
+    } else{
+        ProSheetMap *map = new ProSheetMap(pName);
+        map->sheetList.append(curSheet);
+        map->usageList.append(0.0);
+        map->pieceNumList.append(0);
+        proSheetMap.insert(pName, map);
+    }
+}
+
+void Nest::updateSheetTree()
+{
+    // 首先，获取当前项目的材料信息
+    QString pName = projectActive->getName();
+    if(!proSheetMap.contains(pName)){
+        qDebug() << "当前项目的材料信息为空";
+        return;
+    }
+
+    QList<Sheet *> sheetList = proSheetMap[pName]->sheetList;
+    QList<qreal> pieceNumList = proSheetMap[pName]->pieceNumList;
+    QList<qreal> usageList = proSheetMap[pName]->usageList;
+    int sheetNum = sheetList.length();
+    qreal rateTotal = 0.0;
+
+    // 更新sheet窗口
+    if(!tree_sheet){
+        tree_sheet = new QTreeWidget(dock_project);
+    } else{
+        tree_sheet->clear();
+    }
+    tree_sheet->setColumnCount(1); //设置列数
+
+    for(int i=0;i<sheetNum;i++){
+        QString sheetName = sheetList[i]->name;
+        qreal width = sheetList[i]->width;
+        qreal height = sheetList[i]->height;
+        int pieceNum = pieceNumList[i];
+        qreal rate = usageList[i];
+        rateTotal += rate;
+
+        QStringList sList1;
+        sList1 << tr("材料") + QString("%1").arg(i+1) + tr("：") + sheetName;
+        QStringList sList2;
+        sList2 << tr("尺寸：") + QString("%1").arg(width) + " X " + QString("%1").arg(height);
+        QStringList sList3;
+        sList3 << tr("切割件：") + QString("%1").arg(pieceNum);
+        QStringList sList4;
+        sList4 << tr("产能（利用率）：") + QString("%1").arg(rate) + tr("%");
+
+        QTreeWidgetItem *item_sheet = new QTreeWidgetItem(tree_sheet, sList1);
+        QTreeWidgetItem *item_sheet_size = new QTreeWidgetItem(item_sheet, sList2); //子节点1
+        QTreeWidgetItem *item_sheet_piece = new QTreeWidgetItem(item_sheet, sList3); //子节点2
+        QTreeWidgetItem *item_sheet_rate = new QTreeWidgetItem(item_sheet, sList4); //子节点3
+
+        item_sheet->addChild(item_sheet_size);
+        item_sheet->addChild(item_sheet_piece);
+        item_sheet->addChild(item_sheet_rate);
+    }
+
+    char *ch1 = "排版信息（共";
+    char *ch2 = "张板材料，总产能（利用率）：";
+    char *ch3 = "%）";
+    char *buf = new char[strlen(ch1) + strlen(ch2) + strlen(ch3) + sizeof(sheetNum) + sizeof(rateTotal)];
+    sprintf(buf, "%s%d%s%.2f%s", ch1, sheetNum, ch2, rateTotal, ch3);
+    tree_sheet->setHeaderLabel(tr(buf)); //设置头的标题
+
+    dock_sheet->setWidget(tree_sheet);
 }
 
 void Nest::initRectNestEngine()
 {
-    // 首先构造10个矩形对象作为零件，
-    // 后期要通过可视化进行添加
-    // 即通过界面化操作将图形元素或个数添加入零件列表
-//    for(int i = 0; i < COUNT; i++){
-//        int w = GA::randT<int>(10, 100);
-//        int h = GA::randT<int>(10, 100);
-//        int n = GA::randT<int>(1, 5);
-//        RectNestEngine::components.append(Component(QRectF(0, 0, w, h),
-//                                                   n));
-//    }
-
     double len = RectNestEngine::components.length();
     if(len <= 0){
         QMessageBox::warning(this, tr("错误"), tr("请添加切割件！"));
@@ -351,7 +535,7 @@ void Nest::initRectNestEngine()
     int totalNum = RectNestEngine::compMinRects.length();
 
     // 初始化空白矩形集合
-    QRectF r = material.layoutRect;
+    QRectF r = curSheet->layoutRect();
     RectNestEngine::mWidth = r.width();
     RectNestEngine::mHeight = r.height();
 
@@ -371,10 +555,14 @@ void Nest::initRectNestEngine()
 
     // 排版算法
     RectNestEngine::layoutAlg(g.getFittestGenome().getGenome());
-
+    int unLay = 0;
     for(int i=0;i<g.getFittestGenome().getGenome().length();i++){
         int index = qAbs(g.getFittestGenome().getGenome()[i]) - 1;  // 得到矩形的序号
         RectNestEngine::MinRect *currentRect = &RectNestEngine::compMinRects[index]; // 得到矩形指针
+        if(!currentRect->layFlag){
+            unLay++;
+            continue;
+        }
         bool rotate = g.getFittestGenome().getGenome()[i] < 0; // 如果基因为负值，则需要旋转90*
         currentRect->setRotate(rotate);
         int id = currentRect->getComponentId();
@@ -409,8 +597,13 @@ void Nest::initRectNestEngine()
         p->setPolyline(pList, polyline->getType(), polyline->getElevation(), rotate ? 90 : 0);
         nestScene->addCustomPolylineItem(p);
     }
-    nestScene->setMoveable(true);
+
+    if(unLay != 0){
+        qDebug() << "有" << unLay << "个未排放";
+    }
+    // 更新场景和视图
     nestView->setScene(nestScene);
+    nestScene->setMoveable(true);
     QString name = projectActive->getName();
     if(outMap.contains(name)){
         outMap[name].append(nestScene);
@@ -418,6 +611,12 @@ void Nest::initRectNestEngine()
         QList<Scene *> sList;
         sList.append(nestScene);
         outMap.insert(name, sList);
+    }
+
+    if(proSheetMap.contains(name)){
+        proSheetMap[name]->usageList[0] = g.getFittestGenome().getFitness() * 100.0;
+        proSheetMap[name]->pieceNumList[0] = totalNum;
+        updateSheetTree();
     }
     qDebug() << "材料使用率： " << g.getFittestGenome().getFitness();
 }
@@ -566,7 +765,6 @@ void Nest::updateAll()
 
     // 更新nest图层
     if(outMap.contains(pName)){
-        qDebug() << "存在" << outMap[pName].length();
         if(outMap[pName].length() != 0){
             nestScene = outMap[pName][0];
             nestView->setScene(nestScene);
@@ -574,16 +772,16 @@ void Nest::updateAll()
             updateNestView();
         }
     } else{
-        qDebug() << "不存在";
         updateNestView();
     }
 
+    // 更新材料部分
+    updateSheetTree();
+
     // 更新窗口名称
     setWindowTitle("CADPRO-<" + pName + ">");
-    dock_piece->setWindowTitle(pName + "-" + sName);
-
-    // 在视图中更新图层
-    //connect(nestView, &View::viewScaleChanged, nestScene, &Scene::onViewScaleChanged);
+    dock_piece->setWindowTitle("<" + pName + "-" + sName + ">");
+    dock_sheet->setWindowTitle("<" + pName + ">");
 }
 
 bool Nest::maybeSave()
@@ -653,6 +851,16 @@ void Nest::onMousePositionChanged(QPointF pos)
     mousePositionLabel->setText(tr("X=") + QString::number(pos.rx()) + " Y=" + QString::number(-pos.ry()));
 }
 
+void Nest::closeEvent(QCloseEvent *event)
+{
+    if(maybeSave()) {
+        qApp->quit();
+    }
+    else {
+        event->ignore();
+    }
+}
+
 void Nest::onActionFileNew()
 {
     qDebug() << "新建一个项目，即导入一个dxf文件"
@@ -706,7 +914,7 @@ bool Nest::onActionFileSaveAs()
 
 bool Nest::onActionFileSaveAll()
 {
-
+    return true;
 }
 
 void Nest::onActionFilePrint()
@@ -731,7 +939,98 @@ void Nest::onActionFileConfiguration()
 
 void Nest::onActionFileExit()
 {
+    if(maybeSave()) {
+        qApp->quit();
+    }
+}
 
+void Nest::onActionEditUndo()
+{
+    qDebug() << "撤销上个操作";
+}
+
+void Nest::onActionEditRedo()
+{
+    qDebug() << "重做撤销操作";
+}
+
+void Nest::onActionEditClear()
+{
+    qDebug() << "清空";
+}
+
+void Nest::onActionEditDelete()
+{
+    qDebug() << "删除";
+}
+
+void Nest::onActionEditCut()
+{
+    qDebug() << "剪切";
+}
+
+void Nest::onActionEditCopy()
+{
+    qDebug() << "复制";
+}
+
+void Nest::onActionEditPaste()
+{
+    qDebug() << "粘贴";
+}
+
+void Nest::onActionSheetManager()
+{
+    qDebug() << "创建或编辑材料";
+    SheetDialog mDialog;
+    mDialog.exec();
+}
+
+void Nest::onActionSheetAdd()
+{
+    qDebug() << "增加新的材料";
+    initSheet();
+    updateSheetTree();
+}
+
+void Nest::onActionSheetRemove()
+{
+    qDebug() << "删除当前材料";
+}
+
+void Nest::onActionSheetDuplicate()
+{
+    qDebug() << "重复当前材料";
+}
+
+void Nest::onActionSheetAutoDuplicate()
+{
+    qDebug() << "自动重复当前材料";
+}
+
+void Nest::onActionSheetPrevious()
+{
+    qDebug() << "转到上一张材料";
+}
+
+void Nest::onActionSheetNext()
+{
+    qDebug() << "转到下一张材料";
+}
+
+void Nest::onActionSheetSheetNumber()
+{
+    qDebug() << "跳转至排版中的材料序号";
+}
+
+void Nest::onActionSheetUseLastSheet()
+{
+    qDebug() << "重复使用最后一张已切割过的材料";
+}
+
+void Nest::onActionSheetProperty()
+{
+    qDebug() << "更改材料&余良/边距";
 }
 
 void Nest::onActionTreeExpandAll()
@@ -766,12 +1065,17 @@ void Nest::onTreeProjectItemDoubleClicked(QTreeWidgetItem *item)
 
 void Nest::onActionTreeProjectNestScene()
 {
+    if(!curSheet){
+        QMessageBox::warning(this, tr("警告"), tr("未设置切割件所用材料!"));
+        return;
+    }
     if(nestNum.count() == 0){
         QMessageBox::warning(this, tr("警告"), tr("未设置切割件排版个数!"));
         return;
     }
     RectNestEngine::components.clear();
     RectNestEngine::compMinRects.clear();
+    updateNestView();  // 更新排版视图
     for(int i=0;i<projectActive->getSceneList().length();i++){
         Scene *s = projectActive->getSceneList().at(i);
         int count = 0;
@@ -796,7 +1100,7 @@ void Nest::onActionTreeProjectNestScene()
         } else{
             count = nestNum[name];
         }
-        qDebug() << "count= " << count;
+        qDebug() << "count= " << s->getPolylineList().length();
         for(int j=0; j<s->getPolylineList().length(); j++){
             Polyline *p = s->getPolylineList()[j];
             RectNestEngine::components.append(Component(p, count));
@@ -810,11 +1114,12 @@ void Nest::onActionTreeProjectAddScene()
 {
     qDebug() << "import dxf files";
     QString fileName = QFileDialog::getOpenFileName(this, tr("打开DXF文件"), QDir::currentPath());
-    // fileName = "/Users/Jeremy/Desktop/项目/梁叔项目/画图+排版/素材/单个.dxf";
+//    fileName = "/Users/Jeremy/Qt5.10.0/Projects/build-CADPRO-Desktop_Qt_5_10_0_clang_64bit-Debug/CADPRO.app/Contents/MacOS/toNest.dxf";
     if (!fileName.isEmpty()) {
         if(!projectActive){
             QString name_project_new = getNewProjectName();
             projectActive = new Project(this);
+            projectActive->setType(Project::Nest);
             projectActive->setName(name_project_new);
             projectList.append(projectActive);
 
@@ -928,6 +1233,10 @@ void Nest::onActionTreeProjectClose()
         pieceScene = projectActive->getActiveScene();
     } else{
         projectActive = NULL;
+    }
+
+    if(outMap.contains(pName)){
+        outMap.remove(pName);
     }
     updateAll();
 }
@@ -1203,6 +1512,7 @@ void RectNestEngine::layoutAlg(QVector<double> gVector)
         // 解码
         int index = qAbs(gVector[i]) - 1;  // 得到矩形的序号
         MinRect *currentRect = &RectNestEngine::compMinRects[index]; // 得到矩形指针
+        currentRect->layFlag = false;
         currentRect->setRotate(gVector[i] < 0);  // 如果基因为负值，则需要旋转90*
         double rectWidth = currentRect->getWidth();  // 得到矩形宽度
         double rectHight = currentRect->getHeight();  // 得到矩形长度
@@ -1237,154 +1547,17 @@ void RectNestEngine::layoutAlg(QVector<double> gVector)
         //!
         //
         */
-        // 寻找最低水平线集合
-        /*
-//        BBSTNode<BaseLine *> *minNode = highestProfileLine.findMinAVL(highestProfileLine.root);
-//        double currentMaxHight = maxHight;
-//        bool lay = false;  // 排放标识
-//        while(minNode){
-//            bool breakFlag = false;
-//            BaseLine *lowestLine = minNode->data;
-//            ////qDebug() << "最低水平线：" << lowestLine->line() << "  width: " << lowestLine->width() << "  最大高度: " << maxHight;
-//            // 遍历最低水平线集合
-//            while(lowestLine){
-//                if(lowestLine->width() >= rectWidth){
-//                    lay = true;  // 更新排放标识，表明已排放
-//                    // 如果该线段的宽度大于排入零件的宽度，则可排放该零件
-//                    // 将该零件排放在此位置
-//                    currentRect->position = lowestLine->left();
 
-//                    // 计算排放后的最大排样高度
-//                    currentMaxHight = qMax(maxHight,
-//                                           lowestLine->left().ry() + rectHight);
-//                    //qDebug() << "存在一个位置排放该矩形, 排放在此位置: " << currentRect->position;
-//                    //qDebug() << "排放后的最大排样高度: " << currentMaxHight;
-//                    // 如果整体排样高度增加（甚至超出了板材边界），
-//                    // 那么就从前面已排的零件中寻找宽度适合（零件宽度和排放零件处的
-//                    // 线段的宽度均适合）的零件：
-//                    if(currentMaxHight > maxHight || currentMaxHight > mHeight){
-//                        //qDebug() << "整体高度增加，需要调换";
-//                        // 如果已排零件集合不为空
-//                        if(!layRects.isEmpty()){
-//                            //qDebug() << "已排零件集合不为空";
-//                            //qDebug() << "原始摆放位置： " << currentRect->position;
-//                            // 用map来记录交换时的高度变化
-//                            // <double hight, int n>
-//                            // <交换之后排样高度, 已排矩形列表中的序号>
-//                            QMap<double, int> map;
-//                            // 遍历已排矩形列表
-//                            for(int n=0; n<layRects.length();n++){
-//                                // 判断两宽度是否合适，如果合适，尝试调换位置
-//                                if(lowestLine->width() >= layRects[n].width && layRects[n].width >= rectWidth){
-//                                    // 计算调换位置之后的最大高度
-//                                    double heightTemp1 = lowestLine->left().ry() + layRects[n].height;
-//                                    double heightTemp2 = layRects[n].position.ry() + rectHight;
-//                                    double maxHightTemp = qMax(heightTemp1, heightTemp2);
-//                                    // 若最大高度变小，则将调换记录保存
-//                                    if(maxHightTemp < currentMaxHight){
-//                                        //qDebug() << "最大高度变小，则将调换记录保存";
-//                                        // 如果高度值不相同，直接保存
-//                                        if(!map.contains(maxHightTemp)){
-//                                            //qDebug() << "高度值不相同，直接保存maxHeightTemp: "<<maxHightTemp;
-//                                            map.insert(maxHightTemp, n);
-//                                        } else {// 如果高度值相同，则保存宽度较大的，这样可提高材料利用率
-//                                            //qDebug() <<"高度值相同,存在map[maxHightTemp]:\t " << maxHightTemp << "  " << map[maxHightTemp];
-//                                            if(layRects[n].width > map[maxHightTemp]){
-//                                                //qDebug() << "替换map[maxHightTemp]为: " << n;
-//                                                map[maxHightTemp] = n;
-//                                            }
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                            QMap<double, int>::iterator it;
-//                            for(it=map.begin(); it!=map.end(); it++){
-//                                //qDebug() << it.key() <<"\t" << it.value();
-//                            }
-
-//                            ////qDebug() << "map count: " << map.count();
-//                            // 如果map不为空
-//                            if(map.count()){
-//                                // 比较调换记录中最大高度值，取最小者进行调换
-//                                // 由于map具有对key自动排序，所以取map的首记录
-//                                int exchangeIndex = map.begin().value();
-
-//                                // 还原该位置
-//                                //qDebug() <<  index << "与第" << exchangeIndex << "个矩形(" << layRects[exchangeIndex].position << ")交换";
-//                                updateHightProfileLine(new BaseLine(layRects[exchangeIndex].upper()));
-//                                updateHightProfileLine(new BaseLine(layRects[exchangeIndex].lower()));
-
-//                                // 调换位置，直接改变两矩形的位置坐标即可
-//                                layRects[exchangeIndex].exchange(*currentRect);
-//                                //qDebug() << "更换后该矩形位置： " << currentRect->position;
-//                                //qDebug() << "更换后交换矩形位置： " << layRects[exchangeIndex].position;
-
-//                                // 更新最大高度及最高轮廓线
-//                                currentMaxHight = map.begin().key();
-//                                updateHightProfileLine(new BaseLine(layRects[exchangeIndex].upper()));
-//                                updateHightProfileLine(new BaseLine(layRects[exchangeIndex].lower()));
-//                            }
-//                            else{
-//                                //qDebug() << "该矩形不用更换位置";
-//                            }
-//                        }
-//                        else{
-//                            //qDebug() << "已排零件集合为空, 直接排放";
-//                        }
-//                    }
-
-//                    breakFlag = true;
-//                    break;
-//                }
-//                lowestLine = lowestLine->next;
-//            }
-//            if(breakFlag){
-//                break;
-//            }
-//            // 寻找比最低水平线高的最近的水平线集合
-//            qDebug() << "-------寻找比最低水平线高的最近的水平线集合 start------";
-//            minNode = NULL;//highestProfileLine.findMinLargerAVL(minNode);
-//            qDebug() << "-------寻找比最低水平线高的最近的水平线集合 end------";
-//            qDebug() << "";
-//            if(minNode){
-//                qDebug() << "该线段的宽度小于排入零件的宽度,寻找比最低水平线高的最近的水平线集合: " << minNode->data->line();
-//            } else{
-//                qDebug() << "寻找比最低水平线高的最近的水平线集合---------为空";
-//            }
-//        }
-
-//        // 如果未找到合适位置，即未排放，则需要在某高度上
-//        if(!lay){
-//            qDebug() << "未找到该位置";
-////            continue;
-//        }
-//        // 将当前矩形加入到已排矩形集合中
-//        layRects.append(*currentRect);
-//        // 更新最大高度及最高轮廓线
-//        //qDebug() << "更新最大高度及最高轮廓线";
-//        //qDebug() << "最大高度：" << currentMaxHight;
-//        //qDebug() << "矩形上边界线：" << currentRect->upper();
-//        //qDebug() << "矩形下边界线：" << currentRect->lower();
-//        qDebug() << "-------------更新最大高度及最高轮廓线 start-------------";
-//        maxHight = currentMaxHight;
-//        updateHightProfileLine(new BaseLine(currentRect->upper()));
-//        updateHightProfileLine(new BaseLine(currentRect->lower()));
-//        qDebug() << "-------------更新最大高度及最高轮廓线 start-------------";
-//        qDebug() << "";
-        */
-
-        bool lay = false;  // 排放标识
         double currentMaxHight = maxHight;  // 记录最高高度
         for(int j=0; j<emptyRectArea.length();j++){
             EmptyRectArea lowestRect = emptyRectArea[j];
             if(lowestRect.width() >= rectWidth && lowestRect.height() >= rectHight){
                 // 如果该线段的宽度大于排入零件的宽度，则可排放该零件
                 // 更新排放标识，表明已排放
-                lay = true;
+                currentRect->layFlag = true;
 
                 // 将该零件排放在此位置
                 currentRect->position = lowestRect.leftBottom();
-
                 // 计算排放后的最大排样高度
                 currentMaxHight = qMax(maxHight,
                                        lowestRect.leftBottom().ry() + rectHight);
@@ -1399,8 +1572,9 @@ void RectNestEngine::layoutAlg(QVector<double> gVector)
         }
 
         // 如果未找到合适位置，即未排放，则需要在某高度上
-        if(!lay){
-            qDebug() << "未找到该位置";
+        if(!currentRect->layFlag){
+            qDebug() << "未找合适位置摆放";
+            return;
         }
 
         maxHight = currentMaxHight;  // 更新最大高度

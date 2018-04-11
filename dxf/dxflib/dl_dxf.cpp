@@ -2532,6 +2532,7 @@ void DL_Dxf::writeVertex(DL_WriterA& dw,
  */
 void DL_Dxf::writePolylineEnd(DL_WriterA& dw) {
     if (version==DL_VERSION_2000) {
+        dw.entity("SEQEND");   // 暂时加上
     } else {
         dw.entity("SEQEND");
     }
@@ -2680,7 +2681,7 @@ void DL_Dxf::writeEllipse(DL_WriterA& dw,
                           const DL_EllipseData& data,
                           const DL_Attributes& attrib) {
 
-    if (version>DL_VERSION_R12) {
+    if (version>=DL_VERSION_R12) {
         dw.entity("ELLIPSE");
         if (version==DL_VERSION_2000) {
             dw.dxfString(100, "AcDbEntity");
@@ -4357,6 +4358,8 @@ void DL_Dxf::writeBlockRecord(DL_WriterA& dw, const std::string& name) {
 void DL_Dxf::writeObjects(DL_WriterA& dw, const std::string& appDictionaryName) {
     dw.dxfString(  0, "SECTION");
     dw.dxfString(  2, "OBJECTS");
+
+
     dw.dxfString(  0, "DICTIONARY");
     dw.dxfHex(5, 0xC);
     dw.dxfString(100, "AcDbDictionary");

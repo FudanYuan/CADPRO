@@ -8,6 +8,8 @@
 #include <QRectF>
 #include <QVector>
 #include <QMap>
+#include "sheet.h"
+#include "sheet.h"
 #include "GA.h"
 #include "configure.h"
 #include "project.h"
@@ -27,58 +29,6 @@ class Nest : public QMainWindow
 {
     Q_OBJECT
 public:
-    // 材料
-    struct Material
-    {
-        enum MaterialType{
-            Whole = 1,
-            Strip = 2
-        };
-        Material() :
-            name(""),
-            type(Whole),
-            constitute(""),
-            width(1000),
-            height(INT_MAX),
-            area(INT_MAX),
-            componentGap(0),
-            topMargin(0),
-            rightMargin(0),
-            bottomMargin(0),
-            leftMargin(0),
-            layers(1),
-            margin(0),
-            doubleStrip(false),
-            cutPaneSize(INT_MAX),
-            layoutRect(QRectF(leftMargin, topMargin,
-                        (width - leftMargin - rightMargin),
-                        (height - topMargin - bottomMargin)))
-        {}
-        QString name;  // 材料名称
-        MaterialType type;  // 材料类型
-        QString constitute; // 材料构成，非必填
-
-        qreal width; // 宽度
-        qreal height; // 长度
-        qreal area;  // 面积
-
-        qreal componentGap; // 零件之间的间距
-        qreal topMargin; // 与上边框的间距
-        qreal rightMargin; // 与右边框的间距
-        qreal bottomMargin; // 与下边框的间距
-        qreal leftMargin; // 与左边框的间距
-
-        int layers;  // 切割层数
-
-        // 以下在type为Strip时使用
-        qreal margin;  // 上插补强边距余量
-        bool doubleStrip;  // 双上插条板
-        double cutPaneSize;  // 切割平面尺寸
-
-        // 材料的有效区域
-        QRectF layoutRect;
-    };
-
     // 零件
     struct Component
     {
@@ -104,6 +54,19 @@ public:
         int count;  // 零件个数
     };
 
+    struct ProSheetMap
+    {
+        ProSheetMap(QString name) :
+            projectName(name)
+        {
+
+        }
+        QString projectName; // 项目名称
+        QList<Sheet*> sheetList;  // 材料列表
+        QList<qreal> pieceNumList;  // 切割件数量
+        QList<qreal> usageList;  // 材料使用率列表
+    };
+
     explicit Nest(QWidget *parent = 0);
     ~Nest();
 
@@ -118,7 +81,8 @@ public:
     void initProjectView();  // 初始化项目视图
     void initPieceView();  // 初始化切割件视图
     void addProject();  // 添加项目
-    void initMaterial();  // 初始化材料
+    void initSheet();  // 初始化材料
+    void updateSheetTree();  // 更新材料树
     void initRectNestEngine();  // 初始化矩形排版引擎
     void showNestResult();  // 显示排版结果
     QString getNewProjectName();  // 获取新项目名称
@@ -139,7 +103,8 @@ private:
     QMap<QString, int> nestNum; // 每个图形的个数
     View *pieceView;  // 切割件视图
     Scene *pieceScene;   // 切割件图层
-    Material material;  // 当前使用材料
+    QMap<QString, ProSheetMap*> proSheetMap;  // 使用材料列表
+    Sheet* curSheet;  // 当前使用材料
 
     QWidget *widget;
     QLabel *label;
@@ -213,6 +178,9 @@ private:
     QTreeWidgetItem *tree_project_active_item; // 弹出菜单属于的那个项目
     QTreeWidgetItem *tree_project_scene_active_item; // 弹出菜单属于的那个项目的图层
 
+    QTreeWidget *tree_sheet;       // 材料树
+    QList<QTreeWidgetItem *> tree_sheet_item_list; // 材料树列表
+
     QMenu *menu_tree;
     QAction *action_tree_expand_all;
     QAction *action_tree_fold_all;
@@ -237,9 +205,13 @@ private:
     QAction *action_tree_project_scene_move_down_one;
     QAction *action_tree_project_scene_move_down_bottom;
     QAction *action_tree_project_scene_delete;
+
 public slots:
     void onProjectNameChanged(QString lastName, QString presentName);  // 响应项目名称改变
     void onMousePositionChanged(QPointF pos);  // 鼠标位置更新
+
+protected:
+    void closeEvent(QCloseEvent *event);
 
 private slots:
     // FILE
@@ -253,6 +225,25 @@ private slots:
     void onActionFilePrintSetup();      //打印设置
     void onActionFileConfiguration();   // 系统配置操作
     void onActionFileExit();            // 退出提示保存
+
+    void onActionEditUndo();            // 撤销上个操作
+    void onActionEditRedo();            // 重做撤销操作
+    void onActionEditClear();           // 清空
+    void onActionEditDelete();          // 删除
+    void onActionEditCut();             // 剪切
+    void onActionEditCopy();            // 复制
+    void onActionEditPaste();           // 粘贴
+
+    void onActionSheetManager();        // 材料管理
+    void onActionSheetAdd();            // 增加材料
+    void onActionSheetRemove();         // 删除材料
+    void onActionSheetDuplicate();      // 重复材料
+    void onActionSheetAutoDuplicate();  // 自动重复材料
+    void onActionSheetPrevious();       // 上一张材料
+    void onActionSheetNext();           // 下一张材料
+    void onActionSheetSheetNumber();    // 输入材料序号
+    void onActionSheetUseLastSheet();   // 使用上一张材料
+    void onActionSheetProperty();       // 材料属性
 
     void onActionTreeExpandAll();
     void onActionTreeFoldAll();
@@ -291,7 +282,8 @@ public:
             area(0.0),
             ratio(0.0),
             index(-1),
-            rotate(false)
+            rotate(false),
+            layFlag(false)
         {}
 
         MinRect(qreal w, qreal h, int i, bool r, int id) :
@@ -384,8 +376,8 @@ public:
         qreal ratio;  // 长宽比
         int index;  // 矩形序号
         bool rotate;  // 是否旋转90*，统一逆时针
-
         int componentId;  // 对应的切割件的id
+        bool layFlag;
     };
 
     // 空白区域

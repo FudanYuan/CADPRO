@@ -15,6 +15,7 @@ class Polyline : public Shape, public QGraphicsPathItem
     Q_OBJECT
 public:
     enum Type{
+        none = 0,
         line = 1,
         curve = 2,
         cubic = 3
@@ -28,8 +29,9 @@ public:
 //    QRectF boundingRect() const Q_DECL_OVERRIDE;
     QPainterPath shape() const Q_DECL_OVERRIDE;
 
-    void setPolyline(QList<QPointF> pList, int flag, qreal ele, qreal angle=0, const QPointF off=QPointF());
+    void setPolyline(QList<QPointF> pList, int flag, qreal ele=0, qreal angle=0, const QPointF off=QPointF());
 
+    void setPoints(const QList<QPointF> &value);
     QList<QPointF> getPoints();  // 获取点
 
     void setType(Type type);  // 设置类型
@@ -37,6 +39,8 @@ public:
 
     void setElevation(qreal elevation);  // 设置高程
     qreal getElevation();  // 获取高程
+
+    Polyline *copy();
 protected:
     //鼠标事件
     void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;

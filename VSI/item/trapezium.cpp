@@ -18,6 +18,11 @@ Trapezium::Trapezium(QGraphicsItem *parent) :
     setAcceptDrops(true);
     // 设置图元为可接受hover事件
     setAcceptHoverEvents(true);
+    trapeziumAlpha1 = 60;//角度1
+    trapeziumAlpha2 = 60;//角度2
+    trapeziumH = 100;//高
+    trapeziumToplength = 100;//上底
+    trapeziumType = 1;//是否插入一半
 }
 
 void Trapezium::startDraw(QGraphicsSceneMouseEvent *event)
@@ -60,20 +65,20 @@ void Trapezium::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     QPainterPath path;
     QPointF sPoint;
     //画出一半的梯形
-    if(trapezium_type == 2){
+    if(trapeziumType == 2){
         path.moveTo(cPoint);
-        if(trapezium_alpha1<=90)
+        if(trapeziumAlpha1<=90)
         {
-            sPoint.setX(cPoint.rx()+trapezium_toplength+trapezium_H/(qTan(M_PI*trapezium_alpha1/180)));sPoint.setY(cPoint.ry());
+            sPoint.setX(cPoint.rx()+trapeziumToplength+trapeziumH/(qTan(M_PI*trapeziumAlpha1/180)));sPoint.setY(cPoint.ry());
         }
         else
         {
-            sPoint.setX(cPoint.rx()+trapezium_toplength-trapezium_H/(qTan(M_PI*(180-trapezium_alpha1)/180)));sPoint.setY(cPoint.ry());
+            sPoint.setX(cPoint.rx()+trapeziumToplength-trapeziumH/(qTan(M_PI*(180-trapeziumAlpha1)/180)));sPoint.setY(cPoint.ry());
         }
         path.lineTo(sPoint);
-        sPoint.setX(cPoint.rx()+trapezium_toplength);sPoint.setY(cPoint.ry()-trapezium_H);
+        sPoint.setX(cPoint.rx()+trapeziumToplength);sPoint.setY(cPoint.ry()-trapeziumH);
         path.lineTo(sPoint);
-        sPoint.setX(cPoint.rx());sPoint.setY(cPoint.ry()-trapezium_H);
+        sPoint.setX(cPoint.rx());sPoint.setY(cPoint.ry()-trapeziumH);
         path.lineTo(sPoint);
         path.lineTo(cPoint);
         painter->drawPath(path);
@@ -81,32 +86,32 @@ void Trapezium::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
         painter->drawPoint(cPoint);
     }
     //画出整个梯形
-    if(trapezium_type == 1){
+    if(trapeziumType == 1){
 
         path.moveTo(cPoint);
-        if(trapezium_alpha1<=90)
+        if(trapeziumAlpha1<=90)
         {
-            sPoint.setX(cPoint.rx()+trapezium_toplength/2+trapezium_H/(qTan(M_PI*trapezium_alpha1/180)));sPoint.setY(cPoint.ry());
+            sPoint.setX(cPoint.rx()+trapeziumToplength/2+trapeziumH/(qTan(M_PI*trapeziumAlpha1/180)));sPoint.setY(cPoint.ry());
         }
         else
         {
-            sPoint.setX(cPoint.rx()+trapezium_toplength/2-trapezium_H/(qTan(M_PI*(180-trapezium_alpha1)/180)));sPoint.setY(cPoint.ry());
+            sPoint.setX(cPoint.rx()+trapeziumToplength/2-trapeziumH/(qTan(M_PI*(180-trapeziumAlpha1)/180)));sPoint.setY(cPoint.ry());
         }
         path.lineTo(sPoint);
-        sPoint.setX(cPoint.rx()+trapezium_toplength/2);sPoint.setY(cPoint.ry()-trapezium_H);
+        sPoint.setX(cPoint.rx()+trapeziumToplength/2);sPoint.setY(cPoint.ry()-trapeziumH);
         path.lineTo(sPoint);
-        sPoint.setX(cPoint.rx());sPoint.setY(cPoint.ry()-trapezium_H);
+        sPoint.setX(cPoint.rx());sPoint.setY(cPoint.ry()-trapeziumH);
         path.lineTo(sPoint);
-        sPoint.setX(cPoint.rx()-trapezium_toplength/2);sPoint.setY(cPoint.ry()-trapezium_H);
+        sPoint.setX(cPoint.rx()-trapeziumToplength/2);sPoint.setY(cPoint.ry()-trapeziumH);
         path.lineTo(sPoint);
 
-        if(trapezium_alpha2<=90)
+        if(trapeziumAlpha2<=90)
         {
-            sPoint.setX(cPoint.rx()-trapezium_toplength/2-trapezium_H/(qTan(M_PI*trapezium_alpha2/180)));sPoint.setY(cPoint.ry());
+            sPoint.setX(cPoint.rx()-trapeziumToplength/2-trapeziumH/(qTan(M_PI*trapeziumAlpha2/180)));sPoint.setY(cPoint.ry());
         }
         else
         {
-            sPoint.setX(cPoint.rx()-trapezium_toplength/2+trapezium_H/(qTan(M_PI*(180-trapezium_alpha2)/180)));sPoint.setY(cPoint.ry());
+            sPoint.setX(cPoint.rx()-trapeziumToplength/2+trapeziumH/(qTan(M_PI*(180-trapeziumAlpha2)/180)));sPoint.setY(cPoint.ry());
         }
         path.lineTo(sPoint);
         path.lineTo(cPoint);
@@ -216,54 +221,54 @@ void Trapezium::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
     }
 }
 
-double Trapezium::getTrapezium_type() const
+double Trapezium::getTrapeziumType() const
 {
-    return trapezium_type;
+    return trapeziumType;
 }
 
-void Trapezium::setTrapezium_type(double value)
+void Trapezium::setTrapeziumType(double value)
 {
-    trapezium_type = value;
+    trapeziumType = value;
 }
 
-double Trapezium::getTrapezium_toplength() const
+double Trapezium::getTrapeziumToplength() const
 {
-    return trapezium_toplength;
+    return trapeziumToplength;
 }
 
-void Trapezium::setTrapezium_toplength(double value)
+void Trapezium::setTrapeziumToplength(double value)
 {
-    trapezium_toplength = value;
+    trapeziumToplength = value;
 }
 
-double Trapezium::getTrapezium_H() const
+double Trapezium::getTrapeziumH() const
 {
-    return trapezium_H;
+    return trapeziumH;
 }
 
-void Trapezium::setTrapezium_H(double value)
+void Trapezium::setTrapeziumH(double value)
 {
-    trapezium_H = value;
+    trapeziumH = value;
 }
 
-double Trapezium::getTrapezium_alpha2() const
+double Trapezium::getTrapeziumAlpha2() const
 {
-    return trapezium_alpha2;
+    return trapeziumAlpha2;
 }
 
-void Trapezium::setTrapezium_alpha2(double value)
+void Trapezium::setTrapeziumAlpha2(double value)
 {
-    trapezium_alpha2 = value;
+    trapeziumAlpha2 = value;
 }
 
-double Trapezium::getTrapezium_alpha1() const
+double Trapezium::getTrapeziumAlpha1() const
 {
-    return trapezium_alpha1;
+    return trapeziumAlpha1;
 }
 
-void Trapezium::setTrapezium_alpha1(double value)
+void Trapezium::setTrapeziumAlpha1(double value)
 {
-    trapezium_alpha1 = value;
+    trapeziumAlpha1 = value;
 }
 
 void Trapezium::onSceneMoveableChanged(bool moveable)

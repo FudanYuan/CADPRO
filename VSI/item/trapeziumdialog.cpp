@@ -7,6 +7,11 @@
 //! [0]
 TrapeziumDialog::TrapeziumDialog()
 {
+    alp1=60;
+    alp2=60;
+    HSize=50;
+    topLengthSize=50;
+    trapeziumDialogType=1;//没选择插入一半
     intidialog();
 }
 
@@ -31,8 +36,8 @@ void TrapeziumDialog::intidialog()
 
 
     //将绘图区域和各种信息输入框加入布局
-    paint_place = new RenderArea(this,2,getTrapezium_dialog_type());//显示绘图区域
-    layout1->addWidget(paint_place);
+    paintPlace = new RenderArea(this,2,getTrapeziumDialogType());//显示绘图区域
+    layout1->addWidget(paintPlace);
     layout1->addWidget(topGroupBox);
 
 
@@ -53,48 +58,48 @@ void TrapeziumDialog::creatlayout3()
      topGroupBox->setMinimumSize(250,230);
 
      alpha1 = new QLabel(tr("角度1"));//梯形的第一个角度
-     alpha1_edit = new QLineEdit;
-     alpha1_edit->setText(tr("60"));
+     alpha1Edit = new QLineEdit;
+     alpha1Edit->setText(tr("60"));
 
      alpha2 = new QLabel(tr("角度2"));;//梯形的第二个角度
-     alpha2_edit = new QLineEdit;
-     alpha2_edit->setText(tr("60"));
+     alpha2Edit = new QLineEdit;
+     alpha2Edit->setText(tr("60"));
      H = new QLabel(tr("梯形高度"));//梯形的高度H
-     H_edit = new QLineEdit;
-     H_edit->setText(tr("100"));
-     top_length = new QLabel(tr("梯形上底"));//梯形的上底
-     top_length_edit = new QLineEdit;
-     top_length_edit->setText(tr("100"));
+     HEdit = new QLineEdit;
+     HEdit->setText(tr("100"));
+     topLength = new QLabel(tr("梯形上底"));//梯形的上底
+     topLengthEdit = new QLineEdit;
+     topLengthEdit->setText(tr("100"));
 
-     choose_check = new QCheckBox(tr("插入一半"));
+     chooseCheck = new QCheckBox(tr("插入一半"));
 
-     line_type = new QLabel(tr("线类型"));
-     line_type_choose =new QComboBox;
-     line_type->setBuddy(line_type_choose);
-     line_type_choose->addItem(tr("通用"));
-     line_type_choose->addItem(tr("标记"));
-     line_type_choose->addItem(tr("周长"));
-     line_type_choose->addItem(tr("切割"));
-     line_type_choose->addItem(tr("缝线"));
+     lineType = new QLabel(tr("线类型"));
+     lineTypeChoose =new QComboBox;
+     lineType->setBuddy(lineTypeChoose);
+     lineTypeChoose->addItem(tr("通用"));
+     lineTypeChoose->addItem(tr("标记"));
+     lineTypeChoose->addItem(tr("周长"));
+     lineTypeChoose->addItem(tr("切割"));
+     lineTypeChoose->addItem(tr("缝线"));
 
-     QObject::connect(alpha1_edit,SIGNAL(textChanged(QString)),this,SLOT(onalpha1change()));
-     QObject::connect(alpha2_edit,SIGNAL(textChanged(QString)),this,SLOT(onalpha2change()));
-     QObject::connect(H_edit,SIGNAL(textChanged(QString)),this,SLOT(onHchange()));
-     QObject::connect(top_length_edit,SIGNAL(textChanged(QString)),this,SLOT(ontop_lengthchange()));
-     QObject::connect(line_type_choose,SIGNAL(activated(QString)),this,SLOT(online_typechange()));
-     QObject::connect(choose_check,SIGNAL(stateChanged (int)),this,SLOT(onchoose_checkchange()));
+     QObject::connect(alpha1Edit,SIGNAL(textChanged(QString)),this,SLOT(onalpha1change()));
+     QObject::connect(alpha2Edit,SIGNAL(textChanged(QString)),this,SLOT(onalpha2change()));
+     QObject::connect(HEdit,SIGNAL(textChanged(QString)),this,SLOT(onHchange()));
+     QObject::connect(topLengthEdit,SIGNAL(textChanged(QString)),this,SLOT(ontopLengthchange()));
+     QObject::connect(lineTypeChoose,SIGNAL(activated(QString)),this,SLOT(onlineTypechange()));
+     QObject::connect(chooseCheck,SIGNAL(stateChanged (int)),this,SLOT(onchooseCheckchange()));
 
      layout3->addWidget(alpha1,0,0,1,1);
-     layout3->addWidget(alpha1_edit,0,1,1,1);
+     layout3->addWidget(alpha1Edit,0,1,1,1);
      layout3->addWidget(alpha2,0,2,1,1);
-     layout3->addWidget(alpha2_edit,0,3,1,1);
+     layout3->addWidget(alpha2Edit,0,3,1,1);
      layout3->addWidget(H,1,0,1,1);
-     layout3->addWidget(H_edit,1,1,1,1);
-     layout3->addWidget(top_length,2,0,1,1);
-     layout3->addWidget(top_length_edit,2,1,1,1);
-     layout3->addWidget(choose_check,2,2,1,3);
-     layout3->addWidget(line_type,3,0,1,1);
-     layout3->addWidget(line_type_choose,3,1,1,2);
+     layout3->addWidget(HEdit,1,1,1,1);
+     layout3->addWidget(topLength,2,0,1,1);
+     layout3->addWidget(topLengthEdit,2,1,1,1);
+     layout3->addWidget(chooseCheck,2,2,1,3);
+     layout3->addWidget(lineType,3,0,1,1);
+     layout3->addWidget(lineTypeChoose,3,1,1,2);
 
      layout3->setColumnStretch(0,10);
      layout3->setColumnStretch(1,10);
@@ -124,24 +129,24 @@ void TrapeziumDialog::setAlp2(double value)
     alp2 = value;
 }
 
-double TrapeziumDialog::getH_size() const
+double TrapeziumDialog::getHSize() const
 {
-    return H_size;
+    return HSize;
 }
 
-void TrapeziumDialog::setH_size(double value)
+void TrapeziumDialog::setHSize(double value)
 {
-    H_size = value;
+    HSize = value;
 }
 
-double TrapeziumDialog::getTop_length_size() const
+double TrapeziumDialog::getTopLengthSize() const
 {
-    return top_length_size;
+    return topLengthSize;
 }
 
-void TrapeziumDialog::setTop_length_size(double value)
+void TrapeziumDialog::setTopLengthSize(double value)
 {
-    top_length_size = value;
+    topLengthSize = value;
 }
 
 bool TrapeziumDialog::getOk() const
@@ -154,14 +159,14 @@ void TrapeziumDialog::setOk(bool value)
     ok = value;
 }
 
-int TrapeziumDialog::getTrapezium_dialog_type() const
+int TrapeziumDialog::getTrapeziumDialogType() const
 {
-    return trapezium_dialog_type;
+    return trapeziumDialogType;
 }
 
-void TrapeziumDialog::setTrapezium_dialog_type(int value)
+void TrapeziumDialog::setTrapeziumDialogType(int value)
 {
-    trapezium_dialog_type = value;
+    trapeziumDialogType = value;
 }
 
 int TrapeziumDialog::getPenstyle() const
@@ -188,44 +193,44 @@ void TrapeziumDialog::onclickedcancel()
 
 void TrapeziumDialog::onalpha1change()
 {
-    this->setAlp1(alpha1_edit->text().toDouble());
+    this->setAlp1(alpha1Edit->text().toDouble());
 //    qDebug()<<"角度1:"<<alpha1_edit->text().toDouble();
 }
 
 void TrapeziumDialog::onalpha2change()
 {
-    this->setAlp2(alpha2_edit->text().toDouble());
+    this->setAlp2(alpha2Edit->text().toDouble());
 //    qDebug()<<"角度2:"<<alpha2_edit->text().toDouble();
 }
 
 void TrapeziumDialog::onHchange()
 {
-    this->setH_size(H_edit->text().toDouble());
+    this->setHSize(HEdit->text().toDouble());
 //    qDebug()<<"高:"<<H_edit->text().toDouble();
 }
 
-void TrapeziumDialog::ontop_lengthchange()
+void TrapeziumDialog::ontopLengthchange()
 {
-    this->setTop_length_size(top_length_edit->text().toDouble());
+    this->setTopLengthSize(topLengthEdit->text().toDouble());
 //    qDebug()<<"上底:"<<top_length_edit->text().toDouble();
 }
 
-void TrapeziumDialog::online_typechange()
+void TrapeziumDialog::onlineTypechange()
 {
-    int line=line_type_choose->currentIndex();
+    int line=lineTypeChoose->currentIndex();
     this->setPenstyle(line);
 }
 
-void TrapeziumDialog::onchoose_checkchange()
+void TrapeziumDialog::onchooseCheckchange()
 {
-    if(choose_check->isChecked())
+    if(chooseCheck->isChecked())
     {
-        paint_place->setTrapezium_dialog_type(2);
-        this->setTrapezium_dialog_type(2);
+        paintPlace->setTrapeziumDialogType(2);
+        this->setTrapeziumDialogType(2);
     }
     else
     {
-        paint_place->setTrapezium_dialog_type(1);
-        this->setTrapezium_dialog_type(1);
+        paintPlace->setTrapeziumDialogType(1);
+        this->setTrapeziumDialogType(1);
     }
 }

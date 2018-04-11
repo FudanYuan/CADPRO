@@ -4,6 +4,11 @@
 #endif // DEBUG_H
 
 #define DEBUG
+
+#if 0
+#define PROJECTDEBUG
+#endif
+
 #if 0
 #define NESTDEBUG
 #endif
@@ -11,3 +16,9 @@
 #if 0
 #define DXFDEBUG
 #endif
+
+#if 0
+#define DXF_WRITE_DEBUG
+#endif
+
+#define DISCARD_DXF_ENTITY_PROPERTITY  // 丢掉dxf文件中的实体属性

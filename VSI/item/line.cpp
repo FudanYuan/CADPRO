@@ -10,7 +10,8 @@ Line::Line(QGraphicsItem *parent) :
     crossCircleR(2),
     arrowSize(5),
     sPointEdit(false),
-    ePointEdit(false)
+    ePointEdit(false),
+    itemp(false)
 {
     setShapeType(Shape::Line);
     // 设置图元为可焦点的
@@ -21,6 +22,7 @@ Line::Line(QGraphicsItem *parent) :
     setAcceptDrops(true);
     // 设置图元为可接受hover事件
     setAcceptHoverEvents(true);
+    lineproperties =new ItemProperties;
 }
 
 void Line::startDraw(QGraphicsSceneMouseEvent *event)
@@ -31,8 +33,6 @@ void Line::startDraw(QGraphicsSceneMouseEvent *event)
     pen.setWidthF(penStyle.width);
     setPen(pen);
     sPoint = event->scenePos();
-    ePoint = event->scenePos();
-    overFlag = true;  // 马上就要结束
 }
 
 void Line::drawing(QGraphicsSceneMouseEvent *event)
@@ -46,6 +46,11 @@ void Line::drawing(QGraphicsSceneMouseEvent *event)
         }
     } else{
         ePoint = event->scenePos();
+        if(ePoint == sPoint){
+            overFlag = false;
+            return;
+        }
+        overFlag = true;
     }
 
     QLineF newLine(sPoint, ePoint);
@@ -61,7 +66,6 @@ bool Line::updateFlag(QGraphicsSceneMouseEvent *event)
 
 void Line::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    Q_UNUSED(option);
     Q_UNUSED(widget);
     scaleFactor =  painter->matrix().m11();
     // 获取到当前的线宽，这里的线宽其实还是之前设置的线宽值;
@@ -109,8 +113,8 @@ void Line::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
         brush.setColor(selectedEntity.color);
         brush.setStyle(Qt::SolidPattern);
         painter->setBrush(brush);
-        drawRectPoint(painter, sPoint, objSize.knotSizeInPix);
-        drawRectPoint(painter, ePoint, objSize.knotSizeInPix);
+        drawRectPoint(painter, sPoint, objSize.knotSizeInPix / scaleFactor);
+        drawRectPoint(painter, ePoint, objSize.knotSizeInPix / scaleFactor);
     }
 
     painter->restore();
@@ -123,7 +127,11 @@ void Line::setCustomLine(const QLineF &line)
     pen.setStyle(penStyle.style);
     pen.setWidthF(penStyle.width);
     setPen(pen);
+
+    sPoint = line.p1();
+    ePoint = line.p2();
     setLine(line);
+    update();
 }
 
 void Line::setCrossSize(qreal size)
@@ -154,6 +162,13 @@ void Line::setArrowSize(qreal size)
 qreal Line::getArrowSize()
 {
     return this->arrowSize;
+}
+
+Line *Line::copy()
+{
+    Line *l = new Line(this);
+    l->setLine(QLineF(sPoint.rx(), sPoint.ry(), ePoint.rx(), ePoint.ry()));
+    return l;
 }
 
 qreal Line::getPerimeter()
@@ -282,3 +297,12 @@ void Line::onSceneMoveableChanged(bool moveable)
     setFlag(QGraphicsItem::ItemIsMovable, moveable);
 }
 
+void Line::typechange()
+{
+//    qDebug()<<"状态改变了";
+    itemp = this->lineproperties->getOk();
+    if(itemp)
+    {
+        this->setPen(this->lineproperties->getPen());
+    }
+}

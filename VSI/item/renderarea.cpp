@@ -8,8 +8,8 @@
 RenderArea::RenderArea(QWidget *parent,int value,int tra_dialog_type)
     : QWidget(parent)
 {
-    dialog_type = value;
-    trapezium_dialog_type = tra_dialog_type;
+    dialogType = value;
+    trapeziumDialogType = tra_dialog_type;
 
     QFont newFont = font();
     newFont.setPixelSize(12);
@@ -19,10 +19,10 @@ RenderArea::RenderArea(QWidget *parent,int value,int tra_dialog_type)
 RenderArea::RenderArea(QWidget *parent, int lin, double alp,int typ,int value)
     : QWidget(parent)
 {
-    line_num=lin;
+    lineNum=lin;
     alpha=alp;
     type=typ;
-    dialog_type = value;
+    dialogType = value;
     QFont newFont = font();
     newFont.setPixelSize(12);
     setFont(newFont);
@@ -48,7 +48,7 @@ void RenderArea::paintEvent(QPaintEvent *event)
 
 void RenderArea::drawpolygon(QPainter &painter)
 {
-    int num = line_num;
+    int num = lineNum;
     double angle=alpha;
     int r=100;
 //    qDebug()<<"边数"<<num;
@@ -87,7 +87,7 @@ void RenderArea::drawtrapezium(QPainter &painter)
     int top_length=100;//上底
 
     //画出整个梯形
-    if(trapezium_dialog_type == 2){
+    if(trapeziumDialogType == 2){
 
         QPointF cpoint;cpoint.setX(100);cpoint.setY(160);//显示的中点
         QPainterPath path;
@@ -109,7 +109,7 @@ void RenderArea::drawtrapezium(QPainter &painter)
         painter.setPen(Qt::DotLine);
     }
     //画出一半的梯形
-    if(trapezium_dialog_type == 1){
+    if(trapeziumDialogType == 1){
         QPointF cpoint;cpoint.setX(150);cpoint.setY(160);//显示的中点
         QPainterPath path;
 
@@ -138,25 +138,51 @@ void RenderArea::drawtrapezium(QPainter &painter)
     }
 }
 
-int RenderArea::getTrapezium_dialog_type() const
+void RenderArea::draweyelet(QPainter &painter)
 {
-    return trapezium_dialog_type;
+    QPointF cPoint;cPoint.setX(80);cPoint.setY(160);//显示的中点
+
+    int width = 150;//鸡眼孔宽度
+    int height = 100;//鸡眼孔高度
+    QPointF sPoint;
+    QPainterPath path;
+
+    sPoint.setX(cPoint.rx()+width);sPoint.setY(cPoint.ry());
+    path.moveTo(cPoint);
+    path.lineTo(sPoint);
+    path.arcTo(cPoint.rx()+width-height/2,cPoint.ry()-height,height,height,-90,180);//图形左上角为点，宽和高，以某个角度开始，划过多少度
+    sPoint.setX(cPoint.rx());sPoint.setY(cPoint.ry()-height);
+    path.lineTo(sPoint);
+    path.arcTo(cPoint.rx()-height/2,cPoint.ry()-height,height,height,90,180);
+    painter.setPen(Qt::SolidLine);
+    painter.drawPath(path);
+
+    path.lineTo(cPoint.rx(),cPoint.ry()-height);
+    path.moveTo(cPoint.rx()+width,cPoint.ry());
+    path.lineTo(cPoint.rx()+width,cPoint.ry()-height);
+    painter.setPen(Qt::DotLine);
+    painter.drawPath(path);
 }
 
-void RenderArea::setTrapezium_dialog_type(int value)
+int RenderArea::getTrapeziumDialogType() const
 {
-    trapezium_dialog_type = value;
+    return trapeziumDialogType;
+}
+
+void RenderArea::setTrapeziumDialogType(int value)
+{
+    trapeziumDialogType = value;
     update();
 }
 
-int RenderArea::getDialog_type() const
+int RenderArea::getDialogType() const
 {
-    return dialog_type;
+    return dialogType;
 }
 
-void RenderArea::setDialog_type(int value)
+void RenderArea::setDialogType(int value)
 {
-    dialog_type = value;
+    dialogType = value;
 }
 
 double RenderArea::getAlpha() const
@@ -181,28 +207,43 @@ void RenderArea::setType(int value)
     update();
 }
 
-int RenderArea::getLine_num() const
+int RenderArea::getLineNum() const
 {
-    return line_num;
+    return lineNum;
 }
 
-void RenderArea::setLine_num(int value)
+void RenderArea::setLineNum(int value)
 {
-    line_num = value;
+    lineNum = value;
     update();
 }
 
 void RenderArea::drawCoordinates(QPainter &painter)
 {
+    switch (dialogType) {
     //绘制正多边形的区域
-    if(dialog_type == 1){
+    case 1:
+    {
         drawpolygon(painter);
-        }
-
+        break;
+    }
     //绘制梯形的区域
-    if(dialog_type == 2){
+    case 2:
+    {
         drawtrapezium(painter);
-        }
-        return;
+        break;
+    }
+    //显示鸡眼孔
+    case 3:
+    {
+        draweyelet(painter);
+        break;
+    }
+    default:
+    {
+        break;
+    }
+    }
+    return;
 }
 

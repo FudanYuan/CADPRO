@@ -7,7 +7,8 @@
 
 Circle::Circle(QGraphicsItem *parent) :
     QGraphicsEllipseItem(parent),
-    filled(false)
+    filled(false),
+    crossSize(2)
 {
     setShapeType(Shape::Circle);
     // 设置图元为可焦点的
@@ -28,7 +29,6 @@ void Circle::startDraw(QGraphicsSceneMouseEvent *event)
     pen.setWidthF(penStyle.width);
     setPen(pen);
     cPoint = event->scenePos();
-    overFlag = true;
 }
 
 void Circle::drawing(QGraphicsSceneMouseEvent *event)
@@ -42,7 +42,10 @@ void Circle::drawing(QGraphicsSceneMouseEvent *event)
 
 bool Circle::updateFlag(QGraphicsSceneMouseEvent *event)
 {
-    Q_UNUSED(event);
+    sPoint = event->scenePos();
+    if(sPoint != cPoint){
+        overFlag = true;
+    }
     return overFlag;
 }
 
@@ -63,7 +66,8 @@ void Circle::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QW
     }
     painter->setPen(pen);
     painter->drawEllipse(cPoint, r, r);
-    drawCrossPoint(painter, cPoint, 5, upright);
+    crossSize /= scaleFactor;
+    drawCrossPoint(painter, cPoint, crossSize, upright);
 }
 
 void Circle::setCPoint(QPointF p)
@@ -94,10 +98,7 @@ void Circle::setCircle(qreal px, qreal py, qreal radius)
     pen.setWidthF(penStyle.width);
     setPen(pen);
 
-    QPointF cPoint, sPoint; // 圆心
-    qreal r; // 半径
-    cPoint.setX(px);
-    cPoint.setY(py);
+    cPoint = QPointF(px, py);
     sPoint = cPoint + QPointF(0, radius);
     r = radius;
     setRect(cPoint.rx()-r, cPoint.ry()-r, r*2, r*2);
@@ -107,6 +108,13 @@ void Circle::setCircle(qreal px, qreal py, qreal radius)
 Circle Circle::circle()
 {
 
+}
+
+Circle *Circle::copy()
+{
+    Circle *c = new Circle;
+    c->setCircle(cPoint.rx(), cPoint.ry(), r);
+    return c;
 }
 
 void Circle::setFilled(bool filled)

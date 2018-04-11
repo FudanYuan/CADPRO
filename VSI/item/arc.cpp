@@ -101,7 +101,7 @@ bool Arc::updateFlag(QGraphicsSceneMouseEvent *event)
         update();
         return false;
     }
-    if(!tFlag){// 确定第3个点
+    if(!tFlag){ // 确定第3个点
         tPoint = event->scenePos();
         tFlag = true;
         overFlag = true;
@@ -248,6 +248,13 @@ void Arc::setArc(qreal px, qreal py, qreal radius, qreal angle1, qreal angle2)
 Arc Arc::arc()
 {
 
+}
+
+Arc *Arc::copy()
+{
+    Arc *a = new Arc(this);
+    a->setArc(cPoint.rx(), cPoint.ry(), r, sAngle, eAngle);
+    return a;
 }
 
 void Arc::setType(Arc::Type type)

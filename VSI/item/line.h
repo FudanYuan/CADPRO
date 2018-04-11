@@ -5,6 +5,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include "shape.h"
 #include <QPointF>
+#include "itemproperties.h"
 
 class Line : public Shape, public QGraphicsLineItem
 {
@@ -17,6 +18,7 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
 
     void setCustomLine(const QLineF &line);
+    qreal getPerimeter();  // 获取周长
 
     void setCrossSize(qreal size);  // 设置交叉线大小
     qreal getCrossSize();  // 获取交叉线大小
@@ -27,7 +29,9 @@ public:
     void setArrowSize(qreal size);  // 设置箭头大小
     qreal getArrowSize();  // 获取箭头大小
 
-    qreal getPerimeter();  // 获取周长
+    Line *copy();
+
+    ItemProperties *lineproperties;
 protected:
     //鼠标事件
     void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
@@ -51,10 +55,13 @@ private:
     qreal arrowSize;  //  箭头大小
     bool sPointEdit;  // 更改起点
     bool ePointEdit;  // 更改终点
+
+    bool itemp;//属性改变
 signals:
     void select(Line *line);  // 图形被选择
 public slots:
     void onSceneMoveableChanged(bool moveable) Q_DECL_OVERRIDE;  //  响应场景可移动性改变
+    void typechange();
 };
 
 #endif // LINE_H

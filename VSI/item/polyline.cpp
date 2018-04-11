@@ -208,12 +208,17 @@ void Polyline::setPolyline(QList<QPointF> pList, int flag, qreal ele, qreal angl
     setPen(pen);
 
     points.append(pList);
-    type = (Type)flag;
+    type = (Type)(flag == 0 ? 1 : flag);
     elevation = ele;
     alpha = angle;
     offset = off;
     update();
     overFlag = true;
+}
+
+void Polyline::setPoints(const QList<QPointF> &value)
+{
+    points = value;
 }
 
 QList<QPointF> Polyline::getPoints()
@@ -239,6 +244,13 @@ void Polyline::setElevation(qreal elevation)
 qreal Polyline::getElevation()
 {
     return this->elevation;
+}
+
+Polyline *Polyline::copy()
+{
+    Polyline *p = new Polyline(this);
+    p->setPolyline(points, type, elevation, alpha, offset);
+    return p;
 }
 
 void Polyline::mousePressEvent(QGraphicsSceneMouseEvent *event)

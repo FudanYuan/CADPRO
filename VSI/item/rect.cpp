@@ -86,6 +86,17 @@ void Rect::rotateAndPaintRect(QPainter *painter, const QRect &rect, int angle) {
     painter->restore();
 }
 
+QList<QPointF> Rect::toPolyline()
+{
+    QList<QPointF> points;
+    points.append(this->rect().topLeft());
+    points.append(this->rect().topRight());
+    points.append(this->rect().bottomRight());
+    points.append(this->rect().bottomLeft());
+    points.append(this->rect().topLeft());
+    return points;
+}
+
 void Rect::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(selectable){
@@ -105,19 +116,19 @@ void Rect::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
 void Rect::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-    qDebug() << "Rect::mouseMoveEvent";
+//    qDebug() << "Rect::mouseMoveEvent";
     QGraphicsItem::mouseMoveEvent(event);
 }
 
 void Rect::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-    qDebug() << "Rect::mouseReleaseEvent";
+//    qDebug() << "Rect::mouseReleaseEvent";
     QGraphicsItem::mouseReleaseEvent(event);
 }
 
 void Rect::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
 {
-    qDebug() << "Rect::dragEnterEvent";
+//    qDebug() << "Rect::dragEnterEvent";
     QGraphicsItem::dragEnterEvent(event);
 }
 

@@ -5,6 +5,8 @@
 #include "configuredialog.h"
 #include "polygondialog.h"
 #include "trapeziumdialog.h"
+#include "itemproperties.h"
+#include "insertoffsetdialog.h"
 
 #include <QDockWidget>
 #include <QToolButton>
@@ -253,7 +255,7 @@ void Sketch::initActions()
 // ![3] 插入
     action_insert_offset = new QAction(tr("&偏移"), this);
     action_insert_offset->setStatusTip(tr("创建偏移"));
-    action_insert_offset->setDisabled(true);
+    action_insert_offset->setDisabled(false);
     connect(action_insert_offset, &QAction::triggered, this, &Sketch::onActionInsertOffset);
 
     action_insert_advanced_offset = new QAction(tr("&高级偏移"), this);
@@ -1322,7 +1324,6 @@ void Sketch::initDockWidget()
 
     // 绘图区不可移动、不可关闭、不可最小化
     dock_scene->setFeatures(QDockWidget::NoDockWidgetFeatures);
-
     // 将窗口添加至主窗口
     addDockWidget(Qt::LeftDockWidgetArea, dock_find_style);
     splitDockWidget(dock_find_style, dock_project, Qt::Horizontal);
@@ -1708,9 +1709,7 @@ void Sketch::onActionFilePrintSetup()
 void Sketch::onActionFileImportDXF()
 {
     qDebug() << "import dxf files";
-    QString fileName = QFileDialog::getOpenFileName(this,
-                                                    tr("打开DXF文件"),
-                                                    QDir::currentPath());
+    QString fileName = QFileDialog::getOpenFileName(this, tr("打开DXF文件"), QDir::currentPath());
     //fileName = "/Users/Jeremy/Desktop/项目/梁叔项目/画图+排版/素材/全套.dxf";
     if (!fileName.isEmpty()) {
         QFileInfo new_project = QFileInfo(fileName);
@@ -1737,7 +1736,6 @@ void Sketch::onActionFileImportDXF()
             item_scene->setCheckState(0, Qt::Checked);
         }
         scene_active = project_active->getScene(0);
-
         project_active->setActiveScene(scene_active);
         updateScene();
     }
@@ -1847,12 +1845,12 @@ void Sketch::onActionDrawTrapezium()
 
    if(trapezium_dialog->getOk())
    {
-     scene_active->setTrapezium_alpha1(trapezium_dialog->getAlp1());
-     scene_active->setTrapezium_alpha2(trapezium_dialog->getAlp2());
-     scene_active->setTrapezium_H(trapezium_dialog->getH_size());
-     scene_active->setTrapezium_toplength(trapezium_dialog->getTop_length_size());
-     scene_active->setTrapezium_type(trapezium_dialog->getTrapezium_dialog_type());
-     scene_active->setPolygon_type(trapezium_dialog->getPenstyle());//线类型
+     scene_active->settrapeziumAlpha1(trapezium_dialog->getAlp1());
+     scene_active->settrapeziumAlpha2(trapezium_dialog->getAlp2());
+     scene_active->settrapeziumH(trapezium_dialog->getHSize());
+     scene_active->settrapeziumToplength(trapezium_dialog->getTopLengthSize());
+     scene_active->settrapeziumType(trapezium_dialog->getTrapeziumDialogType());
+     scene_active->setpolygonType(trapezium_dialog->getPenstyle());//线类型
 
      scene_active->setCurShape(Shape::Trapezium);
    }
@@ -1868,10 +1866,10 @@ void Sketch::onActionDrawPolygon()
     polygondialog->exec();
     if(polygondialog->getOk())
     {
-        scene_active->setPolygon_line_num(polygondialog->getLen_num());
-        scene_active->setPolygon_radius(polygondialog->getRaduii());
-        scene_active->setPolygon_alpha(polygondialog->getAngle());
-        scene_active->setPolygon_type(polygondialog->getPenstyle());
+        scene_active->setpolygonLineNum(polygondialog->getLenNum());
+        scene_active->setpolygonRadius(polygondialog->getRaduii());
+        scene_active->setpolygonAlpha(polygondialog->getAngle());
+        scene_active->setpolygonType(polygondialog->getPenstyle());
         scene_active->setCurShape(Shape::Polygon);
     }
     else
@@ -1893,7 +1891,13 @@ void Sketch::onActionDrawReference()
 void Sketch::onActionDrawEyelet()
 {
     qDebug() << "draw an eyelet";
-    scene_active->setCurShape(Shape::Eyelet);
+    Eyelet *eyelet = new Eyelet;
+    eyelet->eyeletdialog->exec();
+    if(eyelet->eyeletdialog->getOk())
+    {
+        scene_active->setEyeletDialog(eyelet);
+        scene_active->setCurShape(Shape::Eyelet);
+    }
 }
 
 void Sketch::onActionDrawPatternDirection()
@@ -1975,6 +1979,11 @@ void Sketch::onActionDrawScannerVectorizeImage()
 void Sketch::onActionInsertOffset()
 {
     qDebug() << "创建偏移";
+    InsertOffsetDialog *insertoffsetdialog =new InsertOffsetDialog();
+    //设置窗口显示在最前面
+    insertoffsetdialog->setWindowFlags(insertoffsetdialog->windowFlags() | Qt::WindowStaysOnTopHint);
+    insertoffsetdialog->showNormal();
+    insertoffsetdialog->show();
 }
 
 void Sketch::onActionInsertAdvancedOffset()
@@ -1985,6 +1994,12 @@ void Sketch::onActionInsertAdvancedOffset()
 void Sketch::onActionInsertText()
 {
     qDebug() << "插入文本";
+    Text *text =new Text;
+    text->textdialog->exec();
+    if(text->textdialog->getOk()){
+        scene_active->setTextdialog(text);
+        scene_active->setCurShape(Shape::Text);
+    }
 }
 
 void Sketch::onActionInsertFillet()
@@ -2685,6 +2700,19 @@ void Sketch::onActionTreeProjectSceneChangeTo()
 void Sketch::onActionTreeProjectSceneMoveUpOne()
 {
     qDebug() << tree_project_scene_active_item->text(0) << "上移一层";
+    QString currentSceneName = tree_project_scene_active_item->text(0);
+    int currentId = project_active->getSceneIdByName(currentSceneName);
+
+    if(currentId < 1){
+        return;
+    }
+    int lastId = currentId - 1;
+    QString lastSceneName = project_active->getScene(lastId)->getName();
+
+    tree_project_scene_active_item->setText(0, lastSceneName);
+    tree_project_active_item->child(lastId)->setText(0, currentSceneName);
+
+    project_active->changeScene(lastId, currentId);
 }
 
 void Sketch::onActionTreeProjectSceneMoveUpTop()
@@ -2838,6 +2866,13 @@ void Sketch::onLineSelected(Line *line)
 {
     qDebug() << line->getShapeId();
     qDebug() << line->getPerimeter();
+
+    line->lineproperties->setShapeid(line->getShapeId());
+    line->lineproperties->setLength(line->getPerimeter());
+    line->lineproperties->setOk(true);
+
+    dock_properties->setWidget(line->lineproperties);
+    QObject::connect(line->lineproperties,SIGNAL(PropertiesChanged()),line,SLOT(typechange()));
 }
 
 

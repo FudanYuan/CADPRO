@@ -26,8 +26,8 @@ public:
     void createtop_insideGroupBox();
     void initdialog();
 
-    int getLen_num() const;
-    void setLen_num(int value);
+    int getLenNum() const;
+    void setLenNum(int value);
     double getRaduii() const;
     void setRaduii(double value);
     double getAngle() const;
@@ -47,18 +47,18 @@ private:
     RenderArea *originalRenderArea;//显示区域
 
     QLabel *len;
-    QLineEdit *len_edit;//边数
+    QLineEdit *lenEdit;//边数
     QLabel *rad;
-    QLineEdit *rad_edit;//半径
+    QLineEdit *radEdit;//半径
     QLabel *angel;
-    QLineEdit *angel_edit;//旋转角度
+    QLineEdit *angelEdit;//旋转角度
     QLabel *line_type;
-    QComboBox *line_type_choose;//线类型
+    QComboBox *lineTypeChoose;//线类型
 
     QRadioButton *radio1;//模式的两种选项
     QRadioButton *radio2;
 
-    int len_num;//边数
+    int lenNum;//边数
     double raduii;//半径
     double angle;//旋转角度
     int penstyle;//线条类型
@@ -67,7 +67,7 @@ private:
 public slots:
     void onclickedok();
     void onclickedcancel();
-    void len_numchanged();
+    void lenNumchanged();
     void radchanged();
     void angelchanged();
     void typechanged();//线类型改变的事件

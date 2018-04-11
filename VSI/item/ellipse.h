@@ -26,11 +26,26 @@ public:
     void setRadius2(qreal r2);  // 设置半径2
     qreal getRadius2();  // 获取半径2
 
+    QPointF getMajorPoint();  // 获取长轴端点坐标
+    QPointF getMinorPoint();  // 获取短轴端点坐标
+
+    qreal getRatio();  // 获取离心率
+
+    void setSAngle(qreal angle); // 设置开始角度
+    qreal getSAngle();  // 获取开始角度
+
+    void setEAngle(qreal angle);  // 设置结束角度
+    qreal getEAngle();  // 开始结束角度
+
     void setAlpha(qreal a);  // 设置旋转角度
     qreal getAlpha();  // 获取旋转角度
 
-    void setEllipse(qreal px, qreal py, qreal radius1, qreal radius2, qreal angle);  // 设置椭圆元素
+    void setEllipse(qreal px, qreal py,
+                    qreal mx, qreal my, qreal ratio,
+                    qreal angle1=0, qreal angle2=360);  // 设置椭圆元素
     Ellipse ellipse();  // 获取椭圆元素
+
+    Ellipse *copy();
 protected:
     //鼠标事件
     void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
@@ -50,6 +65,8 @@ private:
     QPointF cPoint, sPoint, ePoint; // 圆心
     qreal r1, r2; // 半径1，2
     qreal alpha;  // 旋转角度
+    qreal sAngle;  // 开始角度
+    qreal eAngle;  // 结束角度
     bool cFlag;  // 确定圆心
     bool r1Flag;  // 确定r1
     bool r2Flag;  // 确定r2

@@ -14,27 +14,26 @@ class Trapezium : public Shape, public QGraphicsPathItem
     Q_OBJECT
 
 public:
-
     Trapezium(QGraphicsItem *parent=0);
     void startDraw(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 开始绘图
     void drawing(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 绘图开始
     bool updateFlag(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
 
-    double getTrapezium_alpha1() const;
-    void setTrapezium_alpha1(double value);
+    double getTrapeziumAlpha1() const;
+    void setTrapeziumAlpha1(double value);
 
-    double getTrapezium_alpha2() const;
-    void setTrapezium_alpha2(double value);
+    double getTrapeziumAlpha2() const;
+    void setTrapeziumAlpha2(double value);
 
-    double getTrapezium_H() const;
-    void setTrapezium_H(double value);
+    double getTrapeziumH() const;
+    void setTrapeziumH(double value);
 
-    double getTrapezium_toplength() const;
-    void setTrapezium_toplength(double value);
+    double getTrapeziumToplength() const;
+    void setTrapeziumToplength(double value);
 
-    double getTrapezium_type() const;
-    void setTrapezium_type(double value);
+    double getTrapeziumType() const;
+    void setTrapeziumType(double value);
 
 protected:
     //鼠标事件
@@ -51,18 +50,15 @@ protected:
     void hoverMoveEvent(QGraphicsSceneHoverEvent *event) Q_DECL_OVERRIDE;
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) Q_DECL_OVERRIDE;
 
-
 private:
 
     QPointF cPoint;
 
-    double trapezium_alpha1 = 60;//角度1
-    double trapezium_alpha2 = 60;//角度2
-    double trapezium_H = 100;//高
-    double trapezium_toplength = 100;//上底
-    double trapezium_type = 1;//是否插入一半
-
-
+    double trapeziumAlpha1;//角度1
+    double trapeziumAlpha2;//角度2
+    double trapeziumH;//高
+    double trapeziumToplength;//上底
+    double trapeziumType;//是否插入一半
 
 public slots:
     void on_commandLinkButton_2_clicked();
