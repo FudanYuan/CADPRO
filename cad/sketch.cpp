@@ -1108,7 +1108,7 @@ void Sketch::initToolBar()
     tool_sketch->addAction(action_draw_stab_hole);
     tool_sketch->addAction(action_draw_reference);
     tool_sketch->addSeparator();
-    tool_sketch->addAction(action_draw_perpendicular);
+//    tool_sketch->addAction(action_draw_perpendicular);//垂直线
 // ![4] 草图工具栏
 
 // ![5] 对象捕捉
@@ -1141,7 +1141,7 @@ void Sketch::initToolBar()
     tool_zoom->addAction(action_view_knots);
     tool_zoom->addAction(action_view_filled_patterns);
     tool_zoom->addSeparator();
-    tool_zoom->addAction(action_view_voerlap_patterns);
+//    tool_zoom->addAction(action_view_voerlap_patterns);
     tool_zoom->addAction(action_view_design_rules);
     tool_zoom->addAction(action_view_grading_rules);
 // ![6] 缩放
@@ -1160,19 +1160,19 @@ void Sketch::initToolBar()
     tool_modify->addAction(action_modify_transform_mirror);
     tool_modify->addSeparator();
     tool_modify->addAction(action_modify_transform_strech);
-    tool_modify->addAction(action_modify_trim);
-    tool_modify->addAction(action_modify_extend);
+//    tool_modify->addAction(action_modify_trim);
+//    tool_modify->addAction(action_modify_extend);
     tool_modify->addAction(action_modify_modify_endpoint);
-    tool_modify->addAction(action_modify_change_to);
+//    tool_modify->addAction(action_modify_change_to);
     tool_modify->addSeparator();
     tool_modify->addAction(action_modify_transform_explode);
     tool_modify->addAction(action_modify_transform_join);
     tool_modify->addAction(action_modify_transform_break);
     tool_modify->addAction(action_modify_transform_fillet);
     tool_modify->addSeparator();
-    tool_modify->addAction(action_modify_transform_V_cut);
+//   tool_modify->addAction(action_modify_transform_V_cut);//切
     tool_modify->addAction(action_modify_adjust_polyline);
-    tool_modify->addAction(action_modify_make_master_line);
+//    tool_modify->addAction(action_modify_make_master_line);//制作主线
     tool_modify->addSeparator();
     tool_modify->addAction(action_modify_style);
     tool_modify->addAction(action_modify_springing);
@@ -1211,14 +1211,14 @@ void Sketch::initToolBar()
     tool_grading->addAction(action_grading_grade);
     tool_grading->addAction(action_grading_delete_graded_patterns);
     tool_grading->addAction(action_grading_reference_insert);
-    tool_grading->addAction(action_grading_keep_margin);
-    tool_grading->addAction(action_grading_delete_margin);
+//    tool_grading->addAction(action_grading_keep_margin);//保留边距余量
+//    tool_grading->addAction(action_grading_delete_margin);//删除边距余量
     tool_grading->addAction(action_grading_update_grading);
     tool_grading->addAction(action_grading_XY_lock);
     tool_grading->addAction(action_grading_delete_XY_lock);
     tool_grading->addSeparator();
-    tool_grading->addAction(action_grading_horizontal_zone);
-    tool_grading->addAction(action_grading_vertical_zone);
+//    tool_grading->addAction(action_grading_horizontal_zone);//水平区
+//    tool_grading->addAction(action_grading_vertical_zone);//垂直区
     tool_grading->addAction(action_grading_delete_zone);
 // ![10] 级放
 
@@ -1241,14 +1241,14 @@ void Sketch::initToolBar()
     tool_insert->addAction(action_insert_advanced_offset);
     tool_insert->addAction(action_insert_notch);
     tool_insert->addAction(action_insert_notches_group);
-    tool_insert->addAction(action_insert_notches_axis_tied_group);
-    tool_insert->addAction(action_insert_size_notch);
-    tool_insert->addAction(action_insert_size_notch);
+//    tool_insert->addAction(action_insert_notches_axis_tied_group);//凹槽轴绑定群组
+//    tool_insert->addAction(action_insert_size_notch);//
+//    tool_insert->addAction(action_insert_size_notch);//
     tool_insert->addAction(action_insert_text);
     tool_insert->addAction(action_insert_smooth);
     tool_insert->addSeparator();
-    tool_insert->addAction(action_insert_margin);
-    tool_insert->addAction(action_insert_canal);
+//    tool_insert->addAction(action_insert_margin);//
+//    tool_insert->addAction(action_insert_canal);//
 // ![12] 插入
 
 // ![13] 图样
@@ -1261,13 +1261,13 @@ void Sketch::initToolBar()
     tool_pattern->addAction(action_pattern_new);
     tool_pattern->addAction(action_pattern_clone);
     tool_pattern->addAction(action_pattern_delete);
-    tool_pattern->addAction(action_pattern_make_symmetic);
+//    tool_pattern->addAction(action_pattern_make_symmetic);//是对称
     tool_pattern->addAction(action_pattern_position);
     tool_pattern->addAction(action_pattern_extract_auto);
     tool_pattern->addAction(action_pattern_find_perimeter);
     tool_pattern->addAction(action_pattern_close_trim);
     tool_pattern->addSeparator();
-    tool_pattern->addAction(action_pattern_extract_manual);
+//    tool_pattern->addAction(action_pattern_extract_manual);//提取（手动）
 // ![13] 图样
 
     addToolBar(Qt::TopToolBarArea, tool_standard);
