@@ -23,6 +23,12 @@ public:
     double getOffset() const;
     void setOffset(double value);
 
+    double getLength() const;
+    void setLength(double value);
+
+    double getHeigth() const;
+    void setHeigth(double value);
+
 protected:
     //鼠标事件
     void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
@@ -41,6 +47,7 @@ protected:
 private:
     QPointF topLeftPoint, bottomRightPoint;  // 顶点
     double offset;//偏移量
+    double length,heigth;
 
 signals:
     void select(Rect *rect);  // 图形被选择

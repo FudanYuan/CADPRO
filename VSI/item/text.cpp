@@ -11,7 +11,7 @@
 Text::Text(QGraphicsItem *parent) :
     QGraphicsPathItem(parent)
 {
-    setShapeType(Shape::Polygon);
+    setShapeType(Shape::Text);
     // 设置图元为可焦点的
     setFlag(QGraphicsItem::ItemIsFocusable);
     // 设置图元为可移动的

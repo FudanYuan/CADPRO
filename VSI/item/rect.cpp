@@ -17,6 +17,9 @@ Rect::Rect(QGraphicsItem *parent) :
     // 设置图元为可接受hover事件
     setAcceptHoverEvents(true);
     rectproperties =new ItemProperties();
+    offset = 50;
+    length = 100;
+    heigth = 100;
 }
 
 void Rect::startDraw(QGraphicsSceneMouseEvent *event)
@@ -58,7 +61,28 @@ void Rect::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     // 重新设置画笔线宽;
     pen.setWidthF(pen.widthF() / scaleFactor);
     painter->setPen(pen);
+    if(itemp)
+    {
+        QPointF newbottom;
+        newbottom.setX(rect().topLeft().rx()+length);
+        newbottom.setY(rect().topLeft().ry()+heigth);
+        QRectF r(rect().topLeft(),newbottom);
+        setRect(r);
+    }
     painter->drawRect(this->rect());
+
+    if(isoffset)
+    {
+        QPointF newtop;
+        newtop.setX(rect().topLeft().rx()-offset);
+        newtop.setY(rect().topLeft().ry()-offset);
+        QPointF newbottom;
+        newbottom.setX(rect().topLeft().rx()+length+offset);
+        newbottom.setY(rect().topLeft().ry()+heigth+offset);
+        painter->drawRect(newtop.rx(),newtop.ry(),newbottom.rx()-newtop.rx(),newbottom.ry()-newtop.ry());
+        qDebug()<<"偏移量"<<offset;
+    }
+
 /*
 //    QRect rect1(100, 100, 100, 100);
 //    QRect rect2(300, 100, 100, 100);
@@ -102,14 +126,25 @@ void Rect::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(selectable){
         selected = true;
-        qDebug() << "type: " << getShapeType();
-        qDebug() << "id: " << getShapeId();
         setCursor(Qt::ClosedHandCursor);
-        QPen pen = QPen();
-        pen.setColor(selectedEntity.color);
-        pen.setStyle(selectedEntity.style);
-        pen.setWidthF(selectedEntity.width);
-        setPen(pen);
+        if(!itemp)
+        {
+            qDebug() << "type: " << getShapeType();
+            qDebug() << "id: " << getShapeId();
+            QPen pen = QPen();
+            pen.setColor(selectedEntity.color);
+            pen.setStyle(selectedEntity.style);
+            pen.setWidthF(selectedEntity.width);
+            setPen(pen);
+        }
+        if(selected){
+            setFlag(GraphicsItemFlag::ItemIsMovable, true);
+            length = this->rect().bottomRight().rx()-this->rect().topLeft().rx();
+            heigth = this->rect().bottomRight().ry()-this->rect().topLeft().ry();
+        }
+        else{
+            setFlag(GraphicsItemFlag::ItemIsMovable, false);
+        }
         emit select(this);
     }
     QGraphicsItem::mousePressEvent(event);
@@ -195,6 +230,26 @@ void Rect::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
     }
 }
 
+double Rect::getHeigth() const
+{
+    return heigth;
+}
+
+void Rect::setHeigth(double value)
+{
+    heigth = value;
+}
+
+double Rect::getLength() const
+{
+    return length;
+}
+
+void Rect::setLength(double value)
+{
+    length = value;
+}
+
 double Rect::getOffset() const
 {
     return offset;
@@ -213,11 +268,13 @@ void Rect::onSceneMoveableChanged(bool moveable)
 
 void Rect::typechange()
 {
-    if(this->rectproperties->getOk())
+    if(itemp = this->rectproperties->getOk())
     {
         this->setPen(this->rectproperties->getPen());
         this->setPenStyle(this->rectproperties->getPenstyle());
         isoffset = this->rectproperties->getIsinsertoffset();
-        this->setOffset(this->rectproperties->getOffset());
+        this->offset = this->rectproperties->getOffset();
+        this->length = this->rectproperties->getRectLength();
+        this->heigth = this->rectproperties->getRectHeigth();
     }
 }

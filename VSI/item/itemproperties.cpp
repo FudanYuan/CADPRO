@@ -12,6 +12,7 @@ ItemProperties::ItemProperties():
     polygonEdge = 4;
     polygonEdgeLength = 50;
     polygonRad = 0;
+    offset = 50;
 }
 
 //属性中通用的
@@ -102,6 +103,18 @@ void ItemProperties::initdialog()
         case Shape::Circle:
             initCircleItemproperties();
             break;
+        case Shape::Rectangle:
+            initRectItemproperties();
+            break;
+        case Shape::Ellipse:
+            initEllipseItemproperties();
+            break;
+        case Shape::Trapezium:
+            initTrapeziumItemproperties();
+            break;
+        case Shape::Eyelet:
+            initEyeletItemproperties();
+            break;
         default:
             break;
     }
@@ -109,7 +122,6 @@ void ItemProperties::initdialog()
     mainLayout->addWidget(tableWidget);
     setLayout(mainLayout);
 }
-
 //设置直线中一些特殊的属性
 void ItemProperties::initLineItemproperties()
 {
@@ -124,13 +136,11 @@ void ItemProperties::initLineItemproperties()
     tableitem->setTextAlignment(Qt::AlignCenter);
     //QObject::connect(tableitem,signal())
 }
-
 //设置圆弧的一些特殊属性
 void ItemProperties::initArcItemproperties()
 {
 
 }
-
 //设置正多边形的特殊属性
 void ItemProperties::initPolygonItemproperties()
 {
@@ -184,9 +194,7 @@ void ItemProperties::initPolygonItemproperties()
     offset->setAlignment(Qt::AlignCenter);
     connect(offset,&QLineEdit::textEdited,this,setOffset);
     tableWidget->setCellWidget(rows,1,offset);
-
 }
-
 //设置圆的特殊属性
 void ItemProperties::initCircleItemproperties()
 {
@@ -194,7 +202,7 @@ void ItemProperties::initCircleItemproperties()
     tableitem = new QTableWidgetItem(tr("半径"));
     tableWidget->setItem(rows,0,tableitem);
     tableitem->setTextAlignment(Qt::AlignCenter);
-    QString string = QString::number(polygonEdgeLength,'g',6);
+    QString string = QString::number(circleR,'g',6);
     QLineEdit *edgelength =new QLineEdit(string);
     edgelength->setAlignment(Qt::AlignCenter);
     tableWidget->setCellWidget(rows,1,edgelength);
@@ -217,6 +225,174 @@ void ItemProperties::initCircleItemproperties()
     offset->setAlignment(Qt::AlignCenter);
     connect(offset,&QLineEdit::textEdited,this,setOffset);
     tableWidget->setCellWidget(rows,1,offset);
+}
+//设置矩形的特殊属性
+void ItemProperties::initRectItemproperties()
+{
+    tableWidget->insertRow(++rows);
+    tableitem = new QTableWidgetItem(tr("长"));
+    tableWidget->setItem(rows,0,tableitem);
+    tableitem->setTextAlignment(Qt::AlignCenter);
+    QString string = QString::number(rectLength,'g',6);
+    QLineEdit *edge =new QLineEdit(string);
+    edge->setAlignment(Qt::AlignCenter);
+    tableWidget->setCellWidget(rows,1,edge);
+    connect(edge,&QLineEdit::textEdited,this,rectLengthChange);
+
+    tableWidget->insertRow(++rows);
+    tableitem = new QTableWidgetItem(tr("宽"));
+    tableWidget->setItem(rows,0,tableitem);
+    tableitem->setTextAlignment(Qt::AlignCenter);
+    string = QString::number(rectHeigth,'g',6);
+    QLineEdit *edgelength =new QLineEdit(string);
+    edgelength->setAlignment(Qt::AlignCenter);
+    tableWidget->setCellWidget(rows,1,edgelength);
+    connect(edgelength,&QLineEdit::textEdited,this,rectHeigthChange);
+
+    //偏移
+    tableWidget->insertRow(++rows);
+    tableitem = new QTableWidgetItem(tr("偏移"));
+    tableWidget->setItem(rows,0,tableitem);
+    tableitem->setTextAlignment(Qt::AlignCenter);
+    QCheckBox *isoffset = new QCheckBox(tr("选择"));
+    tableWidget->setCellWidget(rows,1,isoffset);
+    connect(isoffset,&QCheckBox::clicked,this,insertoffset);
+
+    tableWidget->insertRow(++rows);
+    tableitem= new QTableWidgetItem(tr("偏移量"));
+    tableWidget->setItem(rows,0,tableitem);
+    tableitem->setTextAlignment(Qt::AlignCenter);
+    QLineEdit *offset =new QLineEdit(tr("50"));
+    offset->setAlignment(Qt::AlignCenter);
+    connect(offset,&QLineEdit::textEdited,this,setOffset);
+    tableWidget->setCellWidget(rows,1,offset);
+
+}
+//椭圆
+void ItemProperties::initEllipseItemproperties()
+{
+    tableWidget->insertRow(++rows);
+    tableitem = new QTableWidgetItem(tr("长轴长"));
+    tableWidget->setItem(rows,0,tableitem);
+    tableitem->setTextAlignment(Qt::AlignCenter);
+    QString string = QString::number(ellipseR1,'g',6);
+    QLineEdit *r1 =new QLineEdit(string);
+    r1->setAlignment(Qt::AlignCenter);
+    tableWidget->setCellWidget(rows,1,r1);
+    connect(r1,&QLineEdit::textEdited,this,ellipseR1Change);
+
+    tableWidget->insertRow(++rows);
+    tableitem = new QTableWidgetItem(tr("短轴长"));
+    tableWidget->setItem(rows,0,tableitem);
+    tableitem->setTextAlignment(Qt::AlignCenter);
+    string = QString::number(ellipseR2,'g',6);
+    QLineEdit *r2 =new QLineEdit(string);
+    r2->setAlignment(Qt::AlignCenter);
+    tableWidget->setCellWidget(rows,1,r2);
+    connect(r2,&QLineEdit::textEdited,this,ellipseR2Change);
+
+    //显示正多边形旋转
+    tableWidget->insertRow(++rows);
+    tableitem = new QTableWidgetItem(tr("旋转度数"));
+    tableWidget->setItem(rows,0,tableitem);
+    tableitem->setTextAlignment(Qt::AlignCenter);
+    string = QString::number(ellipseAlpha,'g',6);
+    QLineEdit *rad =new QLineEdit(string);
+    rad->setAlignment(Qt::AlignCenter);
+    tableWidget->setCellWidget(rows,1,rad);
+    connect(rad,&QLineEdit::textEdited,this,ellipseAlphaChange);
+}
+//梯形
+void ItemProperties::initTrapeziumItemproperties()
+{
+    tableWidget->insertRow(++rows);
+    tableitem = new QTableWidgetItem(tr("上底"));
+    tableWidget->setItem(rows,0,tableitem);
+    tableitem->setTextAlignment(Qt::AlignCenter);
+    QString string = QString::number(trapeziumTop,'g',6);
+    QLineEdit *top =new QLineEdit(string);
+    top->setAlignment(Qt::AlignCenter);
+    tableWidget->setCellWidget(rows,1,top);
+    connect(top,&QLineEdit::textEdited,this,trapeziumTopChange);
+
+    tableWidget->insertRow(++rows);
+    tableitem = new QTableWidgetItem(tr("高"));
+    tableWidget->setItem(rows,0,tableitem);
+    tableitem->setTextAlignment(Qt::AlignCenter);
+    string = QString::number(trapeziumHeigth,'g',6);
+    QLineEdit *heigth =new QLineEdit(string);
+    heigth->setAlignment(Qt::AlignCenter);
+    tableWidget->setCellWidget(rows,1,heigth);
+    connect(heigth,&QLineEdit::textEdited,this,trapeziumHeigthChange);
+
+    tableWidget->insertRow(++rows);
+    tableitem = new QTableWidgetItem(tr("角度1"));
+    tableWidget->setItem(rows,0,tableitem);
+    tableitem->setTextAlignment(Qt::AlignCenter);
+    string = QString::number(trapeziumAlpha1,'g',6);
+    QLineEdit *alpha1 =new QLineEdit(string);
+    alpha1->setAlignment(Qt::AlignCenter);
+    tableWidget->setCellWidget(rows,1,alpha1);
+    connect(alpha1,&QLineEdit::textEdited,this,trapeziumAlpha1Change);
+
+    tableWidget->insertRow(++rows);
+    tableitem = new QTableWidgetItem(tr("角度2"));
+    tableWidget->setItem(rows,0,tableitem);
+    tableitem->setTextAlignment(Qt::AlignCenter);
+    string = QString::number(trapeziumAlpha2,'g',6);
+    QLineEdit *alpha2 =new QLineEdit(string);
+    alpha2->setAlignment(Qt::AlignCenter);
+    tableWidget->setCellWidget(rows,1,alpha2);
+    connect(alpha2,&QLineEdit::textEdited,this,trapeziumAlpha2Change);
+
+    tableWidget->insertRow(++rows);
+    tableitem = new QTableWidgetItem(tr("偏移"));
+    tableWidget->setItem(rows,0,tableitem);
+    tableitem->setTextAlignment(Qt::AlignCenter);
+    QCheckBox *isoffset = new QCheckBox(tr("选择"));
+    tableWidget->setCellWidget(rows,1,isoffset);
+    connect(isoffset,&QCheckBox::clicked,this,insertoffset);
+
+    tableWidget->insertRow(++rows);
+    tableitem= new QTableWidgetItem(tr("偏移量"));
+    tableWidget->setItem(rows,0,tableitem);
+    tableitem->setTextAlignment(Qt::AlignCenter);
+    QLineEdit *offset =new QLineEdit(tr("50"));
+    offset->setAlignment(Qt::AlignCenter);
+    connect(offset,&QLineEdit::textEdited,this,setOffset);
+    tableWidget->setCellWidget(rows,1,offset);
+}
+
+void ItemProperties::initEyeletItemproperties()
+{
+    tableWidget->insertRow(++rows);
+    tableitem = new QTableWidgetItem(tr("长"));
+    tableWidget->setItem(rows,0,tableitem);
+    tableitem->setTextAlignment(Qt::AlignCenter);
+    QString string = QString::number(rectLength,'g',6);
+    QLineEdit *edge =new QLineEdit(string);
+    edge->setAlignment(Qt::AlignCenter);
+    tableWidget->setCellWidget(rows,1,edge);
+    connect(edge,&QLineEdit::textEdited,this,rectLengthChange);
+
+    tableWidget->insertRow(++rows);
+    tableitem = new QTableWidgetItem(tr("宽"));
+    tableWidget->setItem(rows,0,tableitem);
+    tableitem->setTextAlignment(Qt::AlignCenter);
+    string = QString::number(rectHeigth,'g',6);
+    QLineEdit *edgelength =new QLineEdit(string);
+    edgelength->setAlignment(Qt::AlignCenter);
+    tableWidget->setCellWidget(rows,1,edgelength);
+    connect(edgelength,&QLineEdit::textEdited,this,rectHeigthChange);
+
+    tableWidget->insertRow(++rows);
+    tableitem = new QTableWidgetItem(tr("旋转度数"));
+    tableWidget->setItem(rows,0,tableitem);
+    tableitem->setTextAlignment(Qt::AlignCenter);
+    QLineEdit *rad =new QLineEdit(tr("0"));
+    rad->setAlignment(Qt::AlignCenter);
+    tableWidget->setCellWidget(rows,1,rad);
+    connect(rad,&QLineEdit::textEdited,this,ellipseAlphaChange);
 }
 
 int ItemProperties::getShapeid() const
@@ -335,6 +511,106 @@ void ItemProperties::setPolygonRad(double value)
     polygonRad = value;
 }
 
+double ItemProperties::getRectLength() const
+{
+    return rectLength;
+}
+
+void ItemProperties::setRectLength(double value)
+{
+    rectLength = value;
+}
+
+double ItemProperties::getRectHeigth() const
+{
+    return rectHeigth;
+}
+
+void ItemProperties::setRectHeigth(double value)
+{
+    rectHeigth = value;
+}
+
+double ItemProperties::getCircleR() const
+{
+    return circleR;
+}
+
+void ItemProperties::setCircleR(double value)
+{
+    circleR = value;
+}
+
+double ItemProperties::getEllipseR2() const
+{
+    return ellipseR2;
+}
+
+void ItemProperties::setEllipseR2(double value)
+{
+    ellipseR2 = value;
+}
+
+double ItemProperties::getEllipseR1() const
+{
+    return ellipseR1;
+}
+
+void ItemProperties::setEllipseR1(double value)
+{
+    ellipseR1 = value;
+}
+
+double ItemProperties::getEllipseAlpha() const
+{
+    return ellipseAlpha;
+}
+
+void ItemProperties::setEllipseAlpha(double value)
+{
+    ellipseAlpha = value;
+}
+
+double ItemProperties::getTrapeziumTop() const
+{
+    return trapeziumTop;
+}
+
+void ItemProperties::setTrapeziumTop(double value)
+{
+    trapeziumTop = value;
+}
+
+double ItemProperties::getTrapeziumHeigth() const
+{
+    return trapeziumHeigth;
+}
+
+void ItemProperties::setTrapeziumHeigth(double value)
+{
+    trapeziumHeigth = value;
+}
+
+double ItemProperties::getTrapeziumAlpha1() const
+{
+    return trapeziumAlpha1;
+}
+
+void ItemProperties::setTrapeziumAlpha1(double value)
+{
+    trapeziumAlpha1 = value;
+}
+
+double ItemProperties::getTrapeziumAlpha2() const
+{
+    return trapeziumAlpha2;
+}
+
+void ItemProperties::setTrapeziumAlpha2(double value)
+{
+    trapeziumAlpha2 = value;
+}
+
 void ItemProperties::typechanged()
 {
     emit this->PropertiesChanged();
@@ -416,6 +692,60 @@ void ItemProperties::polygonEdgeLengthChange(QString key)
 void ItemProperties::polygonRadChange(QString key)
 {
     this->setPolygonRad(key.toDouble());
+    typechanged();
+}
+
+void ItemProperties::rectLengthChange(QString key)
+{
+    this->rectLength = key.toDouble();
+    typechanged();
+}
+
+void ItemProperties::rectHeigthChange(QString key)
+{
+    this->rectHeigth = key.toDouble();
+    typechanged();
+}
+
+void ItemProperties::ellipseR1Change(QString key)
+{
+    this->ellipseR1 = key.toDouble();
+    typechanged();
+}
+
+void ItemProperties::ellipseR2Change(QString key)
+{
+    this->ellipseR2 = key.toDouble();
+    typechanged();
+}
+
+void ItemProperties::ellipseAlphaChange(QString key)
+{
+    this->ellipseAlpha = key.toDouble();
+    typechanged();
+}
+
+void ItemProperties::trapeziumTopChange(QString key)
+{
+    this->trapeziumTop = key.toDouble();
+    typechanged();
+}
+
+void ItemProperties::trapeziumHeigthChange(QString key)
+{
+    this->trapeziumHeigth = key.toDouble();
+    typechanged();
+}
+
+void ItemProperties::trapeziumAlpha1Change(QString key)
+{
+    this->trapeziumAlpha1 = key.toDouble();
+    typechanged();
+}
+
+void ItemProperties::trapeziumAlpha2Change(QString key)
+{
+    this->trapeziumAlpha2 = key.toDouble();
     typechanged();
 }
 

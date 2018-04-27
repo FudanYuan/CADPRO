@@ -21,14 +21,17 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
     QList<QPointF> toPolyline();
 
-    int getEyeletH() const;
-    void setEyeletH(int value);
+    double getEyeletH() const;
+    void setEyeletH(double value);
 
-    int getEyeletW() const;
-    void setEyeletW(int value);
+    double getEyeletW() const;
+    void setEyeletW(double value);
 
     EyeletDialog *eyeletdialog;//鸡眼孔的对话框
     ItemProperties *eyeletproperties;
+
+    double getEyeletAlpha() const;
+    void setEyeletAlpha(double value);
 
 protected:
     //鼠标事件
@@ -50,8 +53,9 @@ private:
 
     QPointF cPoint;
 
-    int eyeletH ;
-    int eyeletW ;
+    double eyeletH ;
+    double eyeletW ;
+    double eyeletAlpha;
 
 signals:
     void select(Eyelet *eyelet);//图形被选择

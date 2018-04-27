@@ -9,7 +9,7 @@
 Eyelet::Eyelet(QGraphicsItem *parent) :
     QGraphicsPathItem(parent)
 {
-    setShapeType(Shape::Polygon);
+    setShapeType(Shape::Eyelet);
     // 设置图元为可焦点的
     setFlag(QGraphicsItem::ItemIsFocusable);
     // 设置图元为可移动的
@@ -20,6 +20,7 @@ Eyelet::Eyelet(QGraphicsItem *parent) :
     setAcceptHoverEvents(true);
     eyeletdialog =new EyeletDialog();
     eyeletproperties = new ItemProperties();
+    eyeletAlpha = 0;
 }
 
 void Eyelet::startDraw(QGraphicsSceneMouseEvent *event)
@@ -54,31 +55,33 @@ void Eyelet::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QW
     pen.setWidthF(pen.widthF() / scaleFactor);
     painter->setPen(pen);
 
-
     //绘制鸡眼孔
     int width = eyeletW;//鸡眼孔宽度
     int height = eyeletH;//鸡眼孔高度
+    double alpha = qAbs(eyeletAlpha);
     QPointF sPoint;
     QPainterPath path;
 
-    sPoint.setX(cPoint.rx()+width);sPoint.setY(cPoint.ry());
+    sPoint.setX(cPoint.rx()+width*qCos(M_PI*alpha/180));sPoint.setY(cPoint.ry()+width*qSin(M_PI*alpha/180));
     path.moveTo(cPoint);
     path.lineTo(sPoint);
-    path.arcTo(cPoint.rx()+width-height/2,cPoint.ry()-height,height,height,-90,180);//图形左上角为点，宽和高，以某个角度开始，划过多少度
-    sPoint.setX(cPoint.rx());sPoint.setY(cPoint.ry()-height);
+    path.arcTo(sPoint.rx()+height/2*qSin(qAbs(M_PI*alpha/180))-height/2,sPoint.ry()-height/2*qCos(qAbs(M_PI*alpha/180))-height/2,height,height,-90-alpha,180);//图形左上角为点，宽和高，以某个角度开始，划过多少度
+    sPoint.setX(cPoint.rx()+height*qSin(M_PI*alpha/180));sPoint.setY(cPoint.ry()-height*qCos(M_PI*alpha/180));
     path.lineTo(sPoint);
-    path.arcTo(cPoint.rx()-height/2,cPoint.ry()-height,height,height,90,180);
+    path.arcTo(sPoint.rx()-height/2*qSin(qAbs(M_PI*alpha/180))-height/2,sPoint.ry()+height/2*qCos(qAbs(M_PI*alpha/180))-height/2,height,height,90-alpha,180);
+
     pen.setStyle(Qt::SolidLine);
     painter->setPen(pen);
     painter->drawPath(path);
 
-    path.lineTo(cPoint.rx(),cPoint.ry()-height);
-    path.moveTo(cPoint.rx()+width,cPoint.ry());
-    path.lineTo(cPoint.rx()+width,cPoint.ry()-height);
+    path.lineTo(sPoint);
+    path.moveTo(cPoint.rx()+width*qCos(qAbs(M_PI*alpha/180)),cPoint.ry()+width*qSin(qAbs(M_PI*alpha/180)));
+    sPoint.setX(cPoint.rx()+width*qCos(qAbs(M_PI*alpha/180))+height*qSin(qAbs(M_PI*alpha/180)));sPoint.setY(cPoint.ry()+width*qSin(qAbs(M_PI*alpha/180))-height*qCos(qAbs(M_PI*alpha/180)));
+    path.lineTo(sPoint);
+
     pen.setStyle(Qt::DotLine);
     painter->setPen(pen);
     painter->drawPath(path);
-
     setPath(path);
 }
 
@@ -117,15 +120,24 @@ void Eyelet::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(selectable){
         selected = true;
-        qDebug() << "type: " << getShapeType();
-        qDebug() << "id: " << getShapeId();
         setCursor(Qt::ClosedHandCursor);
-        QPen pen = QPen();
-        pen.setColor(selectedEntity.color);
-        pen.setStyle(selectedEntity.style);
-        pen.setWidthF(selectedEntity.width);
-        setPen(pen);
-        select(this);
+        if(!itemp)
+        {
+            qDebug() << "type: " << getShapeType();
+            qDebug() << "id: " << getShapeId();
+            QPen pen = QPen();
+            pen.setColor(selectedEntity.color);
+            pen.setStyle(selectedEntity.style);
+            pen.setWidthF(selectedEntity.width);
+            setPen(pen);
+        }
+        if(selected){
+            setFlag(GraphicsItemFlag::ItemIsMovable, true);
+        }
+        else{
+            setFlag(GraphicsItemFlag::ItemIsMovable, false);
+        }
+        emit select(this);
     }
     QGraphicsItem::mousePressEvent(event);
 }
@@ -211,22 +223,32 @@ void Eyelet::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
     }
 }
 
-int Eyelet::getEyeletW() const
+double Eyelet::getEyeletAlpha() const
+{
+    return eyeletAlpha;
+}
+
+void Eyelet::setEyeletAlpha(double value)
+{
+    eyeletAlpha = value;
+}
+
+double Eyelet::getEyeletW() const
 {
     return eyeletW;
 }
 
-void Eyelet::setEyeletW(int value)
+void Eyelet::setEyeletW(double value)
 {
     eyeletW = value;
 }
 
-int Eyelet::getEyeletH() const
+double Eyelet::getEyeletH() const
 {
     return eyeletH;
 }
 
-void Eyelet::setEyeletH(int value)
+void Eyelet::setEyeletH(double value)
 {
     eyeletH = value;
 }
@@ -239,10 +261,13 @@ void Eyelet::onSceneMoveableChanged(bool moveable)
 
 void Eyelet::typechange()
 {
-    if(this->eyeletproperties->getOk())
+    if(itemp = this->eyeletproperties->getOk())
     {
         this->setPen(this->eyeletproperties->getPen());
         this->setPenStyle(this->eyeletproperties->getPenstyle());
+        this->eyeletH = this->eyeletproperties->getRectHeigth();
+        this->eyeletW = this->eyeletproperties->getRectLength();
+        this->eyeletAlpha = this->eyeletproperties->getEllipseAlpha();
     }
 }
 

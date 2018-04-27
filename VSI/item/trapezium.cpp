@@ -183,17 +183,25 @@ void Trapezium::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(selectable){
         selected = true;
-        qDebug() << "type: " << getShapeType();
-        qDebug() << "id: " << getShapeId();
         setCursor(Qt::ClosedHandCursor);
-        QPen pen = QPen();
-        pen.setColor(selectedEntity.color);
-        pen.setStyle(selectedEntity.style);
-        pen.setWidthF(selectedEntity.width);
-        setPen(pen);
-        select(this);
+        if(!itemp)
+        {
+            qDebug() << "type: " << getShapeType();
+            qDebug() << "id: " << getShapeId();
+            QPen pen = QPen();
+            pen.setColor(selectedEntity.color);
+            pen.setStyle(selectedEntity.style);
+            pen.setWidthF(selectedEntity.width);
+            setPen(pen);
+        }
+        if(selected){
+            setFlag(GraphicsItemFlag::ItemIsMovable, true);
+        }
+        else{
+            setFlag(GraphicsItemFlag::ItemIsMovable, false);
+        }
+        emit select(this);
     }
-    QGraphicsItem::mousePressEvent(event);
 }
 
 void Trapezium::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
@@ -234,7 +242,7 @@ void Trapezium::dropEvent(QGraphicsSceneDragDropEvent *event)
 
 void Trapezium::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
-    if(selectable){
+    if(selectable && !itemp){
         QPen pen = QPen();
         if(!selected){
             pen.setColor(underCursorStyle.color);
@@ -261,7 +269,7 @@ void Trapezium::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 
 void Trapezium::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
-    if(selectable){
+    if(selectable &&!itemp){
         QPen pen = QPen();
         if(!selected){
             pen.setColor(penStyle.color);
@@ -335,10 +343,14 @@ void Trapezium::onSceneMoveableChanged(bool moveable)
 
 void Trapezium::typechange()
 {
-    if(this->trapeziumproperties->getOk())
+    if(itemp = this->trapeziumproperties->getOk())
     {
         this->setPen(this->trapeziumproperties->getPen());
         this->setPenStyle(this->trapeziumproperties->getPenstyle());
+        this->trapeziumH = this->trapeziumproperties->getTrapeziumHeigth();
+        this->trapeziumToplength = this->trapeziumproperties->getTrapeziumTop();
+        this->trapeziumAlpha1 = this->trapeziumproperties->getTrapeziumAlpha1();
+        this->trapeziumAlpha2 = this->trapeziumproperties->getTrapeziumAlpha2();
     }
 }
 

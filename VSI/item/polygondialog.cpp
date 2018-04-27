@@ -16,9 +16,6 @@ PolygonDialog::PolygonDialog()
 void PolygonDialog::createtopGroupBox(){
     topGroupBox = new QGroupBox;
     QGridLayout *layout = new QGridLayout;
-    topGroupBox->setMaximumSize(200,230);
-    topGroupBox->setMinimumSize(200,230);
-
 
     len = new QLabel(tr("边数"));
     rad = new QLabel(tr("半径"));
@@ -114,11 +111,13 @@ void PolygonDialog::initdialog(){
 
     mainLayout->addLayout(layout2);
 
-    setMaximumSize(600,280);
-    setMinimumSize(600,280);
     setLayout(mainLayout);
-
     setWindowTitle(tr("正多边形绘制"));
+    // 适应屏幕大小
+    QDesktopWidget* desktopWidget = QApplication::desktop();
+    QRect screenRect = desktopWidget->screenGeometry();
+    setFixedSize(screenRect.width() - 750, screenRect.height()-450);
+    setSizePolicy(QSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed));
 }
 
 int PolygonDialog::getPenstyle() const

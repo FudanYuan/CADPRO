@@ -316,14 +316,26 @@ void Ellipse::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(selectable){
         selected = true;
-        qDebug() << "type: " << getShapeType();
-        qDebug() << "id: " << getShapeId();
         setCursor(Qt::ClosedHandCursor);
-        QPen pen = QPen();
-        pen.setColor(selectedEntity.color);
-        pen.setStyle(selectedEntity.style);
-        pen.setWidthF(selectedEntity.width);
-        setPen(pen);
+        if(!itemp)
+        {
+            qDebug() << "type: " << getShapeType();
+            qDebug() << "id: " << getShapeId();
+            QPen pen = QPen();
+            pen.setColor(selectedEntity.color);
+            pen.setStyle(selectedEntity.style);
+            pen.setWidthF(selectedEntity.width);
+            setPen(pen);
+        }
+        if(selected){
+            qDebug()<<"可移动";
+            setFlag(GraphicsItemFlag::ItemIsMovable, true);
+            }
+        else{
+            qDebug()<<"不可移动";
+            setFlag(GraphicsItemFlag::ItemIsMovable, false);
+        }
+        editOverFlag = false;
         emit select(this);
     }
     QGraphicsItem::mousePressEvent(event);
@@ -367,7 +379,7 @@ void Ellipse::dropEvent(QGraphicsSceneDragDropEvent *event)
 
 void Ellipse::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
-    if(selectable){
+    if(selectable && !itemp){
         QPen pen = QPen();
         if(!selected){
             pen.setColor(underCursorStyle.color);
@@ -386,7 +398,7 @@ void Ellipse::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 
 void Ellipse::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
-    if(selectable){
+    if(selectable && !itemp){
         setCursor(Qt::OpenHandCursor);
         QGraphicsItem::hoverMoveEvent(event);
     }
@@ -394,7 +406,7 @@ void Ellipse::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 
 void Ellipse::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
-    if(selectable){
+    if(selectable && !itemp){
         QPen pen = QPen();
         if(!selected){
             pen.setColor(penStyle.color);
@@ -418,9 +430,12 @@ void Ellipse::onSceneMoveableChanged(bool moveable)
 
 void Ellipse::typechange()
 {
-    if(this->ellipseproperties->getOk())
+    if(itemp = this->ellipseproperties->getOk())
     {
         this->setPen(this->ellipseproperties->getPen());
         this->setPenStyle(this->ellipseproperties->getPenstyle());
+        this->setRadius1(this->ellipseproperties->getEllipseR1());
+        this->setRadius2(this->ellipseproperties->getEllipseR2());
+        this->alpha = this->ellipseproperties->getEllipseAlpha();
     }
 }

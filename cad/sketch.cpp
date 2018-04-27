@@ -2983,6 +2983,9 @@ void Sketch::onEllipseSelected(Ellipse *ellipse)
     ellipse->ellipseproperties->setPenstyle(ellipse->getPenStyle());
     ellipse->ellipseproperties->setShapeid(ellipse->getShapeId());
     ellipse->ellipseproperties->setShapetype(tr("椭圆"));
+    ellipse->ellipseproperties->setEllipseR1(ellipse->getRadius1());
+    ellipse->ellipseproperties->setEllipseR2(ellipse->getRadius2());
+    ellipse->ellipseproperties->setEllipseAlpha(ellipse->getAlpha());
     ellipse->ellipseproperties->setOk(true);
     dock_properties->setWidget(ellipse->ellipseproperties);
     QObject::connect(ellipse->ellipseproperties,SIGNAL(PropertiesChanged()),ellipse,SLOT(typechange()));
@@ -2996,7 +2999,7 @@ void Sketch::onCircleSelected(Circle *circle)
     circle->circleproperties->setPenstyle(circle->getPenStyle());
     circle->circleproperties->setShapeid(circle->getShapeId());
     circle->circleproperties->setShapetype(tr("圆"));
-    circle->circleproperties->setPolygonRad(circle->getRadius());
+    circle->circleproperties->setCircleR(circle->getRadius());
     circle->circleproperties->setOk(true);
     dock_properties->setWidget(circle->circleproperties);
     QObject::connect(circle->circleproperties,SIGNAL(PropertiesChanged()),circle,SLOT(typechange()));
@@ -3009,6 +3012,8 @@ void Sketch::onRectSelected(Rect *rect)
     rect->rectproperties->setPenstyle(rect->getPenStyle());
     rect->rectproperties->setShapeid(rect->getShapeId());
     rect->rectproperties->setShapetype(tr("矩形"));
+    rect->rectproperties->setRectLength(rect->getLength());
+    rect->rectproperties->setRectHeigth(rect->getHeigth());
     rect->rectproperties->setOk(true);
     dock_properties->setWidget(rect->rectproperties);
     QObject::connect(rect->rectproperties,SIGNAL(PropertiesChanged()),rect,SLOT(typechange()));
@@ -3048,6 +3053,10 @@ void Sketch::onTrapeziumSelected(Trapezium *trapezium)
     trapezium->trapeziumproperties->setPenstyle(trapezium->getPenStyle());
     trapezium->trapeziumproperties->setShapeid(trapezium->getShapeId());
     trapezium->trapeziumproperties->setShapetype(tr("梯形"));
+    trapezium->trapeziumproperties->setTrapeziumTop(trapezium->getTrapeziumToplength());
+    trapezium->trapeziumproperties->setTrapeziumHeigth(trapezium->getTrapeziumH());
+    trapezium->trapeziumproperties->setTrapeziumAlpha1(trapezium->getTrapeziumAlpha1());
+    trapezium->trapeziumproperties->setTrapeziumAlpha2(trapezium->getTrapeziumAlpha2());
     trapezium->trapeziumproperties->setOk(true);
     dock_properties->setWidget(trapezium->trapeziumproperties);
     QObject::connect(trapezium->trapeziumproperties,SIGNAL(PropertiesChanged()),trapezium,SLOT(typechange()));
@@ -3060,6 +3069,8 @@ void Sketch::onEyeletSelected(Eyelet *eyelet)
     eyelet->eyeletproperties->setPenstyle(eyelet->getPenStyle());
     eyelet->eyeletproperties->setShapeid(eyelet->getShapeId());
     eyelet->eyeletproperties->setShapetype(tr("鸡眼孔"));
+    eyelet->eyeletproperties->setRectLength(eyelet->getEyeletW());
+    eyelet->eyeletproperties->setRectHeigth(eyelet->getEyeletH());
     eyelet->eyeletproperties->setOk(true);
     dock_properties->setWidget(eyelet->eyeletproperties);
     QObject::connect(eyelet->eyeletproperties,SIGNAL(PropertiesChanged()),eyelet,SLOT(typechange()));
