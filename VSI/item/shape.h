@@ -80,6 +80,10 @@ public:
 
     void setEditOverFlag(bool editOverFlag);  // 结束标志
     bool getEditOverFlag() const;  // 获取结束标识
+
+    void setCollision(bool coll);  // 设置是否碰撞
+    bool getCollision();  // 是否碰撞
+
 protected:
     QString layer;  // 图层名称
     QString name;  // 图形名称
@@ -95,8 +99,8 @@ protected:
     bool showNode;  // 显示节点
     bool editable;  // 可编辑
     bool editOverFlag;  // 编辑结束
-    bool isoffset;//偏移
-    bool itemp;//属性框标志位
+
+    mutable bool collision;  // 是否碰撞
 
     Configure::ObjSize objSize;  // 对象大小
     Configure::PenStyle penStyle;  // 属性

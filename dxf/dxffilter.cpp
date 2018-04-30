@@ -211,9 +211,6 @@ void DxfFilter::getEntityAttributy()
     qDebug() << "----------- attribute -------- end ";
     qDebug() << " ";
 #endif
-    qDebug() << "Type: " << QString::fromStdString(attributes.getLinetype());
-    qDebug() << "----------- attribute -------- end ";
-    qDebug() << " ";
 }
 
 QString DxfFilter::transformText(const std::string text) const

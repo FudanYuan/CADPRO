@@ -5,7 +5,6 @@
 #include <QGraphicsSceneMouseEvent>
 #include "shape.h"
 #include <QPointF>
-#include "itemproperties.h"
 
 class Ellipse : public Shape, public QGraphicsEllipseItem
 {
@@ -45,9 +44,8 @@ public:
                     qreal mx, qreal my, qreal ratio,
                     qreal angle1=0, qreal angle2=360);  // 设置椭圆元素
     Ellipse ellipse();  // 获取椭圆元素
-    Ellipse *copy();
-    ItemProperties *ellipseproperties;
 
+    Ellipse *copy();
 protected:
     //鼠标事件
     void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
@@ -78,7 +76,6 @@ signals:
 
 public slots:
     void onSceneMoveableChanged(bool moveable) Q_DECL_OVERRIDE;  //  响应场景可移动性改变
-    void typechange();
 };
 
 #endif // ELLIPSE_H

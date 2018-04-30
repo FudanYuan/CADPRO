@@ -1,4 +1,4 @@
-#include "sheet.h"
+﻿#include "sheet.h"
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QHBoxLayout>
@@ -33,12 +33,23 @@ Sheet::Sheet() :
 }
 
 SheetDialog::SheetDialog() :
+    role(Manager),
     sheetActive(NULL),
     currentIndex(0),
     newSheetItem(0)
 {
     initDialog();
     loadSheetInfo();
+}
+
+void SheetDialog::setDialogRole(SheetDialog::RoleType role)
+{
+    this->role = role;
+}
+
+SheetDialog::RoleType SheetDialog::getDialogRole()
+{
+    return this->role;
 }
 
 void SheetDialog::initDialog()
@@ -273,7 +284,7 @@ void SheetDialog::loadSheetInfo()
 {
     // 读取xml文件
     sheetList.clear();
-    sheetList.append(xmlFileReader(SHEET_INFO));
+    sheetList.append(xmlFileReader(SHEET_XML));
     if(sheetList.length() == 0){
         QMessageBox::warning(this, tr("警告"), tr("材料列表为空!"));
         return;
@@ -284,7 +295,7 @@ void SheetDialog::loadSheetInfo()
 void SheetDialog::saveSheetInfo()
 {
     qDebug() << sheetList.length() << " to save";
-    xmlFileWrite(SHEET_INFO, sheetList);
+    xmlFileWrite(SHEET_XML, sheetList);
 }
 
 void SheetDialog::updateSheetInfo(const Sheet *sheetActive)
@@ -328,12 +339,19 @@ void SheetDialog::updateSheetInfo(const Sheet *sheetActive)
     sheetView->setSceneRect(QRectF(0, 0, sheetActive->width, sheetActive->height));
     sheetView->centerOn(sheetView->mapFromScene(0,0));
     sheetScene->setSceneRect(sheetView->rect());
-    Rect *rect = new Rect;
-    rect->setRect(sheetActive->layoutRect());
-    sheetScene->addCustomRectItem(rect);
-    sheetScene->setCurShape(Shape::Rectangle);
+//    Rect *rect = new Rect;
+//    rect->setRect(sheetActive->layoutRect());
+//    sheetScene->addCustomRectItem(rect);
+//    sheetScene->setCurShape(Shape::Rectangle);
     qDebug() << sheetView->width() << " " << sheetView->height();
     qDebug() << sheetScene->width() << " " << sheetScene->height();
+
+    Rect *rect = new Rect;
+    Configure::PenStyle pen;
+    pen.setPenStyle(Qt::black, Qt::DashLine, 1);
+    rect->setPenStyle(pen);
+    rect->setRect(sheetActive->layoutRect());
+    sheetScene->addCustomRectItem(rect);
 }
 
 void SheetDialog::updateSheetListTable(QList<Sheet *> sheetList)
@@ -556,6 +574,11 @@ void SheetDialog::xmlFileWrite(QString fileName, QList<Sheet *> list)
     file.close();
 }
 
+Sheet *SheetDialog::getSheetActive()
+{
+    return sheetActive;
+}
+
 void SheetDialog::onStripConfigTableChanged(int row, int column)
 {
     if(!sheetActive || sheetActive->stripPW.length() - row < 1){
@@ -606,7 +629,6 @@ void SheetDialog::onSheetTypeComChanged(int index)
 void SheetDialog::onDialogButtonClicked(QAbstractButton *button)
 {
     if(button->text() == "Apply"){
-        qDebug() << "apply";
         // 检查名称是否冲突
         for(int i=0;i<sheetList.length();i++){
             if(i == currentIndex){
@@ -650,10 +672,9 @@ void SheetDialog::onDialogButtonClicked(QAbstractButton *button)
         buttonBox->button(QDialogButtonBox::Apply)->setDisabled(true);
     }
     if(button->text() == "Cancel"){
-        qDebug() << "cancel";
         if(newSheetItem != 0){
             QMessageBox::StandardButton box;
-            box = QMessageBox::warning(this,tr(""),tr("添加了新的材料，是否保存？"),
+            box = QMessageBox::warning(this,tr("警告"),tr("添加了新的材料，是否保存？"),
             QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
             if(box == QMessageBox::Yes) {
                 saveSheetInfo();
@@ -661,11 +682,18 @@ void SheetDialog::onDialogButtonClicked(QAbstractButton *button)
                 return;
             }
         }
+        if(role == Nest){
+            sheetActive = NULL;
+        }
         QDialog::reject();
     }
     if(button->text() == "OK"){
-        qDebug() << "ok";
-        saveSheetInfo();
+        if(newSheetItem != 0){
+            saveSheetInfo();
+        }
+        if(role == Nest && !sheetActive){
+            QMessageBox::warning(this, tr("警告"), tr("请选择一种材料用于排版！"));
+        }
         QDialog::accept();
     }
 }

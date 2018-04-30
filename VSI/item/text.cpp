@@ -21,7 +21,6 @@ Text::Text(QGraphicsItem *parent) :
     // 设置图元为可接受hover事件
     setAcceptHoverEvents(true);
     textdialog =new TextDialog();
-    textproperties = new ItemProperties();
 }
 
 void Text::startDraw(QGraphicsSceneMouseEvent *event)
@@ -30,7 +29,6 @@ void Text::startDraw(QGraphicsSceneMouseEvent *event)
     pen.setColor(penStyle.color);
     pen.setStyle(penStyle.style);
     pen.setWidthF(penStyle.width);
-    pen.setColor(textcolor);//设置颜色
     setPen(pen);
 
     overFlag = true;
@@ -80,8 +78,9 @@ void Text::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
         //绘制文本的另一种方法
         int textsize = textPixelSize;
         QString text = textcontent;
-        //qDebug()<<"文本内容:"<<text;
-        //qDebug()<<"字体大小:"<<textsize;
+
+        qDebug()<<"文本内容:"<<text;
+        qDebug()<<"字体大小:"<<textsize;
         QPainterPath textPath;//字体
         QFont font("Times",textsize);
         font.setStyleStrategy(QFont::ForceOutline);//轮廓线
@@ -102,7 +101,6 @@ void Text::mousePressEvent(QGraphicsSceneMouseEvent *event)
         pen.setStyle(selectedEntity.style);
         pen.setWidthF(selectedEntity.width);
         setPen(pen);
-        select(this);
     }
     QGraphicsItem::mousePressEvent(event);
 }
@@ -188,16 +186,6 @@ void Text::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
     }
 }
 
-QColor Text::getTextcolor() const
-{
-    return textcolor;
-}
-
-void Text::setTextcolor(const QColor &value)
-{
-    textcolor = value;
-}
-
 int Text::getTextPixelSize() const
 {
     return textPixelSize;
@@ -222,15 +210,6 @@ void Text::onSceneMoveableChanged(bool moveable)
 {
     this->moveable = moveable;
     setFlag(QGraphicsItem::ItemIsMovable, moveable);
-}
-
-void Text::typechange()
-{
-    if(this->textproperties->getOk())
-    {
-        this->setPen(this->textproperties->getPen());
-        this->setPenStyle(this->textproperties->getPenstyle());
-    }
 }
 
 void Text::on_commandLinkButton_2_clicked()

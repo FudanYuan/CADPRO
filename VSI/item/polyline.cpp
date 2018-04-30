@@ -21,7 +21,6 @@ Polyline::Polyline(QGraphicsItem *parent) :
     setAcceptDrops(true);
     // 设置图元为可接受hover事件
     setAcceptHoverEvents(true);
-    polylineproperties =new ItemProperties();
 }
 
 void Polyline::startDraw(QGraphicsSceneMouseEvent *event)
@@ -62,8 +61,12 @@ void Polyline::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     QPen pen = this->pen();
     // 重新设置画笔线宽;
     pen.setWidthF(pen.widthF() / scaleFactor);
+    if(collision){
+        pen.setColor(selectedEntity.color);
+    }
     painter->setPen(pen);
     painter->setRenderHint(QPainter::Antialiasing);
+
     // 如果已经结束绘图则直接绘原图
     if(overFlag){
         setPath(this->path());
@@ -78,7 +81,7 @@ void Polyline::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     switch (type) {
     case line:
         for (int i = 0; i < len - 1; ++i) {
-            painter->setBrush(QBrush(penStyle.color));
+            //painter->setBrush(QBrush(collides ? selectedEntity.color : penStyle.color));
             //drawRectPoint(painter, points.at(i), size);
             painter->setBrush(QBrush());
             path.lineTo(points.at(i+1));
@@ -114,6 +117,9 @@ void Polyline::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             path.cubicTo(c1, c2, ep);
         }
         break;
+
+    default:
+        break;
     }
 //    drawCrossPoint(painter, boundingRect().center(), 2, upright);
 //    painter->drawRect(boundingRect());
@@ -137,67 +143,18 @@ void Polyline::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     setPath(path);
 }
 
-//QRectF Polyline::boundingRect() const
-//{
-//    qreal xMin = LONG_MAX;
-//    qreal xMax = LONG_MIN;
-//    qreal yMin = LONG_MAX;
-//    qreal yMax = LONG_MIN;
-//    for(int i=0; i < points.length(); i++){
-//        QPointF point = points[i];
-//        qreal px = point.rx();
-//        qreal py = point.ry();
-//        if(px < xMin){
-//            xMin = px;
-//        }
-//        if(px > xMax){
-//            xMax = px;
-//        }
-//        if(py < yMin){
-//            yMin = py;
-//        }
-//        if(py > yMax){
-//            yMax = py;
-//        }
-//    }
-//    QRectF rect(xMin, yMin, xMax-xMin, yMax-yMin);
-//    // 如果图形旋转
-//    if(alpha!=0){
-//        xMin = LONG_MAX;
-//        xMax = LONG_MIN;
-//        yMin = LONG_MAX;
-//        yMax = LONG_MIN;
-//        QPointF center = rect.center();
-//        for(int i=0; i < points.length(); i++){
-//            QPointF point = points[i];
-////            qDebug() << "原坐标" << point;
-//            point = transformRotate(center, point, alpha);
-////            qDebug() << "新坐标" << point;
-////            qDebug() << "";
-//            qreal px = point.rx();
-//            qreal py = point.ry();
-//            if(px < xMin){
-//                xMin = px;
-//            }
-//            if(px > xMax){
-//                xMax = px;
-//            }
-//            if(py < yMin){
-//                yMin = py;
-//            }
-//            if(py > yMax){
-//                yMax = py;
-//            }
-//        }
-//        QRect newRect(xMin, xMax, yMin, yMax);
-//        return newRect;
-//    }
-//    return rect;
-//}
-
 QPainterPath Polyline::shape() const
 {
     return this->path();
+}
+
+bool Polyline::collidesWithItem(const QGraphicsItem *other, Qt::ItemSelectionMode mode) const
+{
+    collision = false;
+    if(QGraphicsItem::collidesWithItem(other, mode)){
+        collision = true;
+    }
+    return collision;
 }
 
 void Polyline::setPolyline(QList<QPointF> pList, int flag, qreal ele, qreal angle, const QPointF off)
@@ -356,14 +313,5 @@ void Polyline::onSceneMoveableChanged(bool moveable)
 {
     this->moveable = moveable;
     setFlag(QGraphicsItem::ItemIsMovable, moveable);
-}
-
-void Polyline::typechange()
-{
-    if(this->polylineproperties->getOk())
-    {
-        this->setPen(this->polylineproperties->getPen());
-        this->setPenStyle(this->polylineproperties->getPenstyle());
-    }
 }
 

@@ -2,13 +2,13 @@
 #include <QTextEdit>
 #include <QDebug>
 
+
 TextDialog::TextDialog():
     text(tr("hello")),
     textsize(50)
 {
     ok=false;
     this->initDialog();
-    textcolor = Qt::red;
 }
 
 void TextDialog::initDialog()
@@ -46,6 +46,9 @@ void TextDialog::initDialog()
     mainLayout->addWidget(bottom);
     mainLayout->addLayout(layout2);
 
+    //主对话框的大小、名称
+    setMaximumSize(300,280);
+    setMinimumSize(300,280);
     setLayout(mainLayout);
     setWindowTitle(tr("文本编辑"));
 }
@@ -57,8 +60,7 @@ void TextDialog::initlayout3()
     QComboBox *textfont1 =new QComboBox;
 
     QLabel *textcolor =new QLabel(tr("字体颜色"));
-    ColorComboBox *textcolor1 =new ColorComboBox(tr("text color"), this);
-    connect(textcolor1,&ColorComboBox::colorChanged,this,onColorChanged);
+    textcolor1 =new ColorComboBox(tr("text color"), this);
 
     QLabel *textheight =new QLabel(tr("文字高度"));
     textheight1 =new QLineEdit(tr("50"));
@@ -76,7 +78,7 @@ void TextDialog::initlayout3()
     layout3->setColumnStretch(3,10);
 
     connect(textheight1,SIGNAL(textChanged(QString)),this,SLOT(textsizechanged()));
-
+//    connect(textcolor1, &ColorComboBox::colorChanged, this, SLOT(onColorChanged()));
 
     middle->setLayout(layout3);
 }
@@ -96,6 +98,16 @@ void TextDialog::initlayout4()
     layout3->setColumnStretch(1,10);
     layout3->setColumnStretch(2,10);
     bottom->setLayout(layout4);
+}
+
+QColor TextDialog::getTextcolor() const
+{
+    return textcolor;
+}
+
+void TextDialog::setTextcolor(const QColor &value)
+{
+    textcolor = value;
 }
 
 int TextDialog::getTextsize() const
@@ -128,16 +140,6 @@ void TextDialog::setOk(bool value)
     ok = value;
 }
 
-QColor TextDialog::getTextcolor() const
-{
-    return textcolor;
-}
-
-void TextDialog::setTextcolor(const QColor &value)
-{
-    textcolor = value;
-}
-
 void TextDialog::onclickedok()
 {
     this->setOk(true);
@@ -162,8 +164,7 @@ void TextDialog::textchanged()
     //    qDebug()<<"+++"<<textcontent1->text();
 }
 
-void TextDialog::onColorChanged(QString string,QColor color)
+void TextDialog::onColorChanged()
 {
     //this->setTextcolor(textcolor1->);
-    this->setTextcolor(color);
 }

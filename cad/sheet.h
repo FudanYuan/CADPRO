@@ -13,7 +13,7 @@
 #include "view.h"
 #include "scene.h"
 
-#define SHEET_INFO "sheet.xml"
+#define SHEET_XML "sheet.xml"
 #define WHOLE tr("整体")
 #define STRIP tr("样条")
 
@@ -80,8 +80,13 @@ class SheetDialog : public QDialog
 {
     Q_OBJECT
 public:
+    enum RoleType{
+        Manager,  // 进行材料的管理
+        Nest  // 排版时进行材料的增加
+    };
     SheetDialog();
-
+    void setDialogRole(SheetDialog::RoleType role);  // 设置对话框角色
+    SheetDialog::RoleType getDialogRole();  // 获取对话框角色
     void initDialog();  // 初始化对话框
     void initSheetListPanel();  // 初始化材料列表
     void initSheetInfoPanel();  // 初始化材料属性
@@ -94,7 +99,9 @@ public:
     QList<Sheet*> xmlFileReader(QString fileName);  // 读取xml数据
     void xmlFileWrite(QString fileName, QList<Sheet*> list);  // 写入xml数据
 
+    Sheet* getSheetActive();
 private:
+    RoleType role;  // 打开该对话框的角色类型
     QList<Sheet*> sheetList;  // 材料列表
     Sheet *sheetActive;  // 选中材料
     int currentIndex;  // 当前序号

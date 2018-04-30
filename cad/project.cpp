@@ -131,7 +131,9 @@ Scene *Project::getActiveScene()
 
 bool Project::changeScene(int i, int j)
 {
-    sceneList.swap(i,j);
+    Scene *currentScene = sceneList[i];
+    sceneList[i] = sceneList[j];
+    sceneList[j] = currentScene;
 }
 
 void Project::setSaved(const bool saved)
@@ -250,6 +252,13 @@ void Project::dxfFileReader(const QString fileName)
 void Project::dxfLayerReader(const DxfFilter dxfFilter)
 {
     sceneList.clear();  // 清空图层列表
+    if(type == Sketch){
+        Scene *scene = new Scene();
+        scene->setName(getNewSceneName());
+        Configure config;
+        scene->setEntityStyle(config.eStyle);
+        sceneList.append(scene);
+    }
     for(int i=0; i<dxfFilter.layers.length();i++){
         QString layer = dxfFilter.transformText(dxfFilter.layers.at(i).layer.name);
         bool off = dxfFilter.layers.at(i).layer.off;
@@ -263,13 +272,6 @@ void Project::dxfLayerReader(const DxfFilter dxfFilter)
         } else{
             offLayers.append(layer);
         }
-    }
-    if(sceneList.length()==0 && type == Sketch){
-        sceneActive = new Scene;
-        sceneActive->setName(getNewSceneName());
-        Configure config;
-        sceneActive->setEntityStyle(config.eStyle);
-        sceneList.append(sceneActive);
     }
 
 #ifdef DXFDEBUG
@@ -319,10 +321,11 @@ void Project::dxfPointReader(const DxfFilter dxfFilter)
         sceneActive->addCustomPointItem(point);
         point->setPoint(QPointF(x,y));
 
-        Point *pointCopy = new Point(point);
-        sceneList[0]->addCustomPointItem(pointCopy);
-        pointCopy->setPoint(QPointF(x,y));
-
+        if(type == Sketch){
+            Point *pointCopy = new Point(point);
+            sceneList[0]->addCustomPointItem(pointCopy);
+            pointCopy->setPoint(QPointF(x,y));
+        }
         // 更新实体标识
         entityFlag = true;
 
@@ -381,9 +384,11 @@ void Project::dxfLineReader(const DxfFilter dxfFilter)
         sceneActive->addCustomLineItem(line);
         line->setCustomLine(QLineF(x1, y1, x2, y2));
 
-        Line *lineCopy = new Line(line);
-        sceneList[0]->addCustomLineItem(lineCopy);
-        lineCopy->setCustomLine(QLineF(x1, y1, x2, y2));
+        if(type == Sketch){
+            Line *lineCopy = new Line(line);
+            sceneList[0]->addCustomLineItem(lineCopy);
+            lineCopy->setCustomLine(QLineF(x1, y1, x2, y2));
+        }
 
         // 更新实体标识
         entityFlag = true;
@@ -441,10 +446,12 @@ void Project::dxfPolylineReader(const DxfFilter dxfFilter)
         sceneActive->addCustomPolylineItem(polyline);
         polyline->setPolyline(points, flag, elevation);
 
-        Polyline *polylineCopy = new Polyline(polyline);
-        polylineCopy->setShapeType(Shape::Polyline);
-        sceneList[0]->addCustomPolylineItem(polylineCopy);
-        polylineCopy->setPolyline(points, flag, elevation);
+        if(type == Sketch){
+            Polyline *polylineCopy = new Polyline(polyline);
+            polylineCopy->setShapeType(Shape::Polyline);
+            sceneList[0]->addCustomPolylineItem(polylineCopy);
+            polylineCopy->setPolyline(points, flag, elevation);
+        }
 
         // 更新实体标识
         entityFlag = true;
@@ -500,10 +507,12 @@ void Project::dxfArcReader(const DxfFilter dxfFilter)
         sceneActive->addCustomArcItem(arc);
         arc->setArc(cx, cy, r, angle1, angle2);
 
-        Arc *arcCopy = new Arc(arc);
-        arcCopy->setShapeType(Shape::Arc);
-        sceneList[0]->addCustomArcItem(arcCopy);
-        arcCopy->setArc(cx, cy, r, angle1, angle2);
+        if(type == Sketch){
+            Arc *arcCopy = new Arc(arc);
+            arcCopy->setShapeType(Shape::Arc);
+            sceneList[0]->addCustomArcItem(arcCopy);
+            arcCopy->setArc(cx, cy, r, angle1, angle2);
+        }
 
         // 更新实体标识
         entityFlag = true;
@@ -559,10 +568,12 @@ void Project::dxfCircleReader(const DxfFilter dxfFilter)
         sceneActive->addCustomCircleItem(circle);
         circle->setCircle(cx, cy, r);
 
-        Circle *circleCopy = new Circle(circle);
-        circleCopy->setShapeType(circle->getShapeType());
-        sceneList[0]->addCustomCircleItem(circleCopy);
-        circleCopy->setCircle(cx, cy, r);
+        if(type == Sketch){
+            Circle *circleCopy = new Circle(circle);
+            circleCopy->setShapeType(circle->getShapeType());
+            sceneList[0]->addCustomCircleItem(circleCopy);
+            circleCopy->setCircle(cx, cy, r);
+        }
 
         // 更新实体标识
         entityFlag = true;
@@ -618,10 +629,12 @@ void Project::dxfEllipseReader(const DxfFilter dxfFilter)
         sceneActive->addCustomEllipseItem(ellipse);
         ellipse->setEllipse(cx, cy, mx, my, ratio, angle1, angle2);
 
-        Ellipse *ellipseCopy = new Ellipse(ellipse);
-        ellipseCopy->setShapeType(Shape::Ellipse);
-        sceneList[0]->addCustomEllipseItem(ellipseCopy);
-        ellipseCopy->setEllipse(cx, cy, mx, my, ratio, angle1, angle2);
+        if(type == Sketch){
+            Ellipse *ellipseCopy = new Ellipse(ellipse);
+            ellipseCopy->setShapeType(Shape::Ellipse);
+            sceneList[0]->addCustomEllipseItem(ellipseCopy);
+            ellipseCopy->setEllipse(cx, cy, mx, my, ratio, angle1, angle2);
+        }
 
         // 更新实体标识
         entityFlag = true;
@@ -688,10 +701,12 @@ void Project::dxfTextReader(const DxfFilter dxfFilter)
         sceneActive->addCustomTextItem(text);
         text->setText(cx, cy, r, angle1, angle2);
 
-        Text *textCopy = new Text(text);
-        textCopy->setShapeType(Shape::Text);
-        sceneList[0]->addCustomTextItem(textCopy);
-        textCopy->setText(cx, cy, r, angle1, angle2);
+        if(type == Sketch){
+            Text *textCopy = new Text(text);
+            textCopy->setShapeType(Shape::Text);
+            sceneList[0]->addCustomTextItem(textCopy);
+            textCopy->setText(cx, cy, r, angle1, angle2);
+        }
 
         // 更新实体标识
         entityFlag = true;
@@ -934,5 +949,30 @@ void Project::dxfEllipseWriter(const QList<Ellipse *> &list, DL_Dxf &dxf, DL_Wri
         qDebug() << "eAngle: " << eAngle;
 #endif
     }
+}
+
+void Project::tnfFileWriter(const QString fileName,
+                            const QList<Sheet*> sheetList,
+                            const QList<PieceCenter> pieceCenterList,
+                            const QList<PieceOffset> pieceOffsetList)
+{
+    NF_Writer* nw = tnf.out(fileName.toStdString().c_str());
+    if (nw==NULL) {
+        throw(tr("无法打开文件进行写入操作"));
+    }
+    nw->writeHeader("SATURNO2 ST2 CAM FILE by LEANEST (deep): CamSaturno2 V1.8.09");
+    nw->writeSheet(sheetList);
+
+    int centerCount = pieceCenterList.length();
+    nw->writePieceCenterHeader(centerCount);
+
+    nw->writePieceCenter(pieceCenterList);
+
+    int offsetCount = pieceOffsetList.length();
+    nw->writePieceOffsetHeader(offsetCount);
+
+    nw->writePieceOffset(pieceOffsetList);
+    nw->close();
+    delete nw;
 }
 

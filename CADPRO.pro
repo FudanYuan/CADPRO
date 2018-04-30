@@ -27,6 +27,7 @@ INCLUDEPATH += configure
 INCLUDEPATH += common
 INCLUDEPATH += dxf
 INCLUDEPATH += dxf/dxflib
+INCLUDEPATH += nestFile
 INCLUDEPATH += VSI
 INCLUDEPATH += VSI/item
 
@@ -66,7 +67,11 @@ SOURCES += \
     cad/project.cpp \
     cad/sketch.cpp \
     cad/nest.cpp \
-    cad/sheet.cpp
+    cad/sheet.cpp \
+    nestFile/nf_writer.cpp \
+    nestFile/nf_tnf.cpp \
+    nestFile/nf_reader.cpp \
+    cad/rectnestengine.cpp
 
 HEADERS += \
     common/debug.h \
@@ -117,7 +122,13 @@ HEADERS += \
     cad/sketch.h \
     cad/nest.h \
     common/binaryfile.h \
-    cad/sheet.h
+    cad/sheet.h \
+    nestFile/nf_global.h \
+    nestFile/nf_writer.h \
+    nestFile/nf_tnf.h \
+    nestFile/nf_reader.h \
+    nestFile/nf_struct.h \
+    cad/rectnestengine.h
 
 FORMS += \
     configure/configuredialog.ui \

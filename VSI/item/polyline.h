@@ -5,7 +5,6 @@
 #include <QGraphicsSceneMouseEvent>
 #include "shape.h"
 #include <QPointF>
-#include "itemproperties.h"
 
 //!
 //! 折线类，所有的多边形、曲线、
@@ -30,6 +29,8 @@ public:
 //    QRectF boundingRect() const Q_DECL_OVERRIDE;
     QPainterPath shape() const Q_DECL_OVERRIDE;
 
+    bool collidesWithItem(const QGraphicsItem *other, Qt::ItemSelectionMode mode = Qt::IntersectsItemShape) const Q_DECL_OVERRIDE;
+
     void setPolyline(QList<QPointF> pList, int flag, qreal ele=0, qreal angle=0, const QPointF off=QPointF());
 
     void setPoints(const QList<QPointF> &value);
@@ -40,9 +41,8 @@ public:
 
     void setElevation(qreal elevation);  // 设置高程
     qreal getElevation();  // 获取高程
-    Polyline *copy();
-    ItemProperties *polylineproperties;
 
+    Polyline *copy();
 protected:
     //鼠标事件
     void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
@@ -65,13 +65,11 @@ private:
     double elevation;  // 高程
     qreal alpha;  // 旋转角度
     QPointF offset;  // 偏移量
-
 signals:
     void select(Polyline *polyline);  // 图形被选择
 
 public slots:
     void onSceneMoveableChanged(bool moveable) Q_DECL_OVERRIDE;  //  响应场景可移动性改变
-    void typechange();
 };
 
 #endif // POLYLINE_H

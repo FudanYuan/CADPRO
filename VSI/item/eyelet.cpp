@@ -19,7 +19,6 @@ Eyelet::Eyelet(QGraphicsItem *parent) :
     // 设置图元为可接受hover事件
     setAcceptHoverEvents(true);
     eyeletdialog =new EyeletDialog();
-    eyeletproperties = new ItemProperties();
 }
 
 void Eyelet::startDraw(QGraphicsSceneMouseEvent *event)
@@ -68,49 +67,16 @@ void Eyelet::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QW
     sPoint.setX(cPoint.rx());sPoint.setY(cPoint.ry()-height);
     path.lineTo(sPoint);
     path.arcTo(cPoint.rx()-height/2,cPoint.ry()-height,height,height,90,180);
-    pen.setStyle(Qt::SolidLine);
-    painter->setPen(pen);
+    painter->setPen(Qt::SolidLine);
     painter->drawPath(path);
 
     path.lineTo(cPoint.rx(),cPoint.ry()-height);
     path.moveTo(cPoint.rx()+width,cPoint.ry());
     path.lineTo(cPoint.rx()+width,cPoint.ry()-height);
-    pen.setStyle(Qt::DotLine);
-    painter->setPen(pen);
+    painter->setPen(Qt::DotLine);
     painter->drawPath(path);
 
     setPath(path);
-}
-
-QList<QPointF> Eyelet::toPolyline()
-{
-    QList<QPointF> points;
-    QPointF sPoint;
-    int width = eyeletW;//鸡眼孔宽度
-    int height = eyeletH;//鸡眼孔高度
-    int yanben = 1000;//采样点数
-    sPoint.setX(cPoint.rx()+width);sPoint.setY(cPoint.ry());
-    points.append(cPoint);
-    points.append(sPoint);
-    double angle = -90.0;
-    for(int i=0;i<yanben;i++)
-    {
-        QPointF p(cPoint.rx()+width+height/2*qCos(M_PI*angle/180),cPoint.ry()-height/2-height/2*qSin(M_PI*angle/180));
-        angle = angle + (double)180/yanben;
-        points.append(p);
-    }
-    sPoint.setX(cPoint.rx()+width);sPoint.setY(cPoint.ry()-height);
-    points.append(sPoint);
-    sPoint.setX(cPoint.rx());sPoint.setY(cPoint.ry()-height);
-    points.append(sPoint);
-    angle = 90.0;
-    for(int i=0;i<yanben;i++)
-    {
-        QPointF p(cPoint.rx()+height/2*qCos(M_PI*angle/180),cPoint.ry()-height/2-height/2*qSin(M_PI*angle/180));
-        angle = angle + (double)180/yanben;
-        points.append(p);
-    }
-    return points;
 }
 
 void Eyelet::mousePressEvent(QGraphicsSceneMouseEvent *event)
@@ -125,7 +91,6 @@ void Eyelet::mousePressEvent(QGraphicsSceneMouseEvent *event)
         pen.setStyle(selectedEntity.style);
         pen.setWidthF(selectedEntity.width);
         setPen(pen);
-        select(this);
     }
     QGraphicsItem::mousePressEvent(event);
 }
@@ -235,15 +200,6 @@ void Eyelet::onSceneMoveableChanged(bool moveable)
 {
     this->moveable = moveable;
     setFlag(QGraphicsItem::ItemIsMovable, moveable);
-}
-
-void Eyelet::typechange()
-{
-    if(this->eyeletproperties->getOk())
-    {
-        this->setPen(this->eyeletproperties->getPen());
-        this->setPenStyle(this->eyeletproperties->getPenstyle());
-    }
 }
 
 void Eyelet::on_commandLinkButton_2_clicked()

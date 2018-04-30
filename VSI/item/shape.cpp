@@ -13,9 +13,7 @@ Shape::Shape() :
     selected(false),
     showNode(false),
     editable(false),
-    editOverFlag(false),
-    isoffset(false),
-    itemp(false)
+    editOverFlag(false)
 {
 }
 
@@ -163,4 +161,14 @@ void Shape::setEditOverFlag(bool editOverFlag)
 bool Shape::getEditOverFlag() const
 {
     return this->editOverFlag;
+}
+
+void Shape::setCollision(bool coll)
+{
+    this->collision = coll;
+}
+
+bool Shape::getCollision()
+{
+    return this->collision;
 }

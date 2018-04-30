@@ -18,12 +18,10 @@ Polygon::Polygon(QGraphicsItem *parent) :
     setAcceptDrops(true);
     // 设置图元为可接受hover事件
     setAcceptHoverEvents(true);
-    movePointEdit =false;
     alpha=0;  // 旋转角度
+    type;  //线类型
     lineNum=4;//边的个数
     radius=100;//半径
-    offset = 50;
-    polygonproperties =new ItemProperties();
 }
 
 void Polygon::startDraw(QGraphicsSceneMouseEvent *event)
@@ -33,7 +31,7 @@ void Polygon::startDraw(QGraphicsSceneMouseEvent *event)
     pen.setStyle(penStyle.style);
     pen.setWidthF(penStyle.width);
     setPen(pen);
-    cPoint = event->scenePos();
+
     overFlag = true;
 }
 
@@ -79,81 +77,38 @@ void Polygon::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
     painter->drawPath(path);
     setPath(path);
     drawCrossPoint(painter, cPoint, 5, upright);
-
-    if(isoffset)
-    {
-        r=radius+offset;
-        num = lineNum;
-        angle=alpha;
-        QPainterPath path;
-        QPointF sPoint(cPoint.rx()+r*qCos(M_PI*angle/180),
-                       cPoint.ry()+r*qSin(M_PI*angle/180));
-        path.moveTo(sPoint);
-        for(int i=1;i < num;i++){
-           QPointF p(cPoint.rx()+r*qCos(2*M_PI/num * i+M_PI*angle/180),
-                     cPoint.ry()+r*qSin(2*M_PI/num * i+M_PI*angle/180));
-           path.lineTo(p);
-        }
-        path.lineTo(sPoint);
-        painter->drawPath(path);
-    }
-
-    if(selected){
-        pen.setColor(selectedEntity.color);
-        painter->setPen(pen);
-        QBrush brush = QBrush();
-        brush.setColor(selectedEntity.color);
-        brush.setStyle(Qt::SolidPattern);
-        painter->setBrush(brush);
-        drawRectPoint(painter,cPoint,objSize.snapDistanceInPix);
-        qDebug()<<"移动点";
-    }
-
 }
 
-QList<QPointF> Polygon::toPolyline()
+void Polygon::toPolyline()
 {
-    QList<QPointF> points;  // 各个点的坐标
     int r=radius;
     int num = lineNum;
     double angle=alpha;
-    QPointF sPoint(cPoint.rx()+r*qCos(M_PI*angle/180),
-                   cPoint.ry()+r*qSin(M_PI*angle/180));
+    QPointF sPoint(cPoint.rx()+r*qCos(M_PI*alpha/180),
+                   cPoint.ry()+r*qSin(M_PI*alpha/180));
     points.append(sPoint);
+    qDebug()<<"spoint.x"<<sPoint.rx()<<"spoint.x"<<sPoint.ry();
+
     for(int i=1;i < lineNum;i++){
-       QPointF p(cPoint.rx()+r*qCos(2*M_PI/num * i+M_PI*angle/180),
-                 cPoint.ry()+r*qSin(2*M_PI/num * i+M_PI*angle/180));
+       QPointF p(cPoint.rx()+r*qCos(2*M_PI/lineNum * i+M_PI*alpha/180),
+                 cPoint.ry()+r*qSin(2*M_PI/lineNum * i+M_PI*alpha/180));
        points.append(p);
     }
     points.append(sPoint);
-    return points;
 }
 
 void Polygon::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(selectable){
         selected = true;
+        qDebug() << "type: " << getShapeType();
+        qDebug() << "id: " << getShapeId();
         setCursor(Qt::ClosedHandCursor);
-        if(!itemp)
-        {
-            qDebug() << "type: " << getShapeType();
-            qDebug() << "id: " << getShapeId();
-            QPen pen = QPen();
-            pen.setColor(selectedEntity.color);
-            pen.setStyle(selectedEntity.style);
-            pen.setWidthF(selectedEntity.width);
-            setPen(pen);
-        }
-        if(selected){
-            qDebug()<<"可移动";
-            setFlag(GraphicsItemFlag::ItemIsMovable, true);
-            }
-        else{
-            qDebug()<<"不可移动";
-            setFlag(GraphicsItemFlag::ItemIsMovable, false);
-        }
-        editOverFlag = false;
-        emit select(this);
+        QPen pen = QPen();
+        pen.setColor(selectedEntity.color);
+        pen.setStyle(selectedEntity.style);
+        pen.setWidthF(selectedEntity.width);
+        setPen(pen);
     }
     QGraphicsItem::mousePressEvent(event);
 }
@@ -196,7 +151,7 @@ void Polygon::dropEvent(QGraphicsSceneDragDropEvent *event)
 
 void Polygon::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
-    if(selectable && !itemp){
+    if(selectable){
         QPen pen = QPen();
         if(!selected){
             pen.setColor(underCursorStyle.color);
@@ -215,7 +170,7 @@ void Polygon::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 
 void Polygon::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
-    if(selectable && !itemp){
+    if(selectable){
         setCursor(Qt::OpenHandCursor);
         QGraphicsItem::hoverMoveEvent(event);
     }
@@ -223,7 +178,7 @@ void Polygon::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 
 void Polygon::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
-    if(selectable && !itemp){
+    if(selectable){
         QPen pen = QPen();
         if(!selected){
             pen.setColor(penStyle.color);
@@ -239,35 +194,20 @@ void Polygon::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
     }
 }
 
-double Polygon::getOffset() const
-{
-    return offset;
-}
-
-void Polygon::setOffset(double value)
-{
-    offset = value;
-}
-
 void Polygon::onSceneMoveableChanged(bool moveable)
 {
     this->moveable = moveable;
     setFlag(QGraphicsItem::ItemIsMovable, moveable);
 }
 
-void Polygon::typechange()
+void Polygon::setPoints(const QList<QPointF> &value)
 {
-    if(itemp = this->polygonproperties->getOk())
-    {
-        this->setPen(this->polygonproperties->getPen());
-        this->setPenStyle(this->polygonproperties->getPenstyle());
-        isoffset = this->polygonproperties->getIsinsertoffset();
-        this->setOffset(this->polygonproperties->getOffset());
-        lineNum = this->polygonproperties->getPolygonEdge();
-        radius = this->polygonproperties->getPolygonEdgeLength();
-        alpha = this->polygonproperties->getPolygonRad();
-    }
+    points = value;
+}
 
+QList<QPointF> Polygon::getPoints() const
+{
+    return points;
 }
 
 void Polygon::setAlpha(const qreal &value)
@@ -292,6 +232,8 @@ int Polygon::getType()
 
 void Polygon::setRadius(double value)
 {
+    if(value==NULL||value<=0)
+        value=100;
     radius = value;
 }
 
@@ -307,6 +249,8 @@ double Polygon::getRadius() const
 
 void Polygon::setLineNum(int value)
 {
+    if(value==NULL||value<0)
+        value=4;
     lineNum = value;
 }
 

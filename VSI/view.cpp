@@ -235,6 +235,9 @@ void View::wheelEvent(QWheelEvent *event)
         event->ignore();
         return;
     }
+    // 以鼠标位置为中心
+//    centerOn(event->posF());
+    setResizeAnchor(QGraphicsView::AnchorUnderMouse); // AnchorUnderMouse
     // 滚轮的滚动量
     QPoint scrollAmount = event->angleDelta();
     // 正值表示滚轮远离使用者（放大），负值表示朝向使用者（缩小）
@@ -260,11 +263,13 @@ void View::zoom(qreal scaleFactor)
 {
     // 防止过小或过大
     qreal factor = transform().scale(scaleFactor, scaleFactor).mapRect(QRectF(0, 0, 1, 1)).width();
-    if (factor < 0.01 || factor > 100)
+    qDebug() << "factor " << factor;
+    if (factor < 0.01 || factor > 50){
         return;
+    }
+    qDebug() << "scaleFactor " << scaleFactor;
     scale(scaleFactor, scaleFactor);
     this->windowScale *= scaleFactor;
-
     // 发送视图缩放改变的信号
     emit viewScaleChanged(this->windowScale);
 }
@@ -276,7 +281,7 @@ void View::translate(QPointF delta)
     delta *= this->translateSpeed;
 
     // view 根据鼠标下的点作为锚点来定位 scene
-    setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
+    setTransformationAnchor(QGraphicsView::AnchorViewCenter);
     QPoint newCenter(VIEW_WIDTH / 2 - delta.x(),  VIEW_HEIGHT / 2 - delta.y());
     centerOn(mapToScene(newCenter));
 

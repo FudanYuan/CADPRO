@@ -25,7 +25,6 @@ Arc::Arc(QGraphicsItem *parent) :
     setAcceptDrops(true);
     // 设置图元为可接受hover事件
     setAcceptHoverEvents(true);
-    arcproperties = new ItemProperties;
 }
 
 void Arc::startDraw(QGraphicsSceneMouseEvent *event)
@@ -102,7 +101,7 @@ bool Arc::updateFlag(QGraphicsSceneMouseEvent *event)
         update();
         return false;
     }
-    if(!tFlag){// 确定第3个点
+    if(!tFlag){ // 确定第3个点
         tPoint = event->scenePos();
         tFlag = true;
         overFlag = true;
@@ -487,14 +486,4 @@ void Arc::onSceneMoveableChanged(bool moveable)
 {
     this->moveable = moveable;
     setFlag(QGraphicsItem::ItemIsMovable, moveable);
-}
-
-void Arc::typechange()
-{
-    itemp = this->arcproperties->getOk();
-    if(itemp)
-    {
-        this->setPen(this->arcproperties->getPen());
-        this->setPenStyle(this->arcproperties->getPenstyle());
-    }
 }

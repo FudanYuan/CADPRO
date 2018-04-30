@@ -66,9 +66,8 @@ bool Line::updateFlag(QGraphicsSceneMouseEvent *event)
 
 void Line::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    Q_UNUSED(option);
     Q_UNUSED(widget);
-    scaleFactor =  painter->matrix().m11();
+    scaleFactor = painter->matrix().m11();
     // 获取到当前的线宽，这里的线宽其实还是之前设置的线宽值;
     // 比如我们之前设置线宽为 2 ，这里返回的线宽还是 2 ，但是当前的缩放比例变了；
     // 其实当前的线宽就相当于 penWidth * scaleFactor;
@@ -114,8 +113,8 @@ void Line::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
         brush.setColor(selectedEntity.color);
         brush.setStyle(Qt::SolidPattern);
         painter->setBrush(brush);
-        drawRectPoint(painter, sPoint, objSize.knotSizeInPix);
-        drawRectPoint(painter, ePoint, objSize.knotSizeInPix);
+        drawRectPoint(painter, sPoint, objSize.knotSizeInPix / scaleFactor);
+        drawRectPoint(painter, ePoint, objSize.knotSizeInPix / scaleFactor);
     }
 
     painter->restore();
@@ -305,6 +304,5 @@ void Line::typechange()
     if(itemp)
     {
         this->setPen(this->lineproperties->getPen());
-        this->setPenStyle(this->lineproperties->getPenstyle());
     }
 }
