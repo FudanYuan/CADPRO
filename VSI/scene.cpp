@@ -452,40 +452,45 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     //变化成polyline
                     switch(curShape)
                     {
-                        case Shape::Rectangle:
-                        {
-                            //转换类型
-                            Polyline *polyline = new Polyline;
-                            polyline->setPoints(recttram->toPolyline());
-                            polylineList.append(polyline);
-                            break;
-                        }
-                        case Shape::Polygon:
-                        {
-                            //转换类型
-                            Polyline *polyline = new Polyline;
-                            polyline->setPoints(polygontram->toPolyline());
-                            polylineList.append(polyline);
-                            break;
-                        }
-                        case Shape::Trapezium:
-                        {
-                            //转换类型
-                            Polyline *polyline = new Polyline;
-                            polyline->setPoints(trapeziumtram->toPolyline());
-                            polylineList.append(polyline);
-                            break;
-                        }
-                        case Shape::Eyelet:
-                        {
-                            //转换类型
-                            Polyline *polyline = new Polyline;
-                            polyline->setPoints(eyelettram->toPolyline());
-                            polylineList.append(polyline);
-                            break;
-                        }
-                        default:
-                            break;
+                    case Shape::Rectangle:
+                    {
+                        //转换类型
+                        Polyline *polyline = new Polyline;
+                        polyline->setPoints(recttram->toPolyline());
+                        polylineList.append(polyline);
+                    }
+                    case Shape::Polygon:
+                    {
+                        //转换类型
+                        Polyline *polyline = new Polyline;
+                        polygontram->toPolyline();
+                        polygontram->setPoints(polygontram->getPoints());
+                        polylineList.append(polyline);
+
+                        polyline->setPenStyle(recttram->getPenStyle());
+                        polyline->setLayer(recttram->getLayer());
+//                        if(polyline->getPoints().isEmpty())
+//                            qDebug()<<"没有点集";
+//                        else
+//                        {
+//                            QPointF p;
+//                            p=polyline->getPoints().at(0);
+//                            qDebug()<<"点：x:"<<p.rx()<<"y:"<<p.ry();
+//                            p=polyline->getPoints().at(1);
+//                            qDebug()<<"点：x:"<<p.rx()<<"y:"<<p.ry();
+//                            p=polyline->getPoints().at(2);
+//                            qDebug()<<"点：x:"<<p.rx()<<"y:"<<p.ry();
+//                            p=polyline->getPoints().at(3);
+//                            qDebug()<<"点：x:"<<p.rx()<<"y:"<<p.ry();
+//                            qDebug()<<"点集长度："<<polyline->getPoints().length();
+//                            qDebug()<<"线类型："<<polyline->getType();
+//                            qDebug()<<"不知道是啥："<<polyline->getLayer();
+//                            qDebug()<<"颜色"<<polyline->getPenStyle().color;
+//                            qDebug()<<"线宽"<<polyline->getPenStyle().width;
+//                        }
+                    }
+                    default:
+                        break;
                     }
                 }
             } else {
@@ -689,7 +694,6 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     polygontram = polygon;
                     addItem(polygon);
                     connect(polygon, &Shape::sceneMoveableChanged, polygon, &Polygon::onSceneMoveableChanged);
-                    connect(polygon, &Polygon::select, this, &Scene::onPolygonSelected);
                     break;
                 }
                 case Shape::Trapezium:
@@ -713,10 +717,8 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     trapezium->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
                     trapezium->setSelectStyle(eStyle.selectedEntity);
                     curItem = trapezium;
-                    trapeziumtram =trapezium;//转变类型
                     addItem(trapezium);
                     connect(trapezium, &Shape::sceneMoveableChanged, trapezium, &Trapezium::onSceneMoveableChanged);
-                    connect(trapezium, &Trapezium::select, this, &Scene::onTrapeziumSelected);
                     break;
                 }
                 case Shape::Eyelet:
@@ -737,10 +739,8 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     eyelet->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
                     eyelet->setSelectStyle(eStyle.selectedEntity);
                     curItem = eyelet;
-                    eyelettram =eyelet;
                     addItem(eyelet);
                     connect(eyelet, &Shape::sceneMoveableChanged, eyelet, &Eyelet::onSceneMoveableChanged);
-                    connect(eyelet, &Eyelet::select, this, &Scene::onEyeletSelected);
                     break;
                 }
                 case Shape::Text:
@@ -749,7 +749,6 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
                     text->setTextcontent(this->textdialog->textdialog->getText());
                     text->setTextPixelSize(this->textdialog->textdialog->getTextsize());
-                    text->setTextcolor(this->textdialog->textdialog->getTextcolor());
                     qDebug()<<"文本内容"<<text->getTextcontent();
                     qDebug()<<"文本大小"<<text->getTextPixelSize();
 
@@ -759,12 +758,12 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     curItem = text;
                     addItem(text);
                     connect(text, &Shape::sceneMoveableChanged, text, &Text::onSceneMoveableChanged);
-                    connect(text, &Text::select, this, &Scene::onTextSelected);
                     break;
                 }
                 default:
                     break;
                 }
+
                 if(curItem && !drawing && !moveable) {
                     itemList.append(curItem);
                     curItem->startDraw(event);
@@ -819,7 +818,7 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
             } else{
                 curItem->setOverFlag(true);
             }
-            drawable = false;//修改后不会有重复出现的情况
+            drawable = !drawable;
         }
 
         if(moveable){
@@ -831,7 +830,7 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
             itemList.at(i)->setSelected(false);
             itemList.at(i)->setMoveable(moveable);
         }
-        clearSelection();
+//        clearSelection();
     }
 
     QGraphicsScene::mousePressEvent(event);
@@ -846,6 +845,21 @@ void Scene::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
     if(curItem && drawing) {
         curItem->drawing(event);
+    }
+    if(moveable){
+//        for(int i=0;i<polylineList.length();i++){
+//            QPointF p(100,100);
+//            //qDebug() << "是否包含QPointF p(100,100) ：" << polylineList[i]->contains(p);
+//            for(int j=0;j<polylineList.length();j++){
+//                if(i == j){
+//                    continue;
+//                }
+//                if(polylineList[i]->collidesWithItem(polylineList[j])){
+//                    qDebug() << polylineList[i]->getShapeId() << " 与"
+//                             << polylineList[j]->getShapeId() << "碰撞";
+//                }
+//            }
+//        }
     }
     update();
     QGraphicsScene::mouseMoveEvent(event);
@@ -1022,24 +1036,4 @@ void Scene::onRectSelected(Rect *rect)
 void Scene::onPolylineSelected(Polyline *polyline)
 {
     emit polylineSelected(polyline);
-}
-
-void Scene::onPolygonSelected(Polygon *polygon)
-{
-    emit polygonSelected(polygon);
-}
-
-void Scene::onTrapeziumSelected(Trapezium *trapezium)
-{
-    emit trapeziumSelected(trapezium);
-}
-
-void Scene::onEyeletSelected(Eyelet *eyelet)
-{
-    emit eyeletSelected(eyelet);
-}
-
-void Scene::onTextSelected(Text *text)
-{
-    emit textSelected(text);
 }

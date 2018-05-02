@@ -13,7 +13,7 @@
 #include "view.h"
 #include "scene.h"
 
-#define SHEET_INFO "sheet.xml"
+#define SHEET_XML "sheet.xml"
 #define WHOLE tr("整体")
 #define STRIP tr("样条")
 

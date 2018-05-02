@@ -3,6 +3,7 @@
 #include "scene.h"
 #include "dxffilter.h"
 #include "dl_dxf.h"
+#include "nf_tnf.h"
 
 #include <QWidget>
 #include <QString>
@@ -64,6 +65,12 @@ public:
     void dxfEllipseWriter(const QList<Ellipse *> &list, DL_Dxf &dxf, DL_WriterA* dw);  // 存储椭圆
 //    void dxfTextWriter(const QList<Text *> &list, DL_Dxf &dxf, DL_WriterA* dw);  // 存储文本
 
+    // tnf 写
+    void tnfFileWriter(const QString fileName,
+                       const QList<Sheet*> sheetList,
+                       const QList<PieceCenter> pieceCenterList,
+                       const QList<PieceOffset> pieceOffsetList);  // 存储tnf文件
+
 private:
     Type type;  // 类型
     QString name;  // 项目名称
@@ -74,9 +81,12 @@ private:
 
     DxfFilter dxfFilter;  // dxf 操作
     DL_Dxf dxf;
+
+    NF_Tnf tnf;
     QList<QString> offLayers; // 关闭的layer
     bool entityFlag;  // 实体标识，有实体的话为true
 
+    QList<Sheet *> sheetList;  // 材料列表
 signals:
     void projectNameChanged(QString, QString);
 };

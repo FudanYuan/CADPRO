@@ -44,13 +44,10 @@ void EyeletDialog::intidialog()
 
 
     //主对话框的大小、名称
+    setMaximumSize(600,280);
+    setMinimumSize(600,280);
     setLayout(mainLayout);
     setWindowTitle(tr("梯形绘制"));
-    // 适应屏幕大小
-    QDesktopWidget* desktopWidget = QApplication::desktop();
-    QRect screenRect = desktopWidget->screenGeometry();
-    setFixedSize(screenRect.width() - 800, screenRect.height()-450);
-    setSizePolicy(QSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed));
 }
 
 void EyeletDialog::creatlayout3()

@@ -23,7 +23,6 @@ Ellipse::Ellipse(QGraphicsItem *parent) :
     setAcceptDrops(true);
     // 设置图元为可接受hover事件
     setAcceptHoverEvents(true);
-    ellipseproperties = new ItemProperties();
 }
 
 void Ellipse::startDraw(QGraphicsSceneMouseEvent *event)
@@ -316,26 +315,14 @@ void Ellipse::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(selectable){
         selected = true;
+        qDebug() << "type: " << getShapeType();
+        qDebug() << "id: " << getShapeId();
         setCursor(Qt::ClosedHandCursor);
-        if(!itemp)
-        {
-            qDebug() << "type: " << getShapeType();
-            qDebug() << "id: " << getShapeId();
-            QPen pen = QPen();
-            pen.setColor(selectedEntity.color);
-            pen.setStyle(selectedEntity.style);
-            pen.setWidthF(selectedEntity.width);
-            setPen(pen);
-        }
-        if(selected){
-            qDebug()<<"可移动";
-            setFlag(GraphicsItemFlag::ItemIsMovable, true);
-            }
-        else{
-            qDebug()<<"不可移动";
-            setFlag(GraphicsItemFlag::ItemIsMovable, false);
-        }
-        editOverFlag = false;
+        QPen pen = QPen();
+        pen.setColor(selectedEntity.color);
+        pen.setStyle(selectedEntity.style);
+        pen.setWidthF(selectedEntity.width);
+        setPen(pen);
         emit select(this);
     }
     QGraphicsItem::mousePressEvent(event);
@@ -379,7 +366,7 @@ void Ellipse::dropEvent(QGraphicsSceneDragDropEvent *event)
 
 void Ellipse::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
-    if(selectable && !itemp){
+    if(selectable){
         QPen pen = QPen();
         if(!selected){
             pen.setColor(underCursorStyle.color);
@@ -398,7 +385,7 @@ void Ellipse::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 
 void Ellipse::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
-    if(selectable && !itemp){
+    if(selectable){
         setCursor(Qt::OpenHandCursor);
         QGraphicsItem::hoverMoveEvent(event);
     }
@@ -406,7 +393,7 @@ void Ellipse::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 
 void Ellipse::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
-    if(selectable && !itemp){
+    if(selectable){
         QPen pen = QPen();
         if(!selected){
             pen.setColor(penStyle.color);
@@ -426,16 +413,4 @@ void Ellipse::onSceneMoveableChanged(bool moveable)
 {
     this->moveable = moveable;
     setFlag(QGraphicsItem::ItemIsMovable, moveable);
-}
-
-void Ellipse::typechange()
-{
-    if(itemp = this->ellipseproperties->getOk())
-    {
-        this->setPen(this->ellipseproperties->getPen());
-        this->setPenStyle(this->ellipseproperties->getPenstyle());
-        this->setRadius1(this->ellipseproperties->getEllipseR1());
-        this->setRadius2(this->ellipseproperties->getEllipseR2());
-        this->alpha = this->ellipseproperties->getEllipseAlpha();
-    }
 }

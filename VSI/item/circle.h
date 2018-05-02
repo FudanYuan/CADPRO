@@ -5,7 +5,6 @@
 #include <QGraphicsSceneMouseEvent>
 #include "shape.h"
 #include <QPointF>
-#include "itemproperties.h"
 
 class Circle : public Shape, public QGraphicsEllipseItem
 {
@@ -28,8 +27,8 @@ public:
 
     void setCircle(qreal px, qreal py, qreal radius);  // 设置圆形
     Circle circle();  // 圆形
+
     Circle *copy();
-    ItemProperties *circleproperties;
 
 protected:
     //鼠标事件
@@ -51,14 +50,11 @@ private:
     qreal r; // 半径
     bool filled;  // 设置填充
     qreal crossSize;  // 交叉线大小
-    double offset;//偏移量
-
 signals:
     void select(Circle *circle);  // 图形被选择
 
 public slots:
     void onSceneMoveableChanged(bool moveable) Q_DECL_OVERRIDE;  //  响应场景可移动性改变
-    void typechange();
 };
 
 #endif // CIRCLE_H

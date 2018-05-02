@@ -21,4 +21,8 @@
 #define DXF_WRITE_DEBUG
 #endif
 
+#if 1
+#define DEBUGNFREADER
+#endif
+
 #define DISCARD_DXF_ENTITY_PROPERTITY  // 丢掉dxf文件中的实体属性

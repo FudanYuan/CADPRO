@@ -951,3 +951,28 @@ void Project::dxfEllipseWriter(const QList<Ellipse *> &list, DL_Dxf &dxf, DL_Wri
     }
 }
 
+void Project::tnfFileWriter(const QString fileName,
+                            const QList<Sheet*> sheetList,
+                            const QList<PieceCenter> pieceCenterList,
+                            const QList<PieceOffset> pieceOffsetList)
+{
+    NF_Writer* nw = tnf.out(fileName.toStdString().c_str());
+    if (nw==NULL) {
+        throw(tr("无法打开文件进行写入操作"));
+    }
+    nw->writeHeader("SATURNO2 ST2 CAM FILE by LEANEST (deep): CamSaturno2 V1.8.09");
+    nw->writeSheet(sheetList);
+
+    int centerCount = pieceCenterList.length();
+    nw->writePieceCenterHeader(centerCount);
+
+    nw->writePieceCenter(pieceCenterList);
+
+    int offsetCount = pieceOffsetList.length();
+    nw->writePieceOffsetHeader(offsetCount);
+
+    nw->writePieceOffset(pieceOffsetList);
+    nw->close();
+    delete nw;
+}
+

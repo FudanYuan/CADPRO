@@ -144,7 +144,7 @@ private:
     bool drawable;  // 可画标识, 不可画时即可选中
     bool moveable;  // 设置图元是否可移动
     bool editable;  // 表示现在可更改图元
-    bool drawing;  // 是否在绘制特殊图形
+    bool drawing;  // 是否在绘制图形
 
     qreal penWidth;  // 画笔
     qreal scaleFactor;  // 缩放因子
@@ -158,8 +158,6 @@ private:
 
     Rect *recttram;//矩形变化
     Polygon *polygontram;//正多边形变化
-    Trapezium *trapeziumtram;//梯形变化
-    Eyelet *eyelettram;//鸡眼孔变化
 
 signals:
     void sceneScaleChanged(qreal scaleFactor);  // scene缩放事件
@@ -172,10 +170,6 @@ signals:
     void circleSelected(Circle *circle);
     void rectSelected(Rect *rect);
     void polylineSelected(Polyline *polyline);
-    void polygonSelected(Polygon *polygon);
-    void trapeziumSelected(Trapezium *trapezium);
-    void eyeletSelected(Eyelet *eyelet);
-    void textSelected(Text *text);
 
 public slots:
     void onViewScaleChanged(qreal scaleFactor);  // 响应view缩放事件
@@ -189,10 +183,6 @@ public slots:
     void onCircleSelected(Circle *circle);
     void onRectSelected(Rect *rect);
     void onPolylineSelected(Polyline *polyline);
-    void onPolygonSelected(Polygon *polygon);
-    void onTrapeziumSelected(Trapezium *trapezium);
-    void onEyeletSelected(Eyelet *eyelet);
-    void onTextSelected(Text *text);
 };
 
 #endif // SCENE_H

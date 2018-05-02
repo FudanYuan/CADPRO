@@ -6,7 +6,6 @@
 #include "shape.h"
 #include <QPointF>
 #include "eyeletdialog.h"
-#include "itemproperties.h"
 
 class Eyelet : public Shape, public QGraphicsPathItem
 {
@@ -19,19 +18,14 @@ public:
     void drawing(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 绘图开始
     bool updateFlag(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
-    QList<QPointF> toPolyline();
-
-    double getEyeletH() const;
-    void setEyeletH(double value);
-
-    double getEyeletW() const;
-    void setEyeletW(double value);
 
     EyeletDialog *eyeletdialog;//鸡眼孔的对话框
-    ItemProperties *eyeletproperties;
 
-    double getEyeletAlpha() const;
-    void setEyeletAlpha(double value);
+    int getEyeletH() const;
+    void setEyeletH(int value);
+
+    int getEyeletW() const;
+    void setEyeletW(int value);
 
 protected:
     //鼠标事件
@@ -53,17 +47,12 @@ private:
 
     QPointF cPoint;
 
-    double eyeletH ;
-    double eyeletW ;
-    double eyeletAlpha;
-
-signals:
-    void select(Eyelet *eyelet);//图形被选择
+    int eyeletH ;
+    int eyeletW ;
 
 public slots:
     void on_commandLinkButton_2_clicked();
     void onSceneMoveableChanged(bool moveable) Q_DECL_OVERRIDE;  //  响应场景可移动性改变
-    void typechange();
 };
 
 #endif // EYELET_H

@@ -107,7 +107,8 @@ DL_Dxf::~DL_Dxf() {
  * @retval true If \p file could be opened.
  * @retval false If \p file could not be opened.
  */
-bool DL_Dxf::in(const std::string& file, DL_CreationInterface* creationInterface) {
+bool DL_Dxf::in(const std::string& file,
+                DL_CreationInterface* creationInterface) {
     FILE *fp;
     firstCall = true;
     currentObjectType = DL_UNKNOWN;
@@ -231,7 +232,8 @@ bool DL_Dxf::readDxfGroups(std::stringstream& stream,
  * @todo Is it a problem if line is blank (i.e., newline only)?
  *      Then, when function returns, (s==NULL).
  */
-bool DL_Dxf::getStrippedLine(std::string& s, unsigned int size, FILE *fp, bool stripSpace) {
+bool DL_Dxf::getStrippedLine(std::string& s, unsigned int size,
+                             FILE *fp, bool stripSpace) {
     if (!feof(fp)) {
         // The whole line in the file.  Includes space for NULL.
         char* wholeLine = new char[size];

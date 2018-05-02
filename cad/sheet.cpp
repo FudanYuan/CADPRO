@@ -1,4 +1,4 @@
-#include "sheet.h"
+﻿#include "sheet.h"
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QHBoxLayout>
@@ -284,7 +284,7 @@ void SheetDialog::loadSheetInfo()
 {
     // 读取xml文件
     sheetList.clear();
-    sheetList.append(xmlFileReader(SHEET_INFO));
+    sheetList.append(xmlFileReader(SHEET_XML));
     if(sheetList.length() == 0){
         QMessageBox::warning(this, tr("警告"), tr("材料列表为空!"));
         return;
@@ -295,7 +295,7 @@ void SheetDialog::loadSheetInfo()
 void SheetDialog::saveSheetInfo()
 {
     qDebug() << sheetList.length() << " to save";
-    xmlFileWrite(SHEET_INFO, sheetList);
+    xmlFileWrite(SHEET_XML, sheetList);
 }
 
 void SheetDialog::updateSheetInfo(const Sheet *sheetActive)

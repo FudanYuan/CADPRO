@@ -2,8 +2,10 @@
 #include "sketch.h"
 #include "nest.h"
 #include <QDebug>
-//#include "binarytree.h"
 #include <sys/time.h>
+
+
+#include "nf_tnf.h"
 
 using namespace std;
 
@@ -25,9 +27,28 @@ int main(int argc, char *argv[])
 
     gettimeofday(&tpstart,NULL);
 
-    Sketch w;// Nest w; Sketch w;
+    Nest w;// Nest w; Sketch w;
     w.show();
 
+//    QLineF line1(0,0,0,1);
+//    QLineF line2(-2,-2, 0,0);
+//    qDebug() << line1.angle(line2);
+//    qDebug() << line1.angleTo(line2);
+
+//    QPointF interPos;
+//    QLineF::IntersectType type = line1.intersect(line2, &interPos);
+//    if (type == QLineF::BoundedIntersection){
+//        qDebug() << "端点相交";
+//        qDebug() << "两直线相交于：" << interPos;
+//    }
+//    else if(type == QLineF::UnboundedIntersection){
+//        qDebug() << "相交";
+//        qDebug() << "两直线相交于：" << interPos;
+//    } else{
+//        qDebug() << "不相交";
+//    }
+//    qDebug() << line1.p1().rx();
+//    qDebug() << line1.p1().ry();
     gettimeofday(&tpend,NULL);
     timeuse=(1000000*(tpend.tv_sec-tpstart.tv_sec) + tpend.tv_usec-tpstart.tv_usec)/1000000.0;
 

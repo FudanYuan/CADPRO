@@ -10,8 +10,6 @@
 #include <QPushButton>
 #include <QTableWidget>
 #include <QHeaderView>
-#include <QDesktopWidget>
-#include <QApplication>
 
 class InsertOffsetDialog : public QDialog
 {

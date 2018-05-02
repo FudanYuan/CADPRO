@@ -22,6 +22,7 @@
 #include <QMessageBox>
 #include <QFileDialog>
 
+#include <QGraphicsItemGroup>
 #include <QDebug>
 
 Sketch::Sketch(QWidget *parent) :
@@ -260,7 +261,7 @@ void Sketch::initActions()
 
     action_insert_advanced_offset = new QAction(tr("&高级偏移"), this);
     action_insert_advanced_offset->setStatusTip(tr("创建高级偏移"));
-    action_insert_advanced_offset->setDisabled(true);
+    action_insert_advanced_offset->setDisabled(false);
     connect(action_insert_advanced_offset, &QAction::triggered, this, &Sketch::onActionInsertAdvancedOffset);
 
     action_insert_text = new QAction(tr("&文本"), this);
@@ -1400,10 +1401,6 @@ void Sketch::addProject()
     connect(scene_active, &Scene::circleSelected, this, &Sketch::onCircleSelected);
     connect(scene_active, &Scene::arcSelected, this, &Sketch::onArcSelected);
     connect(scene_active, &Scene::rectSelected, this, &Sketch::onRectSelected);
-    connect(scene_active, &Scene::polygonSelected, this, &Sketch::onPolygonSelected);
-    connect(scene_active, &Scene::trapeziumSelected, this, &Sketch::onTrapeziumSelected);
-    connect(scene_active, &Scene::eyeletSelected, this, &Sketch::onEyeletSelected);
-    connect(scene_active, &Scene::textSelected, this, &Sketch::onTextSelected);
 
     QTreeWidgetItem *item_project = new QTreeWidgetItem(tree_project,QStringList(name_project_new));
     QTreeWidgetItem *item_scene = new QTreeWidgetItem(item_project,QStringList(name_scene_new)); //子节点1
@@ -1674,38 +1671,25 @@ bool Sketch::onActionFileSave()
 bool Sketch::onActionFileSaveAs()
 {
     qDebug() << "saving files as ...";
-    QString fileName = QFileDialog::getSaveFileName(this,
-                                                    tr("导出DXF文件"),
-                                                    tr("export.dxf"));
+    QString fileName = QFileDialog::getSaveFileName(this,tr("保存为"),project_active->getName());
     if(fileName.isEmpty()) {
         return false;
     } else{
-        if (!fileName.isEmpty()) {
-            try{
-                project_active->dxfFileWriter(fileName);
-            } catch(QString exception){
-                QMessageBox::warning(this, tr("错误"), exception);
-            }
+        if(fileName != project_active->getName()){
+            project_active->changeName(fileName);
         }
         // 保存逻辑
+        project_active->saveProject();
+        bool res = saveFile(fileName);
+        project_active->setSaved(res);
+        return res;
     }
-
 }
 
 bool Sketch::onActionFileSaveAll()
 {
-    qDebug() << "saving all files";    
-    for(int i=0;i<project_list.length();i++){
-        project_active = project_list.at(i);
-        if(project_active->isSaved()) {
-            // 如果项目被修改过，直接保存修改后的项目
-            if(project_active->isModified()){
-                saveFile(project_active->getName());
-            }
-        } else{
-           onActionFileSaveAs();
-        }
-    }
+    qDebug() << "saving all files";
+    return true;
 }
 
 void Sketch::onActionFilePrint()
@@ -1803,15 +1787,6 @@ void Sketch::onActionFileConfiguration()
 void Sketch::onActionFileExit()
 {
     qDebug() << "退出提示保存文件";
-    if(project_active->isSaved()) {
-        // 如果项目被修改过，直接保存修改后的项目
-        if(project_active->isModified()){
-            // saveFile(project_active->getName());
-        }
-    } else{
-         onActionFileSaveAs();
-    }
-    QApplication::exit();
 }
 
 void Sketch::onActionDrawLine()
@@ -1935,11 +1910,39 @@ void Sketch::onActionDrawPatternDirection()
 void Sketch::onActionDrawShankLine()
 {
     qDebug() << "上插线";
+    QList<Polyline*> polylineList = scene_active->getPolylineList();
+
+    for(int i=0;i<polylineList.length()-1;i++){
+        for(int j=i+1;j<polylineList.length();j++){
+            if(polylineList[i]->collidesWithItem(polylineList[j])){
+                qDebug() << polylineList[i]->getShapeId() << " 与"
+                         << polylineList[j]->getShapeId() << "碰撞";
+            }
+        }
+    }
 }
 
 void Sketch::onActionDrawPerpendicular()
 {
     qDebug() << "垂直线";
+    QList<Polyline*> polylineList = scene_active->getPolylineList();
+
+    int delta = 2;
+    for(int i=0;i<polylineList.length();i++){
+        QList<QPointF> newPointsList;
+        QList<QPointF> pointsList = polylineList[i]->getPoints();
+        for(int m=0; m<pointsList.length()-1; m++){
+            for(int n=m+1; n<pointsList.length(); n++){
+                QPointF p1 = pointsList[m];
+                QPointF p2 = pointsList[n];
+                QLineF line(p1, p2);
+
+            }
+        }
+        Polyline *polyline = new Polyline;
+        //polyline->setPolyline();
+        scene_active->addCustomPolylineItem(polyline);
+    }
 }
 
 void Sketch::onActionDrawImage()
@@ -2015,6 +2018,30 @@ void Sketch::onActionInsertOffset()
 void Sketch::onActionInsertAdvancedOffset()
 {
     qDebug() << "创建高级偏移";
+    Rect *rect = new Rect();
+    rect->setRect(0, 0, 100, 100);
+    QList<QPointF> points = rect->toPolyline();
+
+    Polyline *polyline = new Polyline;
+    polyline->setPolyline(points, Polyline::line);
+
+    Rect *rect1 = new Rect();
+    rect1->setRect(-100, -100, 1000, 1000);
+    QList<QPointF> points1 = rect1->toPolyline();
+
+    Polyline *polyline1 = new Polyline;
+    polyline1->setPolyline(points1, Polyline::line);
+
+    scene_active->addCustomPolylineItem(polyline);
+    scene_active->addCustomPolylineItem(polyline1);
+
+    QGraphicsItemGroup *group = new QGraphicsItemGroup;
+    group->addToGroup(polyline);
+    group->addToGroup(polyline1);
+
+    scene_active->addItem(group);
+
+    group->setRotation(45);
 }
 
 void Sketch::onActionInsertText()
@@ -2143,6 +2170,7 @@ void Sketch::onActionModifyTransformMove()
 void Sketch::onActionModifyTransformRotate()
 {
     qDebug() << "旋转";
+
 }
 
 void Sketch::onActionModifyTransformRotateKnotsContinuely()
@@ -2319,6 +2347,8 @@ void Sketch::onActionPatternPerimeter()
 void Sketch::onActionPatternTrim()
 {
     qDebug() << "关闭修剪";
+    // 实例划一个 itemSelect 类；
+
 }
 
 void Sketch::onActionPatternCheck()
@@ -2690,23 +2720,11 @@ void Sketch::onActionTreeProjectAddScene()
 void Sketch::onActionTreeProjectSave()
 {
     qDebug() << tree_project_active_item->text(0) << "保存项目";
-    QString project_name = tree_project_active_item->text(0);
-    project_active = getProjectByName(project_name);
-    if(project_active->isSaved()) {
-        // 如果项目被修改过，直接保存修改后的项目
-        if(project_active->isModified()){
-            saveFile(project_active->getName());
-        }
-    } else{
-       onActionFileSaveAs();
-    }
-
 }
 
 void Sketch::onActionTreeProjectSaveAs()
 {
     qDebug() << tree_project_active_item->text(0) << "另存为项目";
-     onActionFileSaveAs();
 }
 
 void Sketch::onActionTreeProjectRename()
@@ -2728,12 +2746,6 @@ void Sketch::onActionTreeProjectRename()
 void Sketch::onActionTreeProjectClose()
 {
     qDebug() << tree_project_active_item->text(0) << "关闭项目";
-    QString project_name = tree_project_active_item->text(0);
-    project_active = getProjectByName(project_name);
-    if(!project_active->isSaved()) {
-        onActionFileSaveAs();
-    }
-    delete tree_project_active_item;
 }
 
 void Sketch::onActionTreeProjectSceneChangeTo()
@@ -2762,51 +2774,16 @@ void Sketch::onActionTreeProjectSceneMoveUpOne()
 void Sketch::onActionTreeProjectSceneMoveUpTop()
 {
     qDebug() << tree_project_scene_active_item->text(0) << "上移至顶";
-    QString currentSceneName = tree_project_scene_active_item->text(0);
-    int currentId = project_active->getSceneIdByName(currentSceneName);
-
-    if(currentId < 1){
-        return;
-    }
-    int topId = 0;
-    QString topSceneName = project_active->getScene(topId)->getName();
-
-    tree_project_scene_active_item->setText(0, topSceneName);
-    tree_project_active_item->child(topId)->setText(0, currentSceneName);
-
-    project_active->changeScene(topId, currentId);
 }
 
 void Sketch::onActionTreeProjectSceneMoveDownOne()
 {
     qDebug() << tree_project_scene_active_item->text(0) << "下移一层";
-    QString currentSceneName = tree_project_scene_active_item->text(0);
-    int currentId = project_active->getSceneIdByName(currentSceneName);
-
-    if(currentId >= project_active->getSceneList().length()-1){
-        return;
-    }
-    int nextId = currentId + 1;
-    QString nextSceneName = project_active->getScene(nextId)->getName();
-    tree_project_scene_active_item->setText(0, nextSceneName);
-    tree_project_active_item->child(nextId)->setText(0, currentSceneName);
-    project_active->changeScene(nextId, currentId);
 }
 
 void Sketch::onActionTreeProjectSceneMoveDownBottom()
 {
     qDebug() << tree_project_scene_active_item->text(0) << "下移至底";
-    QString currentSceneName = tree_project_scene_active_item->text(0);
-    int currentId = project_active->getSceneIdByName(currentSceneName);
-
-    if(currentId >= project_active->getSceneList().length()-1){
-        return;
-    }
-    int bottomId = project_active->getSceneList().length()-1;
-    QString bottomSceneName = project_active->getScene(bottomId)->getName();
-    tree_project_scene_active_item->setText(0, bottomSceneName);
-    tree_project_active_item->child(bottomId)->setText(0, currentSceneName);
-    project_active->changeScene(bottomId, currentId);
 }
 
 void Sketch::onActionTreeProjectSceneRename()
@@ -2830,12 +2807,6 @@ void Sketch::onActionTreeProjectSceneRename()
 void Sketch::onActionTreeProjectSceneDelete()
 {
     qDebug() << tree_project_scene_active_item->text(0) << "删除";
-    QString project_name = tree_project_active_item->text(0);
-    project_active = getProjectByName(project_name);
-    QString scene_name = tree_project_scene_active_item->text(0);
-    scene_active = project_active->getSceneByName(scene_name);
-    scene_active->clearCustomItem();
-    delete tree_project_scene_active_item;
 }
 
 void Sketch::onToolSlideChanged()
@@ -2949,14 +2920,11 @@ void Sketch::onPointSelected(Point *point)
 
 void Sketch::onLineSelected(Line *line)
 {
-    //qDebug() << line->getShapeId();
-    //qDebug() << line->getPerimeter();
-    qDebug() << "直线的属性框";
-    line->lineproperties->setCurShape(line->getShapeType());
-    line->lineproperties->setPenstyle(line->getPenStyle());
+    qDebug() << line->getShapeId();
+    qDebug() << line->getPerimeter();
+
     line->lineproperties->setShapeid(line->getShapeId());
     line->lineproperties->setLength(line->getPerimeter());
-    line->lineproperties->setShapetype(tr("线"));
     line->lineproperties->setOk(true);
 
     dock_properties->setWidget(line->lineproperties);
@@ -2966,125 +2934,27 @@ void Sketch::onLineSelected(Line *line)
 
 void Sketch::onArcSelected(Arc *arc)
 {
-    qDebug() << "弧的属性框";
-    arc->arcproperties->setCurShape(arc->getShapeType());
-    arc->arcproperties->setPenstyle(arc->getPenStyle());
-    arc->arcproperties->setShapeid(arc->getShapeId());
-    arc->arcproperties->setShapetype(tr("圆弧"));
-    arc->arcproperties->setOk(true);
-    dock_properties->setWidget(arc->arcproperties);
-    QObject::connect(arc->arcproperties,SIGNAL(PropertiesChanged()),arc,SLOT(typechange()));
+
 }
 
 void Sketch::onEllipseSelected(Ellipse *ellipse)
 {
-    qDebug() << "椭圆的属性框";
-    ellipse->ellipseproperties->setCurShape(ellipse->getShapeType());
-    ellipse->ellipseproperties->setPenstyle(ellipse->getPenStyle());
-    ellipse->ellipseproperties->setShapeid(ellipse->getShapeId());
-    ellipse->ellipseproperties->setShapetype(tr("椭圆"));
-    ellipse->ellipseproperties->setEllipseR1(ellipse->getRadius1());
-    ellipse->ellipseproperties->setEllipseR2(ellipse->getRadius2());
-    ellipse->ellipseproperties->setEllipseAlpha(ellipse->getAlpha());
-    ellipse->ellipseproperties->setOk(true);
-    dock_properties->setWidget(ellipse->ellipseproperties);
-    QObject::connect(ellipse->ellipseproperties,SIGNAL(PropertiesChanged()),ellipse,SLOT(typechange()));
+
 }
 
 
 void Sketch::onCircleSelected(Circle *circle)
 {
-    qDebug() << "圆的属性框";
-    circle->circleproperties->setCurShape(circle->getShapeType());
-    circle->circleproperties->setPenstyle(circle->getPenStyle());
-    circle->circleproperties->setShapeid(circle->getShapeId());
-    circle->circleproperties->setShapetype(tr("圆"));
-    circle->circleproperties->setCircleR(circle->getRadius());
-    circle->circleproperties->setOk(true);
-    dock_properties->setWidget(circle->circleproperties);
-    QObject::connect(circle->circleproperties,SIGNAL(PropertiesChanged()),circle,SLOT(typechange()));
+
 }
 
 void Sketch::onRectSelected(Rect *rect)
 {
-    qDebug() << "矩形的属性框";
-    rect->rectproperties->setCurShape(rect->getShapeType());
-    rect->rectproperties->setPenstyle(rect->getPenStyle());
-    rect->rectproperties->setShapeid(rect->getShapeId());
-    rect->rectproperties->setShapetype(tr("矩形"));
-    rect->rectproperties->setRectLength(rect->getLength());
-    rect->rectproperties->setRectHeigth(rect->getHeigth());
-    rect->rectproperties->setOk(true);
-    dock_properties->setWidget(rect->rectproperties);
-    QObject::connect(rect->rectproperties,SIGNAL(PropertiesChanged()),rect,SLOT(typechange()));
+
 }
 
 void Sketch::onPolylineSelected(Polyline *polyline)
 {
-    qDebug() << "曲折线的属性框";
-    polyline->polylineproperties->setCurShape(polyline->getShapeType());
-    polyline->polylineproperties->setPenstyle(polyline->getPenStyle());
-    polyline->polylineproperties->setShapeid(polyline->getShapeId());
-    polyline->polylineproperties->setShapetype(tr("曲折线"));
-    polyline->polylineproperties->setOk(true);
-    dock_properties->setWidget(polyline->polylineproperties);
-    QObject::connect(polyline->polylineproperties,SIGNAL(PropertiesChanged()),polyline,SLOT(typechange()));
-}
 
-void Sketch::onPolygonSelected(Polygon *polygon)
-{
-    qDebug() << "正多边形的属性框";
-    polygon->polygonproperties->setCurShape(polygon->getShapeType());
-    polygon->polygonproperties->setPenstyle(polygon->getPenStyle());
-    polygon->polygonproperties->setShapeid(polygon->getShapeId());
-    polygon->polygonproperties->setShapetype(tr("正多边形"));
-    polygon->polygonproperties->setPolygonEdge(polygon->getLineNum());
-    polygon->polygonproperties->setPolygonEdgeLength(polygon->getRadius());
-    polygon->polygonproperties->setPolygonRad(polygon->getAlpha());
-    polygon->polygonproperties->setOk(true);
-    dock_properties->setWidget(polygon->polygonproperties);
-    QObject::connect(polygon->polygonproperties,SIGNAL(PropertiesChanged()),polygon,SLOT(typechange()));
-}
-
-void Sketch::onTrapeziumSelected(Trapezium *trapezium)
-{
-    qDebug() << "梯形的属性框";
-    trapezium->trapeziumproperties->setCurShape(trapezium->getShapeType());
-    trapezium->trapeziumproperties->setPenstyle(trapezium->getPenStyle());
-    trapezium->trapeziumproperties->setShapeid(trapezium->getShapeId());
-    trapezium->trapeziumproperties->setShapetype(tr("梯形"));
-    trapezium->trapeziumproperties->setTrapeziumTop(trapezium->getTrapeziumToplength());
-    trapezium->trapeziumproperties->setTrapeziumHeigth(trapezium->getTrapeziumH());
-    trapezium->trapeziumproperties->setTrapeziumAlpha1(trapezium->getTrapeziumAlpha1());
-    trapezium->trapeziumproperties->setTrapeziumAlpha2(trapezium->getTrapeziumAlpha2());
-    trapezium->trapeziumproperties->setOk(true);
-    dock_properties->setWidget(trapezium->trapeziumproperties);
-    QObject::connect(trapezium->trapeziumproperties,SIGNAL(PropertiesChanged()),trapezium,SLOT(typechange()));
-}
-
-void Sketch::onEyeletSelected(Eyelet *eyelet)
-{
-    qDebug() << "鸡眼孔的属性框";
-    eyelet->eyeletproperties->setCurShape(eyelet->getShapeType());
-    eyelet->eyeletproperties->setPenstyle(eyelet->getPenStyle());
-    eyelet->eyeletproperties->setShapeid(eyelet->getShapeId());
-    eyelet->eyeletproperties->setShapetype(tr("鸡眼孔"));
-    eyelet->eyeletproperties->setRectLength(eyelet->getEyeletW());
-    eyelet->eyeletproperties->setRectHeigth(eyelet->getEyeletH());
-    eyelet->eyeletproperties->setOk(true);
-    dock_properties->setWidget(eyelet->eyeletproperties);
-    QObject::connect(eyelet->eyeletproperties,SIGNAL(PropertiesChanged()),eyelet,SLOT(typechange()));
-}
-
-void Sketch::onTextSelected(Text *text)
-{
-    qDebug() << "文本的属性框";
-    text->textproperties->setCurShape(text->getShapeType());
-    text->textproperties->setPenstyle(text->getPenStyle());
-    text->textproperties->setShapeid(text->getShapeId());
-    text->textproperties->setShapetype(tr("文本"));
-    text->textproperties->setOk(true);
-    dock_properties->setWidget(text->textproperties);
-    QObject::connect(text->textproperties,SIGNAL(PropertiesChanged()),text,SLOT(typechange()));
 }
 

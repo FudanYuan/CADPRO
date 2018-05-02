@@ -73,6 +73,8 @@ private:
     int penstyle;//线条类型
     bool ok;//是否做好选择
 
+
+
 public slots:
     void onclickedok();
     void onclickedcancel();
