@@ -5,7 +5,7 @@
 
 #define DEBUG
 
-#if 1
+#if 0
 #define PROJECTDEBUG
 #endif
 
