@@ -22,6 +22,7 @@
 #include <QMessageBox>
 #include <QFileDialog>
 
+#include "common.h"
 #include <QDebug>
 
 Sketch::Sketch(QWidget *parent) :
@@ -525,7 +526,7 @@ void Sketch::initActions()
     connect(action_pattern_extract_manual, &QAction::triggered, this, &Sketch::onActionPatternExtractManual);
 
     action_pattern_find_perimeter = new QAction(tr("&查找周长"), this);
-    action_pattern_find_perimeter->setDisabled(true);
+    action_pattern_find_perimeter->setDisabled(false);
     connect(action_pattern_find_perimeter, &QAction::triggered, this, &Sketch::onActionPatternPerimeter);
 
     action_pattern_close_trim = new QAction(tr("&关闭和修剪"), this);
@@ -2314,6 +2315,31 @@ void Sketch::onActionPatternExtractManual()
 void Sketch::onActionPatternPerimeter()
 {
     qDebug() << "周长";
+    qreal alpha;
+    QRectF minEnvelopingRect;
+//    QList<QPointF> pList;
+//    pList.append(QPointF(0,0));
+//    pList.append(QPointF(0,-100));
+//    pList.append(QPointF(100,-100));
+//    pList.append(QPointF(100,0));
+//    pList.append(QPointF(0,0));
+    foreach(Polyline* polyline, scene_active->getPolylineList()){
+        QList<QPointF> pList = polyline->getPoints();
+        qDebug() << "area:  " << getPloylineArea(pList);
+        qDebug()<<"方向: "<<getPloylineDirection(pList);
+        qDebug()<<"重心: "<<getCenterOfGravityPoint(pList);
+        qDebug()<<"凹凸: "<<getPloylineConcaveConvex(pList[0],pList[1],pList[2],getPloylineDirection(pList));
+        qDebug()<<"最小包络面积: "<<getPloylineEnvelopingRectArea(pList,alpha,minEnvelopingRect);
+        qDebug()<<"最小角度: "<<alpha;
+
+        Polyline* p = new Polyline;
+        p->setPolyline(pList, Polyline::line);
+        scene_active->addCustomPolylineItem(p);
+
+        Rect* rect = new Rect;
+        rect->setRect(minEnvelopingRect);
+        scene_active->addCustomRectItem(rect);
+    }
 }
 
 void Sketch::onActionPatternTrim()

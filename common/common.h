@@ -22,4 +22,9 @@ void drawCrossPoint(QPainter* painter, QPointF point, int offset, crossType type
 void drawNodePoint(QPainter* painter, QPointF point, int radius);  // 画点
 void drawRectPoint(QPainter* painter, QPointF point, int length);  // 画矩形点
 void drawLineWithArrow(QPainter *painter, QLineF line, int offset); // 画点箭头的直线
+double getPloylineArea( QList<QPointF> points);//多边形面积
+bool getPloylineDirection(QList<QPointF> points);//多边形方向顺时针为true，逆时针为false
+QPointF getCenterOfGravityPoint(QList<QPointF> mPoints);//求多边形重心
+bool getPloylineConcaveConvex(QPointF ppoint, QPointF cpoint, QPointF npoint, bool direction);//多边形三个点凹凸性,凸为true
+double getPloylineEnvelopingRectArea(QList<QPointF> &points, qreal &alpha, QRectF &minEnvelopingRect);//多边形最小包络矩形面积
 #endif // COMMON_H

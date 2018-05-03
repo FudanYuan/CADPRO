@@ -68,6 +68,144 @@ void drawLineWithArrow(QPainter *painter, QLineF line, int offset)
     painter->drawPolygon(polygon);
 }
 
+double getPloylineArea(QList<QPointF> points){
+    double area=0;
+    if(points.length()==2){
+        return 0;
+    }else{
+        for(int i=0;i<points.length()-1;i++){
+            area=area+(points[i].rx()*points[i+1].ry())-(points[i].ry()*points[i+1].rx());
+        }
+        return abs(area)/2;
+    }
+}
+
+bool getPloylineDirection(QList<QPointF> points){
+
+    int flag,pp,np, cp=0;
+    if(points.length()==2){
+        return false;
+    }else{
+        for(int i=0;i<points.length()-1;i++){
+            if( points[cp].ry() <= points[i].ry()){
+                cp=i;
+            }
+        }
+//        if(cp==points.length()-1){
+//            pp=cp-1;
+//            np=0;
+//        }else if(cp==0){
+//            pp=points.length()-1;
+//            np=cp+1;
+//        }else{
+//             pp=cp-1;
+//             np=cp+1;
+//        }
+
+        pp=(cp-1+points.length())%points.length();
+        np=(cp+1)%points.length();
+
+        flag=(points[cp].rx() - points[pp].rx())*(points[np].ry()- points[cp].ry())-(points[cp].ry() - points[pp].ry())*(points[np].rx()- points[cp].rx());
+        if (flag>0){
+            return true;
+        }else if (flag<0)
+            return false;
+    }
+}
+QPointF getCenterOfGravityPoint(QList<QPointF> mPoints){
+    double area = 0.0;//多边形面积
+    double Gx = 0.0, Gy = 0.0;// 重心的x、y
+    for (int i = 1; i <= mPoints.length(); i++) {
+        double irx = mPoints[i % mPoints.length()].rx();
+        double iry = mPoints[i % mPoints.length()].ry();
+        double nextLat = mPoints[i - 1].rx();
+        double nextLng = mPoints[i - 1].ry();
+        double temp = (irx * nextLng - iry * nextLat) / 2.0;
+        area += temp;
+        Gx += temp * (irx + nextLat) / 3.0;
+        Gy += temp * (iry + nextLng) / 3.0;
+        }
+        Gx = Gx / area;
+        Gy = Gy / area;
+        return QPointF(Gx, Gy);
+}
+
+bool getPloylineConcaveConvex(QPointF ppoint,QPointF cpoint,QPointF npoint,bool direction){
+
+    int flag=(cpoint.rx() - ppoint.rx())*(npoint.ry()- cpoint.ry())-(cpoint.ry() - ppoint.ry())*(npoint.rx()- cpoint.rx());
+    if (flag>0 && direction == true){
+        return true;
+    }else if(flag<0 && direction == true){
+        return false;
+    }else if(flag<0 && direction == false){
+        return true;
+    }else{
+        return false;
+    }
+}
+
+double getPloylineEnvelopingRectArea(QList<QPointF> &points, qreal &alpha, QRectF &minEnvelopingRect){
+    QPointF maxp,minp,centerpont = getCenterOfGravityPoint(points);
+    QList<QPointF> listpoint;
+    qreal angles[points.length()];
+    double area,areas[points.length()];
+    int minid,w,h;
+    qDebug()<<"中心点"<<centerpont;
+    for(int i=0;i<points.length();i++){
+        // qreal angle =qAtan((-points[i].ry()+points[i+1].ry())/(points[i].rx()-points[i+1].rx()));
+        QLineF line0(points[i], QPointF(points[i].rx() + 10, points[i].ry()));
+        QLineF line1(points[i], points[(i+1)%points.length()]);
+        qreal angle = line0.angleTo(line1);
+        qDebug()<<"角度"<<angle;
+
+        QList<QPointF> cpoints;
+        for(int j=0;j<points.length();j++){
+            cpoints.append(transformRotate(centerpont, points[j], -angle));
+        }
+        maxp = minp = cpoints[0];
+        for(int j=1;j<points.length();j++){
+            if(maxp.rx() < cpoints[j].rx()){
+                maxp.rx() = cpoints[j].rx();
+            }
+            if(maxp.ry() < cpoints[j].ry()){
+                maxp.ry() = cpoints[j].ry();
+            }
+            if(minp.rx() > cpoints[j].rx()){
+                minp.rx() = cpoints[j].rx();
+            }
+            if(minp.ry() > cpoints[j].ry()){
+                minp.ry() = cpoints[j].ry();
+            }
+        }
+        angles[i]=angle;
+        listpoint.append(maxp);
+        listpoint.append(minp);
+        qDebug() << maxp << "   " << minp;
+        areas[i]= (maxp.rx()-minp.rx())*(maxp.ry()-minp.ry());
+        qDebug()<<i<<"面积"<<areas[i];
+    }
+    area=areas[0];
+    for(int i=0;i<points.length();i++){
+        if(area>=areas[i]){
+            minid=i;
+            area=areas[i];
+        }
+    }
+    alpha=angles[minid];
+    QList<QPointF> cpoints;
+    for(int j=0;j<points.length();j++){
+        cpoints.append(transformRotate(centerpont, points[j], -alpha));
+    }
+    points.clear();
+    points.append(cpoints);
+    w=abs(listpoint[minid*2].rx()-listpoint[minid*2+1].rx());
+    h=abs(listpoint[minid*2].ry()-listpoint[minid*2+1].ry());
+    minEnvelopingRect.setRect(listpoint[minid*2+1].rx(), listpoint[minid*2+1].ry(),w,h);
+    qDebug()<<"最小包络id:"<<minid<<"面积:"<<area<<"角度："<<angles[minid];
+    return area;
+}
+
+
 //QRectF getLineBoundingRect(QLineF line)
 //{
 //    qreal deltaX = line.p1().rx() - line.p2().rx();
