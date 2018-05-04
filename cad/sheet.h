@@ -16,6 +16,7 @@
 #define SHEET_XML "sheet.xml"
 #define WHOLE tr("整体")
 #define STRIP tr("样条")
+#define PACKAGE tr("卷装")
 
 struct StripPW
 {
@@ -35,7 +36,8 @@ struct Sheet
 {
     enum SheetType{
         Whole,
-        Strip
+        Strip,
+        Package
     };
 
     Sheet();

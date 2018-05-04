@@ -494,9 +494,9 @@ void Nest::updateSheetTree()
         item_sheet->addChild(item_sheet_rate);
     }
 
-    char *ch1 = "排版信息（共";
-    char *ch2 = "张板材料，总产能（利用率）：";
-    char *ch3 = "%）";
+    const char *ch1 = "排版信息（共";
+    const char *ch2 = "张板材料，总产能（利用率）：";
+    const char *ch3 = "%）";
     char *buf = new char[strlen(ch1) + strlen(ch2) + strlen(ch3) + sizeof(sheetNum) + sizeof(rateTotal)];
     sprintf(buf, "%s%d%s%.2f%s", ch1, sheetNum, ch2, rateTotal, ch3);
     tree_sheet->setHeaderLabel(tr(buf)); //设置头的标题
@@ -622,7 +622,7 @@ void Nest::initRectNestEngine()
         QPointF offset = currentCenter - originCenter;
 
         // 构造新图形
-        QList<QPointF> pList;
+        QVector<QPointF> pList;
         for(int j=0;j<polyline->getPoints().length();j++){
             QPointF oldPoint = polyline->getPoints()[j];
             QPointF newPoint = oldPoint-offset+cp;

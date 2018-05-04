@@ -24,6 +24,7 @@ QPointF transformRotate(QPointF o, QPointF p, qreal angle);  // 返回一点绕�
 //QRectF getLineBoundingRect(QLineF line);
 qreal getDistance(QPointF p1, QPointF p2);  // 获取亮点之间的距离
 void getRectBoundValue(const QRectF rect, qreal &minX, qreal &minY, qreal &maxX, qreal &maxY);  // 获取矩形边界
+bool boundingRectSeperate(const QRectF rect1, const QRectF rect2);  // 判断两矩形是分离
 void drawCrossPoint(QPainter* painter, QPointF point, int offset, crossType type);  // 画交叉点
 void drawNodePoint(QPainter* painter, QPointF point, int radius);  // 画点
 void drawRectPoint(QPainter* painter, QPointF point, int length);  // 画矩形点

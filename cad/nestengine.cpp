@@ -1,13 +1,19 @@
 #include "nestengine.h"
 
+#include <QDebug>
+
 NestEngine::NestEngine() :
-    autoRepeatLastSheet(false)
+    autoRepeatLastSheet(false),
+    compactStep(1),
+    compactAccuracy(0.0001)
 {
 
 }
 
-NestEngine::NestEngine(const QList<Piece> pieceList, QList<Sheet> sheetList) :
-    autoRepeatLastSheet(false)
+NestEngine::NestEngine(const QVector<Piece> pieceList, QVector<Sheet> sheetList) :
+    autoRepeatLastSheet(false),
+    compactStep(1),
+    compactAccuracy(0.0001)
 {
     this->pieceList = getSortedPieceListByArea(pieceList);
     this->sheetList = sheetList;
@@ -19,15 +25,45 @@ NestEngine::~NestEngine()
     pieceList.clear();
 }
 
-QList<Piece> NestEngine::getSortedPieceListByArea(QList<Piece> pieceList)
+void NestEngine::setAutoRepeatLastSheet(bool flag)
+{
+    autoRepeatLastSheet = flag;
+}
+
+bool NestEngine::getAutoRepeatLastSheet()
+{
+    return autoRepeatLastSheet;
+}
+
+void NestEngine::setCompactStep(qreal step)
+{
+    compactStep = step;
+}
+
+qreal NestEngine::getCompactStep()
+{
+    return compactStep;
+}
+
+void NestEngine::setCompactAccuracy(qreal accuracy)
+{
+    compactAccuracy = accuracy;
+}
+
+qreal NestEngine::getCompactAccuracy()
+{
+    return compactAccuracy;
+}
+
+QVector<Piece> NestEngine::getSortedPieceListByArea(QVector<Piece> pieceList)
 {
     // QMap 默认按key值升序排列
-    QMap<qreal, QList<int>> pieceAreaMap;
+    QMap<qreal, QVector<int>> pieceAreaMap;
     for(int i=0; i<pieceList.length(); i++){
         Piece piece = pieceList[i];
         qreal area = piece.getArea();
         if(!pieceAreaMap.contains(area)){
-            QList<int> list;
+            QVector<int> list;
             list.append(i);
             pieceAreaMap.insert(-area, list);
         }
@@ -35,12 +71,13 @@ QList<Piece> NestEngine::getSortedPieceListByArea(QList<Piece> pieceList)
     }
 
     // 获取排序后的零件列表
-    QList<Piece> pieceListRet;
+    QVector<Piece> pieceListRet;
 
-    QMap<qreal, QList<int>>::const_iterator i;
+    QMap<qreal, QVector<int>>::const_iterator i;
     for(i=pieceAreaMap.constBegin(); i!=pieceAreaMap.constEnd(); ++i){
         foreach (int index, i.value()) {
             pieceListRet.append(pieceList[index]);
+            qDebug() << "面积：" << i.key() << ", index:" << index;
         }
     }
     return pieceListRet;
@@ -52,7 +89,7 @@ void NestEngine::initNestPieceList()
     for(int i=0; i<pieceList.length(); i++){
         Piece piece = pieceList[i];
         for(int j=0; j<piece.getCount(); j++){
-            nestPieceList.append(NestPiece(i, count++));
+            nestPieceList.append(NestPiece(count++, i));
         }
     }
 }

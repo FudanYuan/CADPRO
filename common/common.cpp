@@ -146,3 +146,17 @@ void getRectBoundValue(const QRectF rect, qreal &minX, qreal &minY, qreal &maxX,
     maxX = bottomRightPoint.rx();
     maxY = bottomRightPoint.ry();
 }
+
+bool boundingRectSeperate(const QRectF rect1, const QRectF rect2)
+{
+    qreal minX1, minX2, minY1, minY2, maxX1, maxX2, maxY1, maxY2;
+    getRectBoundValue(rect1, minX1, minY1, maxX1, maxY1);
+    getRectBoundValue(rect2, minX2, minY2, maxX2, maxY2);
+    if(minX1 > maxX2
+            || maxX1 < minX2
+            || minY1 > maxY2
+            || maxY1 < minY1){
+        return true;
+    }
+    return false;
+}

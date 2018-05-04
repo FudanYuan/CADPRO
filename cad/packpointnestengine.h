@@ -32,6 +32,15 @@ public:
     };
 
     struct PackPointInfo{
+        PackPointInfo() :
+            sheetID(-1),
+            rows(0),
+            columns(0),
+            XOffset(0),
+            YOffset(0)
+        {
+
+        }
         PackPointInfo(int id, int r, int c, qreal x, qreal y) :
             sheetID(id),
             rows(r),
@@ -52,23 +61,25 @@ public:
         int columns; // 列数
         qreal XOffset;  // x方向的偏移
         qreal YOffset;  // y方向的偏移
-        QList<int> coverdList;  // 覆盖列表
+        QVector<int> coverdList;  // 覆盖列表
     };
 
     PackPointNestEngine();
-    PackPointNestEngine(const QList<Piece> pieceList, const QList<Sheet> sheetList, qreal PPD, int RN);
+    PackPointNestEngine(const QVector<Piece> pieceList, const QVector<Sheet> sheetList, qreal PPD, int RN);
     ~PackPointNestEngine();
 
-    void initPackPoint(QList<Sheet> sheetList, qreal PPD, int PN);  // 初始化排样点
+    void initPackPoint(QVector<Sheet> sheetList, qreal PPD);  // 初始化排样点
     void updatePackPoint(int sheetID, Piece piece);  // 更新排样点
 
-    void layoutAlg(QList<int> indexList) Q_DECL_OVERRIDE;  // 排版算法
-    void packOnePiece(Piece piece, NestEngine::NestPiece &nestPiece) Q_DECL_OVERRIDE;  // 排放单个零件
-    bool collidesWithOtherPieces(Piece piece) Q_DECL_OVERRIDE;  // 判断该零件是否与其他零件重叠
-private:
+    void layoutAlg(QVector<int> indexList) Q_DECL_OVERRIDE;  // 排版算法
+    bool packOnePiece(Piece piece, NestEngine::NestPiece &nestPiece) Q_DECL_OVERRIDE;  // 排放单个零件
+    bool compact(int sheetID, NestPiece &nestPiece) Q_DECL_OVERRIDE;  // 紧凑算法
+    bool collidesWithOtherPieces(int sheetID, Piece piece) Q_DECL_OVERRIDE;  // 判断该零件是否与其他零件重叠
+
+//private:
     qreal PPD; // pack point distance--排样点取样间隔
     int RN;  // rotate number--旋转个数
-    QList<PackPointInfo> packPointInfoList;  // 材料排样点信息
+    QVector<PackPointInfo> packPointInfoList;  // 材料排样点信息
     QMap<int, QMap<int, PackPoint>> sheetPackPointPositionMap;  // 材料排样点状态
     qreal minHeight;  // 最小高度值，使用HAPE排版的重心值
 };

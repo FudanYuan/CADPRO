@@ -158,7 +158,7 @@ bool Polyline::collidesWithItem(const QGraphicsItem *other, Qt::ItemSelectionMod
     return collision;
 }
 
-void Polyline::setPolyline(QList<QPointF> pList, int flag, qreal ele, qreal angle, const QPointF off)
+void Polyline::setPolyline(QVector<QPointF> pList, int flag, qreal ele, qreal angle, const QPointF off)
 {
     QPen pen = QPen();
     pen.setColor(penStyle.color);
@@ -175,13 +175,13 @@ void Polyline::setPolyline(QList<QPointF> pList, int flag, qreal ele, qreal angl
     overFlag = true;
 }
 
-void Polyline::setPoints(const QList<QPointF> &value)
+void Polyline::setPoints(const QVector<QPointF> &value)
 {
     points.clear();
     points.append(value);
 }
 
-QList<QPointF> Polyline::getPoints()
+QVector<QPointF> Polyline::getPoints()
 {
     return this->points;
 }

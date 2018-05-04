@@ -414,7 +414,7 @@ void Project::dxfPolylineReader(const DxfFilter dxfFilter)
 
         // 获取polyline的基本信息
         QList<DL_VertexData> v = dxfFilter.polylines.at(i).vertexList;
-        QList<QPointF> points;
+        QVector<QPointF> points;
         for(int j=0; j<v.length(); j++){
             // 获取vertex基本信息
             qreal px = v.at(j).x;
@@ -851,7 +851,7 @@ void Project::dxfLineWriter(const QList<Line *> &list, DL_Dxf &dxf, DL_WriterA *
 void Project::dxfPolylineWriter(const QList<Polyline *> &list, DL_Dxf &dxf, DL_WriterA *dw)
 {
     for(int i=0; i<list.length(); i++){
-        QList<QPointF> points = list[i]->getPoints();
+        QVector<QPointF> points = list[i]->getPoints();
         int pCount = points.length();
         Polyline::Type type = list[i]->getType();
         

@@ -25,6 +25,9 @@
 #include <QGraphicsItemGroup>
 #include <QDebug>
 
+#include "piece.h"
+#include "packpointnestengine.h"
+
 Sketch::Sketch(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::Sketch)
@@ -1792,7 +1795,74 @@ void Sketch::onActionFileExit()
 void Sketch::onActionDrawLine()
 {
     qDebug() << "drawing a line";
-    scene_active->setCurShape(Shape::Line);
+//    scene_active->setCurShape(Shape::Line);
+#ifdef NESTENGINEDEBUG
+    // 初始化材料
+    Sheet sheet1;
+    sheet1.height = 2000;
+    sheet1.width = 1000;
+    sheet1.type = Sheet::Whole;
+    sheet1.componentGap = 2;
+    sheet1.topMargin = 5;
+    sheet1.rightMargin = 5;
+    sheet1.bottomMargin = 5;
+    sheet1.leftMargin = 5;
+    Sheet sheet2;
+    sheet2.height = 1000;
+    sheet2.width = 500;
+    sheet2.type = Sheet::Whole;
+    sheet2.componentGap = 2;
+    sheet2.topMargin = 5;
+    sheet2.rightMargin = 5;
+    sheet2.bottomMargin = 5;
+    sheet2.leftMargin = 5;
+
+    QVector<Sheet> sheetList;
+    sheetList.append(sheet1);
+    sheetList.append(sheet2);
+
+    // 初始化零件
+    QVector<QPointF> points1;
+    points1.append(QPointF(0, 0));
+    points1.append(QPointF(100, 100));
+    points1.append(QPointF(200, 0));
+    points1.append(QPointF(100, -200));
+    points1.append(QPointF(0, 0));
+    Piece piece1(points1, 50);
+
+    QVector<QPointF> points2;
+    points2.append(QPointF(0, 100));
+    points2.append(QPointF(200, 100));
+    points2.append(QPointF(200, -200));
+    points2.append(QPointF(0, -200));
+    points2.append(QPointF(100, 0));
+    points2.append(QPointF(0, 100));
+    Piece piece2(points2, 100);
+
+    QVector<Piece> pieceList;
+    pieceList.append(piece1);
+    pieceList.append(piece2);
+
+    scene_active->addCustomPolylineItem(piece1.getPolyline());
+    scene_active->addCustomPolylineItem(piece2.getPolyline());
+
+    // 初始化排样引擎
+    PackPointNestEngine packEngine(pieceList, sheetList, 5, 4);
+
+    qDebug() << "排样零件详情：(共" << packEngine.nestPieceList.length() << "个)";
+    for(int i=0; i<packEngine.nestPieceList.length(); i++){
+        qDebug() << "--------";
+        qDebug() << "index: " << packEngine.nestPieceList[i].index;
+        qDebug() << "typeID: " << packEngine.nestPieceList[i].typeID;
+        qDebug() << "sheetID: " << packEngine.nestPieceList[i].sheetID;
+        qDebug() << "position: " << packEngine.nestPieceList[i].position;
+        qDebug() << "alpha: " << packEngine.nestPieceList[i].alpha;
+        qDebug() << "nested: " << packEngine.nestPieceList[i].nested;
+        qDebug() << "--------";
+    }
+    qDebug() << "";
+
+#endif
 }
 
 void Sketch::onActionDrawEllipse()
@@ -1925,24 +1995,23 @@ void Sketch::onActionDrawShankLine()
 void Sketch::onActionDrawPerpendicular()
 {
     qDebug() << "垂直线";
-    QList<Polyline*> polylineList = scene_active->getPolylineList();
+//    QList<Polyline*> polylineList = scene_active->getPolylineList();
+//    int delta = 2;
+//    for(int i=0;i<polylineList.length();i++){
+//        QVector<QPointF> newPointsList;
+//        QVector<QPointF> pointsList = polylineList[i]->getPoints();
+//        for(int m=0; m<pointsList.length()-1; m++){
+//            for(int n=m+1; n<pointsList.length(); n++){
+//                QPointF p1 = pointsList[m];
+//                QPointF p2 = pointsList[n];
+//                QLineF line(p1, p2);
 
-    int delta = 2;
-    for(int i=0;i<polylineList.length();i++){
-        QList<QPointF> newPointsList;
-        QList<QPointF> pointsList = polylineList[i]->getPoints();
-        for(int m=0; m<pointsList.length()-1; m++){
-            for(int n=m+1; n<pointsList.length(); n++){
-                QPointF p1 = pointsList[m];
-                QPointF p2 = pointsList[n];
-                QLineF line(p1, p2);
-
-            }
-        }
-        Polyline *polyline = new Polyline;
-        //polyline->setPolyline();
-        scene_active->addCustomPolylineItem(polyline);
-    }
+//            }
+//        }
+//        Polyline *polyline = new Polyline;
+//        //polyline->setPolyline();
+//        scene_active->addCustomPolylineItem(polyline);
+//    }
 }
 
 void Sketch::onActionDrawImage()
@@ -2020,14 +2089,14 @@ void Sketch::onActionInsertAdvancedOffset()
     qDebug() << "创建高级偏移";
     Rect *rect = new Rect();
     rect->setRect(0, 0, 100, 100);
-    QList<QPointF> points = rect->toPolyline();
+    QVector<QPointF> points = rect->toPolyline();
 
     Polyline *polyline = new Polyline;
     polyline->setPolyline(points, Polyline::line);
 
     Rect *rect1 = new Rect();
     rect1->setRect(-100, -100, 1000, 1000);
-    QList<QPointF> points1 = rect1->toPolyline();
+    QVector<QPointF> points1 = rect1->toPolyline();
 
     Polyline *polyline1 = new Polyline;
     polyline1->setPolyline(points1, Polyline::line);

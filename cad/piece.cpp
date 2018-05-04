@@ -1,14 +1,18 @@
 #include "piece.h"
 
 Piece::Piece() :
+    pointsList(QVector<QPointF>()),
+    area(0),
     minBoundingRect(QRectF()),
+    angle(0),
+    squareness(0),
+    centerPoint(QPointF()),
     count(0)
 {
 }
 
 Piece::Piece(Polyline *p, int n)
 {
-    polyline = p;
     pointsList = p->getPoints();
     // area = calculatePolylineArea(pointsList);  // 计算多边形面积
     minBoundingRect = p->boundingRect();  // 改成最小包络矩形
@@ -18,10 +22,8 @@ Piece::Piece(Polyline *p, int n)
     count = n;
 }
 
-Piece::Piece(QList<QPointF> points, int n)
+Piece::Piece(QVector<QPointF> points, int n)
 {
-    Polyline *p = new Polyline;
-    polyline->setPolyline(points, Polyline::line);
     pointsList = points;
     // area = calculatePolylineArea(pointsList);
     // minBoundingRect = calculatePolylineMinBoundingRect(pointsList);  // 改成最小包络矩形
@@ -33,40 +35,42 @@ Piece::Piece(QList<QPointF> points, int n)
 
 Polyline *Piece::getPolyline()
 {
+    Polyline *polyline = new Polyline;
+    polyline->setPolyline(pointsList, Polyline::line);
     return polyline;
 }
 
-QList<QPointF> Piece::getPointsList()
+QVector<QPointF> Piece::getPointsList()
 {
     return pointsList;
 }
 
-qreal Piece::getArea()
+qreal Piece::getArea() const
 {
     return area;
 }
 
-QRectF Piece::getMinBoundingRect()
+QRectF Piece::getMinBoundingRect() const
 {
     return minBoundingRect;
 }
 
-qreal Piece::getAngle()
+qreal Piece::getAngle() const
 {
     return angle;
 }
 
-qreal Piece::getSquareness()
+qreal Piece::getSquareness() const
 {
     return squareness;
 }
 
-QPointF Piece::getCenterPoint()
+QPointF Piece::getCenterPoint() const
 {
     return centerPoint;
 }
 
-int Piece::getCount()
+int Piece::getCount() const
 {
     return count;
 }
@@ -75,14 +79,14 @@ void Piece::moveTo(const QPointF position)
 {
     QPointF offset = position - minBoundingRect.center();  // 偏移量
     // 更新多边形点集
-    QList<QPointF> oldPointsList = polyline->getPoints();  // 多边形点集
-    QList<QPointF> newPointsList;  // 存储移动之后的点坐标
+    QVector<QPointF> oldPointsList = pointsList;  // 多边形点集
+    QVector<QPointF> newPointsList;  // 存储移动之后的点坐标
     for(int i=0; i<oldPointsList.length(); i++){
         QPointF oldPoint = oldPointsList[i];  // 初始点
         QPointF newPoint = oldPoint + offset;  // 移动之后的点
         newPointsList.append(newPoint);
     }
-    polyline->setPoints(newPointsList);  // 更新多边形点集
+    pointsList = newPointsList;  // 更新点集
     centerPoint += offset; // 更新多边形质心
     // 更新最小包络矩形
     minBoundingRect.moveCenter(position);
@@ -91,14 +95,14 @@ void Piece::moveTo(const QPointF position)
 void Piece::rotate(const QPointF cPoint, const qreal alpha)
 {
     // 更新多边形点集
-    QList<QPointF> oldPointsList = polyline->getPoints();  // 多边形点集
-    QList<QPointF> newPointsList;  // 存储移动之后的点坐标
+    QVector<QPointF> oldPointsList = pointsList;  // 多边形点集
+    QVector<QPointF> newPointsList;  // 存储移动之后的点坐标
     for(int i=0; i<oldPointsList.length(); i++){
         QPointF oldPoint = oldPointsList[i];  // 初始点
         QPointF newPoint = transformRotate(cPoint, oldPoint, alpha);  // 移动之后的点
         newPointsList.append(newPoint);
     }
-    polyline->setPoints(newPointsList);  // 更新多边形点集
+    pointsList = newPointsList;  // 更新点集
     centerPoint = transformRotate(cPoint, centerPoint, alpha); ; // 更新多边形质心
 }
 
@@ -149,4 +153,19 @@ bool Piece::containsInSheet(const Sheet sheet)
         }
     }
     return true;
+}
+
+bool Piece::collidesWithPiece(Piece piece, const Piece::CollisionsMode mode)
+{
+    /***
+     * 判断零件与其他零件是否重叠，
+     * 1. 首先判断两多边形的外包矩形是否重叠，如果不重叠，则两多边形一定不会重叠
+     * 2. 如果两矩形框重叠，再去进一步判断两多边形是否重叠
+     */
+    QRectF minBoundingRect1 = piece.getMinBoundingRect();
+    if(boundingRectSeperate(minBoundingRect, minBoundingRect1)){
+        return false;
+    }
+    CollisionDectect collisionDectect(pointsList, piece.getPointsList());
+    return collisionDectect.collision();
 }
