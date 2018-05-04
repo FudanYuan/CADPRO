@@ -170,6 +170,10 @@ signals:
     void circleSelected(Circle *circle);
     void rectSelected(Rect *rect);
     void polylineSelected(Polyline *polyline);
+    void polygonSelected(Polygon *polygon);
+    void trapeziumSelected(Trapezium *trapezium);
+    void eyeletSelected(Eyelet *eyelet);
+    void textSelected(Text *text);
 
 public slots:
     void onViewScaleChanged(qreal scaleFactor);  // 响应view缩放事件
@@ -183,6 +187,10 @@ public slots:
     void onCircleSelected(Circle *circle);
     void onRectSelected(Rect *rect);
     void onPolylineSelected(Polyline *polyline);
+    void onPolygonSelected(Polygon *polygon);
+    void onTrapeziumSelected(Trapezium *trapezium);
+    void onEyeletSelected(Eyelet *eyelet);
+    void onTextSelected(Text *text);
 };
 
 #endif // SCENE_H

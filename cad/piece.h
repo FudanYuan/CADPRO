@@ -34,7 +34,7 @@ public:
     bool containsInSheet(const Sheet sheet);  // 判断该零件是否在材料内部
     bool collidesWithPiece(Piece piece, const CollisionsMode mode = ShapeCollisionMode);  // 判断该零件是否与给定零件碰撞
 
-private:
+//private:
     QVector<QPointF> pointsList;  // 多边形点集
     qreal area;  // 零件面积
     QRectF minBoundingRect;  // 零件对应的最小包络矩形,其中心为参考点

@@ -14,22 +14,20 @@ Piece::Piece() :
 Piece::Piece(Polyline *p, int n)
 {
     pointsList = p->getPoints();
-    // area = calculatePolylineArea(pointsList);  // 计算多边形面积
-    minBoundingRect = p->boundingRect();  // 改成最小包络矩形
-    // qreal rectArea = minBoundingRect.width() * minBoundingRect.height();  // 矩形面积
-    // squareness = area / rectArea;  // 计算方正度
-    // centerPoint = calculatePolylineCenterPoint(pointsList); // 计算多边形的质心
+    area = calculatePolygonArea(pointsList);  // 计算多边形面积
+    qreal minBoundingRectArea = calculatePloygonMinBoundingRectArea(pointsList, angle, minBoundingRect);
+    squareness = area / minBoundingRectArea;  // 计算方正度
+    centerPoint = calculatePolygonGravityCenter(pointsList); // 计算多边形的质心
     count = n;
 }
 
 Piece::Piece(QVector<QPointF> points, int n)
 {
     pointsList = points;
-    // area = calculatePolylineArea(pointsList);
-    // minBoundingRect = calculatePolylineMinBoundingRect(pointsList);  // 改成最小包络矩形
-    // qreal rectArea = minBoundingRect.width() * minBoundingRect.height();  // 矩形面积
-    // squareness = area / rectArea;  // 计算方正度
-    // centerPoint = calculatePolylineCenterPoint(pointsList); // 计算多边形的质心
+    area = calculatePolygonArea(pointsList);  // 计算多边形面积
+    qreal minBoundingRectArea = calculatePloygonMinBoundingRectArea(pointsList, angle, minBoundingRect);
+    squareness = area / minBoundingRectArea;  // 计算方正度
+    centerPoint = calculatePolygonGravityCenter(pointsList); // 计算多边形的质心
     count = n;
 }
 
@@ -104,6 +102,9 @@ void Piece::rotate(const QPointF cPoint, const qreal alpha)
     }
     pointsList = newPointsList;  // 更新点集
     centerPoint = transformRotate(cPoint, centerPoint, alpha); ; // 更新多边形质心
+    // 更新最小包络矩形
+    minBoundingRect = calculatePolygonBoundingRect(pointsList);
+    squareness = area / (minBoundingRect.width() * minBoundingRect.height());  // 计算方正度
 }
 
 bool Piece::contains(const QPointF point)
@@ -165,6 +166,10 @@ bool Piece::collidesWithPiece(Piece piece, const Piece::CollisionsMode mode)
     QRectF minBoundingRect1 = piece.getMinBoundingRect();
     if(boundingRectSeperate(minBoundingRect, minBoundingRect1)){
         return false;
+    }
+    // 如果模式为边缘矩形的碰撞，则返回
+    if(mode == BoundingRectCollisionMode){
+        return true;
     }
     CollisionDectect collisionDectect(pointsList, piece.getPointsList());
     return collisionDectect.collision();

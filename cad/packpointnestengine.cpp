@@ -43,7 +43,7 @@ void PackPointNestEngine::initPackPoint(QVector<Sheet> sheetList, qreal PPD)
         int PPN = rows * columns;
         for(int j=0; j<PPN; j++){
             int row = j / rows;  // 获取序号为j的排样点在第几行
-            int column = j - columns * row;  // 获取序号为j的排样点在第几列
+            int column = (j - columns * row) % (columns - 1);  // 获取序号为j的排样点在第几列
             // 将序号为j的排样点添加至map中
             qreal px = column * PPD + XOffset;
             qreal py = row * PPD + YOffset;
@@ -103,9 +103,8 @@ void PackPointNestEngine::layoutAlg(QVector<int> indexList)
 {
     // 现写出只有一张材料时的排版算法，不先考虑一刀切工艺
     for(int i=0; i<indexList.length(); i++){
-        int index = indexList[i];
-        // to do
-        int typeID = nestPieceList[index].typeID;
+        int index = indexList[i];  // 获取该排样零件的序号
+        int typeID = nestPieceList[index].typeID;  // 获取该排样零件的类型
         Piece piece = pieceList[typeID];
         bool res = packOnePiece(piece, nestPieceList[index]); // 排放该零件
         if(res) {  // 如果该零件成功排放，则可以排放下一个零件
@@ -131,6 +130,7 @@ bool PackPointNestEngine::packOnePiece(Piece piece, NestEngine::NestPiece &nestP
      */
     bool ret = false;
     for(int i=0; i<sheetList.length(); i++){
+        qDebug() << "排放零件:#" << nestPiece.index;
         QMap<int, PackPoint> packPointMap = sheetPackPointPositionMap[i];  // 获取该材料的排样点状态
         int PPN = packPointMap.size();  // 排样点个数
         for(int j=0; j<PPN; j++){
@@ -144,7 +144,7 @@ bool PackPointNestEngine::packOnePiece(Piece piece, NestEngine::NestPiece &nestP
                 QPointF pos = packPointMap[j].position;  // 该排样点对应的位置坐标
                 piece.moveTo(pos);  // 将零件最小包络矩形中心移至该位置
 
-                qreal alpha = 2 * M_PI * k /RN;  // 旋转角度
+                qreal alpha = 2 * M_PI * k / RN;  // 旋转角度
                 piece.rotate(pos, alpha);  // 绕参考点旋转alpha度
                 qreal height = piece.getCenterPoint().ry();  // 得到零件形心
 
@@ -155,12 +155,13 @@ bool PackPointNestEngine::packOnePiece(Piece piece, NestEngine::NestPiece &nestP
                  * 则更新最优排样姿态
                  */
                 if(!piece.containsInSheet(sheetList[i])){
-                   continue;
+                    continue;
                 }
                 if(collidesWithOtherPieces(i, piece)){
                     continue;
                 }
                 if(height < minHeight){
+                    qDebug() << "在$" << i << "找到合适位置排放该零件:" << pos << " " << alpha;
                     minHeight = height;
                     nestPiece.sheetID = i;
                     nestPiece.position = pos;
@@ -183,6 +184,8 @@ bool PackPointNestEngine::packOnePiece(Piece piece, NestEngine::NestPiece &nestP
             }
             nestSheetPieceMap[i].append(nestPiece.index);
             ret = true;
+            qDebug() << "排放位置: " << nestPiece.position;
+            qDebug() << "旋转度数：" << nestPiece.alpha;
             break;
         }
     }

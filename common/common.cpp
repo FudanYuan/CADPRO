@@ -32,15 +32,6 @@ QColor intToColor(const int rgb, bool a)
     return QColor(red, green, blue, alpha);
 }
 
-//QRectF getLineBoundingRect(QLineF line)
-//{
-//    qreal deltaX = line.p1().rx() - line.p2().rx();
-//    qreal deltaY = line.p1().rx() - line.p2().rx();
-//    qreal len = qSqrt(qPow(deltaX, 2) + qPow(deltaY, 2));
-//    if(line.angle() >= 0 || line.angle() <= 90){
-//        //setRect(line.p1().rx()-4, line.p1.rx()+4, );
-//    }
-//}
 
 QPointF transformY(QPointF p)
 {
@@ -67,7 +58,7 @@ QPointF transformRotate(QPointF o, QPointF p, qreal angle)
     return QPointF(rx, -ry);
 }
 
-qreal getDistance(QPointF p1, QPointF p2)
+qreal calculatePointsDistance(QPointF p1, QPointF p2)
 {
     qreal px1 = p1.rx();
     qreal py1 = p1.ry();
@@ -80,6 +71,198 @@ qreal getDistance(QPointF p1, QPointF p2)
     qreal dis = qSqrt(mid1 + mid2);
 
     return dis;
+}
+
+QRectF calculatePolygonBoundingRect(QVector<QPointF> pList)
+{
+    int len = pList.length();
+    if(len < 1){
+        return QRectF();
+    }
+    qreal minX = pList[0].rx();
+    qreal minY = pList[0].ry();
+    qreal maxX = pList[0].rx();
+    qreal maxY = pList[0].ry();
+    for(int i=1; i<len-1; i++){
+        if(pList[i].rx() < minX){
+            minX = pList[i].rx();
+        }
+        if(pList[i].ry() < minY){
+            minY = pList[i].ry();
+        }
+        if(pList[i].rx() > maxX){
+            maxX = pList[i].rx();
+        }
+        if(pList[i].ry() > maxY){
+            maxY = pList[i].ry();
+        }
+    }
+    qreal width = maxX - minX;
+    qreal height = maxY - minY;
+    QRectF ret(minX, minY, width, height);
+    return ret;
+}
+
+void getRectBoundValue(const QRectF rect, qreal &minX, qreal &minY, qreal &maxX, qreal &maxY)
+{
+    QPointF topLeftPoint = rect.topLeft();  // 左上角坐标
+    QPointF bottomRightPoint = rect.bottomRight();  // 右下角坐标
+    // 获取边界值
+    minX = topLeftPoint.rx();
+    minY = topLeftPoint.ry();
+    maxX = bottomRightPoint.rx();
+    maxY = bottomRightPoint.ry();
+}
+
+bool boundingRectSeperate(const QRectF rect1, const QRectF rect2)
+{
+    qreal minX1, minX2, minY1, minY2, maxX1, maxX2, maxY1, maxY2;
+    getRectBoundValue(rect1, minX1, minY1, maxX1, maxY1);
+    getRectBoundValue(rect2, minX2, minY2, maxX2, maxY2);
+    if(minX1 > maxX2
+            || maxX1 < minX2
+            || minY1 > maxY2
+            || maxY1 < minY1){
+        return true;
+    }
+    return false;
+}
+
+double calculatePolygonArea(QVector<QPointF> points){
+    double area=0;
+    if(points.length()==2){
+        return 0;
+    }else{
+        for(int i=0;i<points.length()-1;i++){
+            area=area+(points[i].rx()*points[i+1].ry())-(points[i].ry()*points[i+1].rx());
+        }
+        return abs(area)/2;
+    }
+}
+
+bool calculatePolygonDirection(QVector<QPointF> points){
+
+    int flag,pp,np, cp=0;
+    if(points.length()==2){
+        return false;
+    }else{
+        for(int i=0;i<points.length()-1;i++){
+            if( points[cp].ry() <= points[i].ry()){
+                cp=i;
+            }
+        }
+//        if(cp==points.length()-1){
+//            pp=cp-1;
+//            np=0;
+//        }else if(cp==0){
+//            pp=points.length()-1;
+//            np=cp+1;
+//        }else{
+//             pp=cp-1;
+//             np=cp+1;
+//        }
+
+        pp=(cp-1+points.length())%points.length();
+        np=(cp+1)%points.length();
+
+        flag=(points[cp].rx() - points[pp].rx())*(points[np].ry()- points[cp].ry())-(points[cp].ry() - points[pp].ry())*(points[np].rx()- points[cp].rx());
+        if (flag>0){
+            return true;
+        }else if (flag<0)
+            return false;
+    }
+}
+
+QPointF calculatePolygonGravityCenter(QVector<QPointF> mPoints){
+    double area = 0.0;//多边形面积
+    double Gx = 0.0, Gy = 0.0;// 重心的x、y
+    for (int i = 1; i <= mPoints.length(); i++) {
+        double irx = mPoints[i % mPoints.length()].rx();
+        double iry = mPoints[i % mPoints.length()].ry();
+        double nextLat = mPoints[i - 1].rx();
+        double nextLng = mPoints[i - 1].ry();
+        double temp = (irx * nextLng - iry * nextLat) / 2.0;
+        area += temp;
+        Gx += temp * (irx + nextLat) / 3.0;
+        Gy += temp * (iry + nextLng) / 3.0;
+        }
+        Gx = Gx / area;
+        Gy = Gy / area;
+        return QPointF(Gx, Gy);
+}
+
+bool isConcaveConvex(QPointF ppoint,QPointF cpoint,QPointF npoint,bool direction){
+
+    int flag=(cpoint.rx() - ppoint.rx())*(npoint.ry()- cpoint.ry())-(cpoint.ry() - ppoint.ry())*(npoint.rx()- cpoint.rx());
+    if (flag>0 && direction == true){
+        return true;
+    }else if(flag<0 && direction == true){
+        return false;
+    }else if(flag<0 && direction == false){
+        return true;
+    }else{
+        return false;
+    }
+}
+
+double calculatePloygonMinBoundingRectArea(QVector<QPointF> &points, qreal &alpha, QRectF &minBoundingRect){
+    QPointF maxp,minp,centerpont = calculatePolygonGravityCenter(points);
+    QVector<QPointF> listpoint;
+    qreal angles[points.length()];
+    double area,areas[points.length()];
+    int minid,w,h;
+    //qDebug()<<"中心点"<<centerpont;
+    for(int i=0;i<points.length();i++){
+        QLineF line0(points[i], QPointF(points[i].rx() + 10, points[i].ry()));
+        QLineF line1(points[i], points[(i+1)%points.length()]);
+        qreal angle = line0.angleTo(line1);
+        //qDebug()<<"角度"<<angle;
+
+        QVector<QPointF> cpoints;
+        for(int j=0;j<points.length();j++){
+            cpoints.append(transformRotate(centerpont, points[j], -angle));
+        }
+        maxp = minp = cpoints[0];
+        for(int j=1;j<points.length();j++){
+            if(maxp.rx() < cpoints[j].rx()){
+                maxp.rx() = cpoints[j].rx();
+            }
+            if(maxp.ry() < cpoints[j].ry()){
+                maxp.ry() = cpoints[j].ry();
+            }
+            if(minp.rx() > cpoints[j].rx()){
+                minp.rx() = cpoints[j].rx();
+            }
+            if(minp.ry() > cpoints[j].ry()){
+                minp.ry() = cpoints[j].ry();
+            }
+        }
+        angles[i]=angle;
+        listpoint.append(maxp);
+        listpoint.append(minp);
+        //qDebug() << maxp << "   " << minp;
+        areas[i]= (maxp.rx()-minp.rx())*(maxp.ry()-minp.ry());
+        //qDebug()<<i<<"面积"<<areas[i];
+    }
+    area=areas[0];
+    for(int i=0;i<points.length();i++){
+        if(area>=areas[i]){
+            minid=i;
+            area=areas[i];
+        }
+    }
+    alpha=angles[minid];
+    QVector<QPointF> cpoints;
+    for(int j=0;j<points.length();j++){
+        cpoints.append(transformRotate(centerpont, points[j], -alpha));
+    }
+    points.clear();
+    points.append(cpoints);
+    w=abs(listpoint[minid*2].rx()-listpoint[minid*2+1].rx());
+    h=abs(listpoint[minid*2].ry()-listpoint[minid*2+1].ry());
+    minBoundingRect.setRect(listpoint[minid*2+1].rx(), listpoint[minid*2+1].ry(),w,h);
+    //qDebug()<<"最小包络id:"<<minid<<"面积:"<<area<<"角度："<<angles[minid];
+    return area;
 }
 
 void drawCrossPoint(QPainter *painter, QPointF point, int offset=2, crossType type=upright)
@@ -134,29 +317,4 @@ void drawLineWithArrow(QPainter *painter, QLineF line, int offset)
     vector << p1 << p2 << p3 << p1;
     QPolygonF polygon(vector);
     painter->drawPolygon(polygon);
-}
-
-void getRectBoundValue(const QRectF rect, qreal &minX, qreal &minY, qreal &maxX, qreal &maxY)
-{
-    QPointF topLeftPoint = rect.topLeft();  // 左上角坐标
-    QPointF bottomRightPoint = rect.bottomRight();  // 右下角坐标
-    // 获取边界值
-    minX = topLeftPoint.rx();
-    minY = topLeftPoint.ry();
-    maxX = bottomRightPoint.rx();
-    maxY = bottomRightPoint.ry();
-}
-
-bool boundingRectSeperate(const QRectF rect1, const QRectF rect2)
-{
-    qreal minX1, minX2, minY1, minY2, maxX1, maxX2, maxY1, maxY2;
-    getRectBoundValue(rect1, minX1, minY1, maxX1, maxY1);
-    getRectBoundValue(rect2, minX2, minY2, maxX2, maxY2);
-    if(minX1 > maxX2
-            || maxX1 < minX2
-            || minY1 > maxY2
-            || maxY1 < minY1){
-        return true;
-    }
-    return false;
 }

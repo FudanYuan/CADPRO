@@ -263,11 +263,11 @@ void View::zoom(qreal scaleFactor)
 {
     // 防止过小或过大
     qreal factor = transform().scale(scaleFactor, scaleFactor).mapRect(QRectF(0, 0, 1, 1)).width();
-    qDebug() << "factor " << factor;
+//    qDebug() << "factor " << factor;
     if (factor < 0.01 || factor > 50){
         return;
     }
-    qDebug() << "scaleFactor " << scaleFactor;
+//    qDebug() << "scaleFactor " << scaleFactor;
     scale(scaleFactor, scaleFactor);
     this->windowScale *= scaleFactor;
     // 发送视图缩放改变的信号

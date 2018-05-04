@@ -1,6 +1,8 @@
 #include "collisiondectect.h"
 #include <qmath.h>
 
+#include <QDebug>
+
 CollisionDectect::CollisionDectect(QVector<QPointF> pList1, QVector<QPointF> pList2, bool isCircle1, bool isCircle2)
 {
     this->pList1 = pList1;
@@ -40,8 +42,10 @@ QVector<qreal> CollisionDectect::getBoundingRect(QVector<QPointF> pList)
     if(len < 1){
         return QVector<qreal>(4);
     }
-    qreal minX, minY = pList[0].rx();
-    qreal maxX, maxY = pList[0].ry();
+    qreal minX = pList[0].rx();
+    qreal minY = pList[0].ry();
+    qreal maxX = pList[0].rx();
+    qreal maxY = pList[0].ry();
     for(int i=1; i<len; i++){
         if(pList[i].rx() < minX){
             minX = pList[i].rx();
@@ -208,14 +212,18 @@ bool CollisionDectect::collision()
     if(pList1.length() < 1 && pList2.length() < 1){
         return false;
     }
+    qDebug() << "长度都符合规范" ;
     bool isConcavePoly1 = getItemType(pList1) == ConcavePoly;
     bool isConcavePoly2 = getItemType(pList2) == ConcavePoly;
     // 如果两多边形都不为凹多边形
-    if(!isConcavePoly1 && !isConcavePoly1){
+    qDebug() << isConcavePoly1 << "  " << isConcavePoly2;
+    if(!isConcavePoly1 && !isConcavePoly2){
+        qDebug() << "两多边形都不为凹多边形" ;
         return convexPolygonCollision(pList1, pList2, isCircle1, isCircle2);
     }
     // 如果两多边形都为凹多边形
     if(isConcavePoly1 && isConcavePoly2){
+        qDebug() << "两多边形都为凹多边形" ;
         ConcavePolygon concavePoly1(pList1);
         ConcavePolygon concavePoly2(pList2);
         QMap<int, QVector<QPointF>> splitRes1 = concavePoly1.onSeparateConcavePoly(pList1);
@@ -231,6 +239,7 @@ bool CollisionDectect::collision()
     }
     // 如果两多边形不全为凹多边形
     if(isConcavePoly1){
+        qDebug() << "第一个图形为凹多边形" ;
         ConcavePolygon concavePoly1(pList1);
         QMap<int, QVector<QPointF>> splitRes1 = concavePoly1.onSeparateConcavePoly(pList1);
         for(int i=0; i<splitRes1.size(); i++){
@@ -241,6 +250,7 @@ bool CollisionDectect::collision()
         return false;
     }
     if(isConcavePoly2){
+        qDebug() << "第二个图形为凹多边形" ;
         ConcavePolygon concavePoly2(pList2);
         QMap<int, QVector<QPointF>> splitRes2 = concavePoly2.onSeparateConcavePoly(pList2);
         for(int i=0; i<splitRes2.size(); i++){
@@ -301,6 +311,7 @@ bool ConcavePolygon::isConcavePolygon(QVector<QPointF> pList)
     if(pList.length() <= 3){
         return false;
     }
+    qDebug() << "检测该多边形是否为凹多边形" ;
     return getNextConcaveIndex(pList, 0) >=0;
 }
 
@@ -309,7 +320,11 @@ QMap<int, QVector<QPointF>> ConcavePolygon::onSeparateConcavePoly(QVector<QPoint
     QMap<int, QVector<QPointF>> ret;
     // 默认为逆时针，否反转多边形
     if(!isAntiClockDir(pList)){
+        qDebug() << "顺时针";
         conversPoly(pList);
+        for(int i=0; i<pList.length(); i++){
+            qDebug() << pList[i];
+        }
     }
     _separateConcavePoly(pList, ret, 0);
     return ret;
@@ -358,10 +373,12 @@ void ConcavePolygon::_separateConcavePoly(QVector<QPointF> pList, QMap<int, QVec
 {
     int len = pList.length();
     if(len <= 3){
+        qDebug() << "map.size: " << map.size();
         map.insert(map.size(), pList);
         return;
     }
     int nextConcaveIndex = getNextConcaveIndex(pList, startIndex);
+    qDebug() << "下一凹点：" << pList[nextConcaveIndex];
     startIndex = nextConcaveIndex + 1;
     if(nextConcaveIndex < 0){
         map.insert(map.size(), pList);
@@ -369,6 +386,7 @@ void ConcavePolygon::_separateConcavePoly(QVector<QPointF> pList, QMap<int, QVec
     }
     IntersectionPoint intersectionPoint;
     if(getSplitPointByVertexRegion(pList, nextConcaveIndex, intersectionPoint)){
+        qDebug() << "交点" << intersectionPoint.index << "  " << intersectionPoint.intersection;
         QVector<QPointF> pLeftList;
         QVector<QPointF> pRightList;
         splitPolyByIntersection(pList, nextConcaveIndex, intersectionPoint, pLeftList, pRightList);
@@ -429,9 +447,11 @@ bool ConcavePolygon::getSplitPointByVertexRegion(QVector<QPointF> pList, int con
     if(len <= 3){
         return false;
     }
+    qDebug() << concaveIndex << "";
     int preIndex = concaveIndex > 0 ? concaveIndex - 1 : len - 1;
     int nextIndex = concaveIndex < len - 1 ? concaveIndex + 1 : 0;
-    int ret1, ret2 = 0;
+    int ret1 = 0;
+    int ret2 = 0;
     // 分区计算
     QVector<int> A;
     QVector<int> B;
@@ -524,11 +544,11 @@ ConcavePolygon::PolyDirection ConcavePolygon::getMutiPtClockDirByIndex(QVector<Q
 bool ConcavePolygon::isAntiClockDir(QVector<QPointF> pList)
 {
     int len = pList.length();
-    int n, count, nextIndex1, nextIndex2 = 0;
+    int count = 0;
     for(int i=0; i<len; i++){
-        nextIndex1 = (i + 1) % len;
-        nextIndex2 = (i + 2) % len;
-        n = (pList[nextIndex1].rx() - pList[i].rx()) * (pList[nextIndex2].ry() - pList[nextIndex1].ry());
+        int nextIndex1 = (i + 1) % len;
+        int nextIndex2 = (i + 2) % len;
+        int n = (pList[nextIndex1].rx() - pList[i].rx()) * (pList[nextIndex2].ry() - pList[nextIndex1].ry());
         n -= (pList[nextIndex1].ry() - pList[i].ry()) * (pList[nextIndex2].rx() - pList[nextIndex1].rx());
         if(n < 0){
             count--;

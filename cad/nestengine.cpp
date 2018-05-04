@@ -64,7 +64,6 @@ QVector<Piece> NestEngine::getSortedPieceListByArea(QVector<Piece> pieceList)
         qreal area = piece.getArea();
         if(!pieceAreaMap.contains(area)){
             QVector<int> list;
-            list.append(i);
             pieceAreaMap.insert(-area, list);
         }
         pieceAreaMap[-area].append(i);
@@ -77,7 +76,6 @@ QVector<Piece> NestEngine::getSortedPieceListByArea(QVector<Piece> pieceList)
     for(i=pieceAreaMap.constBegin(); i!=pieceAreaMap.constEnd(); ++i){
         foreach (int index, i.value()) {
             pieceListRet.append(pieceList[index]);
-            qDebug() << "面积：" << i.key() << ", index:" << index;
         }
     }
     return pieceListRet;

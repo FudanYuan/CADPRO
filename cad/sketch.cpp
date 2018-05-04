@@ -1795,7 +1795,7 @@ void Sketch::onActionFileExit()
 void Sketch::onActionDrawLine()
 {
     qDebug() << "drawing a line";
-//    scene_active->setCurShape(Shape::Line);
+    scene_active->setCurShape(Shape::Line);
 #ifdef NESTENGINEDEBUG
     // 初始化材料
     Sheet sheet1;
@@ -1821,6 +1821,14 @@ void Sketch::onActionDrawLine()
     sheetList.append(sheet1);
     sheetList.append(sheet2);
 
+    Rect *rect1 = new Rect;
+    rect1->setRect(sheet1.layoutRect());
+    scene_active->addCustomRectItem(rect1);
+
+    Rect *rect2 = new Rect;
+    rect2->setRect(sheet2.layoutRect());
+    scene_active->addCustomRectItem(rect2);
+
     // 初始化零件
     QVector<QPointF> points1;
     points1.append(QPointF(0, 0));
@@ -1828,16 +1836,16 @@ void Sketch::onActionDrawLine()
     points1.append(QPointF(200, 0));
     points1.append(QPointF(100, -200));
     points1.append(QPointF(0, 0));
-    Piece piece1(points1, 50);
+    Piece piece1(points1, 5);
 
     QVector<QPointF> points2;
     points2.append(QPointF(0, 100));
-    points2.append(QPointF(200, 100));
-    points2.append(QPointF(200, -200));
-    points2.append(QPointF(0, -200));
     points2.append(QPointF(100, 0));
+    points2.append(QPointF(0, -200));
+    points2.append(QPointF(200, -200));
+    points2.append(QPointF(200, 100));
     points2.append(QPointF(0, 100));
-    Piece piece2(points2, 100);
+    Piece piece2(points2, 10);
 
     QVector<Piece> pieceList;
     pieceList.append(piece1);
@@ -1847,8 +1855,8 @@ void Sketch::onActionDrawLine()
     scene_active->addCustomPolylineItem(piece2.getPolyline());
 
     // 初始化排样引擎
-    PackPointNestEngine packEngine(pieceList, sheetList, 5, 4);
-
+    PackPointNestEngine packEngine(pieceList, sheetList, 50, 4);
+#if 0
     qDebug() << "排样零件详情：(共" << packEngine.nestPieceList.length() << "个)";
     for(int i=0; i<packEngine.nestPieceList.length(); i++){
         qDebug() << "--------";
@@ -1862,6 +1870,105 @@ void Sketch::onActionDrawLine()
     }
     qDebug() << "";
 
+    // 测试排样点
+    qDebug() << "排样点详情测试：";
+    for(int i=0; i<sheetList.length(); i++){
+        qDebug() << "--------";
+        qDebug() << "材料ID：#" << packEngine.packPointInfoList[i].sheetID;
+        qDebug() << "XOffset: " << packEngine.packPointInfoList[i].XOffset;
+        qDebug() << "YOffset: " << packEngine.packPointInfoList[i].YOffset;
+        qDebug() << "rows: " << packEngine.packPointInfoList[i].rows;
+        qDebug() << "columns: " << packEngine.packPointInfoList[i].columns;
+        qDebug() << "--------";
+        QMap<int, PackPointNestEngine::PackPoint> pieceAreaMap = packEngine.sheetPackPointPositionMap[i];
+        QMap<int, PackPointNestEngine::PackPoint>::const_iterator it;
+        for(it=pieceAreaMap.constBegin(); it!=pieceAreaMap.constEnd(); ++it){
+#if 0
+            qDebug() << "#" << it.key() << "排样点信息";
+            qDebug() << "id: " << it.value().index;
+            qDebug() << "position: " << it.value().position;
+            qDebug() << "covered: " << it.value().coverd;
+#endif
+            Point *p = new Point;
+            p->setPos(it.value().position);
+            scene_active->addCustomPointItem(p);
+        }
+    }
+    qDebug() << "";
+
+    scene_active->addCustomPolylineItem(piece1.getPolyline());
+    scene_active->addCustomPolylineItem(piece2.getPolyline());
+
+    piece1.moveTo(QPointF(-500, 200));
+    piece2.moveTo(QPointF(500, 200));
+    scene_active->addCustomPolylineItem(piece1.getPolyline());
+    scene_active->addCustomPolylineItem(piece2.getPolyline());
+
+    piece1.rotate(piece1.minBoundingRect.center(), 60);
+    piece2.rotate(piece2.minBoundingRect.center(), 60);
+    scene_active->addCustomPolylineItem(piece1.getPolyline());
+    scene_active->addCustomPolylineItem(piece2.getPolyline());
+
+    Point *p1 = new Point;
+    p1->setPos(piece1.minBoundingRect.center());
+    scene_active->addCustomPointItem(p1);
+    qDebug() << piece1.minBoundingRect.center() << "  " << piece1.centerPoint;
+
+    Point *p2 = new Point;
+    p2->setPos(piece2.minBoundingRect.center());
+    scene_active->addCustomPointItem(p2);
+    qDebug() << piece2.minBoundingRect.center() << "  " << piece2.centerPoint;
+
+    Rect *rect1 = new Rect;
+    rect1->setRect(piece1.minBoundingRect);
+    scene_active->addCustomRectItem(rect1);
+
+    Rect *rect2 = new Rect;
+    rect2->setRect(piece2.minBoundingRect);
+    scene_active->addCustomRectItem(rect2);
+
+    Rect *rect11 = new Rect;
+    rect11->setRect(piece1.centerPoint.rx(), piece1.centerPoint.ry(), 5, 5);
+    scene_active->addCustomRectItem(rect11);
+
+    Rect *rect21 = new Rect;
+    rect21->setRect(piece2.centerPoint.rx(), piece2.centerPoint.ry(), 5, 5);
+    scene_active->addCustomRectItem(rect21);
+
+    // 测试点与零件的关系
+    qDebug() << piece1.contains(QPointF(125, 50));
+    qDebug() << piece2.contains(QPointF(125, 50));
+
+    // 测试零件与材料的碰撞关系
+    qDebug() << piece2.containsInSheet(sheet1);
+    qDebug() << piece2.containsInSheet(sheet2);
+    piece2.moveTo(QPointF(200, 1000));
+    qDebug() << piece2.containsInSheet(sheet1);
+    qDebug() << piece2.containsInSheet(sheet2);
+
+#endif
+    // 测试零件与材料的碰撞关系
+    qDebug() << "移动前是否碰撞：" << piece1.collidesWithPiece(piece2);
+    piece1.moveTo(QPointF(500, 200));
+    qDebug() << "移动后是否碰撞：" << piece1.collidesWithPiece(piece2);
+
+    ConcavePolygon concavePoly2(piece2.getPointsList());
+    QMap<int, QVector<QPointF>> splitRes2 = concavePoly2.onSeparateConcavePoly(piece2.getPointsList());
+    qDebug() << "分成图多边形的个数：" << splitRes2.size();
+    QMap<int, QVector<QPointF>>::const_iterator i;
+    for(i=splitRes2.constBegin(); i!=splitRes2.constEnd(); ++i){
+        Polyline *p = new Polyline;
+        p->setPolyline(i.value(), Polyline::line);
+        scene_active->addCustomPolylineItem(p);
+    }
+    scene_active->addCustomPolylineItem(piece1.getPolyline());
+    scene_active->addCustomPolylineItem(piece2.getPolyline());
+
+    QVector<int> toNestList;
+    for(int i=0; i<packEngine.nestPieceList.length(); i++){
+        toNestList.append(i);
+    }
+    //packEngine.layoutAlg(toNestList);
 #endif
 }
 
@@ -1982,13 +2089,15 @@ void Sketch::onActionDrawShankLine()
     qDebug() << "上插线";
     QList<Polyline*> polylineList = scene_active->getPolylineList();
 
-    for(int i=0;i<polylineList.length()-1;i++){
-        for(int j=i+1;j<polylineList.length();j++){
-            if(polylineList[i]->collidesWithItem(polylineList[j])){
-                qDebug() << polylineList[i]->getShapeId() << " 与"
-                         << polylineList[j]->getShapeId() << "碰撞";
-            }
+    foreach (Polyline* p, polylineList) {
+        QVector<QPointF> points = p->getPoints();
+        QVector<QPointF> points2;
+        for(int i=0; i<points.length(); i++){
+            points2.append(points[i] + QPointF(10, 10));
         }
+        Polyline *p1 = new Polyline;
+        p1->setPolyline(points2, Polyline::line);
+        scene_active->addCustomPolylineItem(p1);
     }
 }
 
@@ -3010,7 +3119,6 @@ void Sketch::onEllipseSelected(Ellipse *ellipse)
 {
 
 }
-
 
 void Sketch::onCircleSelected(Circle *circle)
 {
