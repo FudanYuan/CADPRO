@@ -21,18 +21,6 @@ class ConcavePolygonDecompose;
 class CollisionDectect
 {
 public:
-    /**
-     * @brief The ItemType enum
-     *
-     */
-    enum ItemType{
-        Point,
-        Line,
-        Circle,
-        ConvexPoly,
-        ConcavePoly
-    };
-
     struct CircleInfo
     {
         CircleInfo() :
@@ -49,9 +37,7 @@ public:
         qreal radius;
     };
 
-    CollisionDectect(QVector<QPointF> pList1, QVector<QPointF> pList2, bool isCircle1=false, bool isCircle2=false);
-
-    ItemType getItemType(QVector<QPointF> pList);  // 返回除圆之外的图形类型
+    CollisionDectect(QVector<QPointF> pList1, QVector<QPointF> pList2, bool isCircle1=false, bool isCircle2=false, short precision = 6);
     QVector<qreal> getBoundingRect(QVector<QPointF> pList);  // 获取包络矩形
     CircleInfo getBoundingCircle(QVector<QPointF> pList);  // 获取包络矩形
     qreal dotProduct(QPointF v1, QPointF v2);  // 点乘
@@ -72,20 +58,53 @@ private:
     QVector<QPointF> pList2;  // 第二个图形的点集
     bool isCircle1;  // 第一个图形是否为圆
     bool isCircle2;  // 第二个图形是否为圆
+    short precision;  // 精确度
 };
 
 
 /**
  * @brief The ConcavePolygonDecompose class
  * 凹多边形拆分
+ * 值得注意的是，
+ * qt使用的坐标系统不同于平面直角坐标系
+ * qt坐标系统：                平面直角坐标系
+ * 0------------------> x    y ^
+ * |                           |
+ * |                           |
+ * |                           |
+ * |                           |
+ * V                           |
+ * y                           0---------------------> x
+ * 在qt使用的坐标系统中，多边形各点逆序排列时，
+ * 如果相邻不共线的3点（pk-1, pk, pk+1）
+ * 组成的两条向量（pk-1pk，pkpk+1）
+ * 对这两条向量做叉积运算，结果为ret，
+ * 如果ret > 0,即这两条向量对应的边为凸边；
+ * 如果ret < 0,即这两条向量对应的边为凹边，
+ *
+ * 在qt使用的坐标系统中，多边形各点逆序排列时，
+ * 平面直角坐标系中多边形各点是顺序排列的，所以
+ * 结论正好是相反的，即
+ * 如果ret > 0,即这两条向量对应的边为凹边；
+ * 如果ret < 0,即这两条向量对应的边为凸边，
+ *
+ * 在这里，我使用的是qt的坐标系统，
+ * 因此，如果使用的是平面直角坐标系，
+ * 在调用这里的方法之前，需要对坐标系进行转换，
+ * 即 y = -y;
  */
 class ConcavePolygon
 {
 public:
+    enum CoordinateSystem{
+        RightHandRuleCS,
+        LeftHandRuleCS
+    };
+
     enum PolyDirection{
         Clockwise=-1,
         InALine,
-        AnticlockWise
+        Anticlockwise
     };
 
     enum PointRelationToLine{
@@ -105,7 +124,8 @@ public:
         QPointF intersection;
     };
 
-    ConcavePolygon(QVector<QPointF> list);
+    ConcavePolygon(QVector<QPointF> &list);
+    ConcavePolygon(QVector<QPointF> &list, CoordinateSystem cs);
     bool isConcavePolygon(QVector<QPointF> pList);  // 判断是否为凹多边形
     QMap<int, QVector<QPointF>> onSeparateConcavePoly(QVector<QPointF> pList);  // 分割凹多边形
     int getNextConcaveIndex(QVector<QPointF> pList, int index = 0);  // 获取下一个凹点
@@ -129,6 +149,7 @@ public:
     PointRelationToLine GetPosRelationToLine(QPointF sPoint, QPointF ePoint, QPointF p);  // 判断点与直线的关系
 private:
     QVector<QPointF> pList;  // 凹多边形的点集
+    CoordinateSystem coordinateSystem;  // 使用的坐标系统
 };
 
 #endif // COLLISIONDECTECT_H

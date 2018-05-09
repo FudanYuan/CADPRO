@@ -65,14 +65,16 @@ public:
     };
 
     PackPointNestEngine();
-    PackPointNestEngine(const QVector<Piece> pieceList, const QVector<Sheet> sheetList, qreal PPD, int RN);
+    PackPointNestEngine(const QVector<Piece> pieceList, const QVector<Sheet> sheetList, qreal PPD, int RN=1);
     ~PackPointNestEngine();
 
     void initPackPoint(QVector<Sheet> sheetList, qreal PPD);  // 初始化排样点
-    void updatePackPoint(int sheetID, Piece piece);  // 更新排样点
+    void initPackPointOneSheet(int sheetID, qreal PPD);  // 初始化一个材料的排样点
+    void updatePackPointOneSheet(int sheetID, Piece piece);  // 更新排样点
 
     void layoutAlg(QVector<int> indexList) Q_DECL_OVERRIDE;  // 排版算法
     bool packOnePiece(Piece piece, NestEngine::NestPiece &nestPiece) Q_DECL_OVERRIDE;  // 排放单个零件
+    bool packOnePieceOnSheet(Piece piece, int sheetID, NestEngine::NestPiece &nestPiece) Q_DECL_OVERRIDE;  // 在给定材料上排放单个零件
     bool compact(int sheetID, NestPiece &nestPiece) Q_DECL_OVERRIDE;  // 紧凑算法
     bool collidesWithOtherPieces(int sheetID, Piece piece) Q_DECL_OVERRIDE;  // 判断该零件是否与其他零件重叠
 
@@ -81,6 +83,7 @@ public:
     int RN;  // rotate number--旋转个数
     QVector<PackPointInfo> packPointInfoList;  // 材料排样点信息
     QMap<int, QMap<int, PackPoint>> sheetPackPointPositionMap;  // 材料排样点状态
+    QMap<int, QList<int>> unusedSheetPackPointMap;  // 剩余排样点
     qreal minHeight;  // 最小高度值，使用HAPE排版的重心值
 };
 

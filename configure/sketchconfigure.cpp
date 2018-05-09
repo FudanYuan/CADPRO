@@ -1,32 +1,32 @@
-#include "configure.h"
+#include "sketchconfigure.h"
 #include <QList>
 #include <QFileInfo>
 #include <QDebug>
 #include <debug.h>
 
-Configure::Configure(QObject *parent) :
+SketchConfigure::SketchConfigure(QObject *parent) :
     QObject(parent)
 {
     settings = new QSettings(CONFG_FILE_PATH, QSettings::IniFormat);
     readConfig(settings);
 }
 
-Configure::~Configure()
+SketchConfigure::~SketchConfigure()
 {
 #ifdef DEBUG
-    qDebug() << "configure has been deleted!";
+    qDebug() << "SketchConfigure has been deleted!";
 #endif
     delete settings;
 }
 
-void Configure::writeConfig(QSettings *settings)
+void SketchConfigure::writeConfig(QSettings *settings)
 {
     writeConfigEntityStyle(settings);
     writeConfigAxesGrid(settings);
     writeConfigOffset(settings);
 }
 
-void Configure::readConfig(QSettings *settings)
+void SketchConfigure::readConfig(QSettings *settings)
 {
     QFileInfo file(CONFG_FILE_PATH);
     // 若配置文件不存在，初始化系统配置
@@ -46,7 +46,7 @@ void Configure::readConfig(QSettings *settings)
     readConfigView(settings);
 }
 
-void Configure::writeConfigEntityStyle(QSettings *settings)
+void SketchConfigure::writeConfigEntityStyle(QSettings *settings)
 {
     settings->beginGroup("eStyle");
     settings->setValue("eStyle_permeterLine_color", QVariant(eStyle.perimeterLine.color.rgba()));
@@ -99,7 +99,7 @@ void Configure::writeConfigEntityStyle(QSettings *settings)
     settings->endGroup();
 }
 
-void Configure::readConfigEntityStyle(QSettings *settings)
+void SketchConfigure::readConfigEntityStyle(QSettings *settings)
 {
     settings->beginGroup("eStyle");
     eStyle.perimeterLine.color = intToColor(settings->value("eStyle_permeterLine_color").toInt());
@@ -158,7 +158,7 @@ void Configure::readConfigEntityStyle(QSettings *settings)
     settings->endGroup();
 }
 
-void Configure::writeConfigAxesGrid(QSettings *settings)
+void SketchConfigure::writeConfigAxesGrid(QSettings *settings)
 {
     settings->beginGroup("axesGrid");
     settings->setValue("axesGrid_showAxes", QVariant(axesGrid.axes.showAxes));
@@ -178,7 +178,7 @@ void Configure::writeConfigAxesGrid(QSettings *settings)
     settings->endGroup();
 }
 
-void Configure::readConfigAxesGrid(QSettings *settings)
+void SketchConfigure::readConfigAxesGrid(QSettings *settings)
 {
     settings->beginGroup("axesGrid");
     axesGrid.axes.showAxes = settings->value("axesGrid_showAxes").toBool();
@@ -198,7 +198,7 @@ void Configure::readConfigAxesGrid(QSettings *settings)
     settings->endGroup();
 }
 
-void Configure::writeConfigOffset(QSettings *settings)
+void SketchConfigure::writeConfigOffset(QSettings *settings)
 {
     for(int i=0;i<offset.length();i++){
         settings->beginGroup(tr("offset") + QString::number(i));
@@ -210,7 +210,7 @@ void Configure::writeConfigOffset(QSettings *settings)
     }
 }
 
-void Configure::readConfigOffset(QSettings *settings)
+void SketchConfigure::readConfigOffset(QSettings *settings)
 {
     for(int i=0;i<offset.length();i++){
         settings->beginGroup(tr("offset") + QString::number(i));
@@ -222,17 +222,17 @@ void Configure::readConfigOffset(QSettings *settings)
     }
 }
 
-void Configure::writeConfigLanguage(QSettings *settings)
+void SketchConfigure::writeConfigLanguage(QSettings *settings)
 {
     settings->setValue("language", QVariant(Chinese));
 }
 
-void Configure::readConfigLanguage(QSettings *settings)
+void SketchConfigure::readConfigLanguage(QSettings *settings)
 {
     language = (Language)settings->value("language").toInt();
 }
 
-void Configure::writeConfigView(QSettings *settings)
+void SketchConfigure::writeConfigView(QSettings *settings)
 {
     settings->beginGroup("view");
     settings->setValue("view_grading_rules", QVariant(view.gradingRules));
@@ -243,7 +243,7 @@ void Configure::writeConfigView(QSettings *settings)
     settings->endGroup();
 }
 
-void Configure::readConfigView(QSettings *settings)
+void SketchConfigure::readConfigView(QSettings *settings)
 {
     settings->beginGroup("view");
     view.gradingRules = settings->value("view_grading_rules").toBool();
@@ -254,7 +254,7 @@ void Configure::readConfigView(QSettings *settings)
     settings->endGroup();
 }
 
-QColor Configure::intToColor(int rgb)
+QColor SketchConfigure::intToColor(int rgb)
 {
     //将Color 从int 转换成 QColor
     int blue = rgb & 255;
@@ -264,7 +264,7 @@ QColor Configure::intToColor(int rgb)
     return QColor(red, green, blue, alpha);
 }
 
-QColor Configure::intToColor(int rgb, bool a)
+QColor SketchConfigure::intToColor(int rgb, bool a)
 {
     //将Color 从int 转换成 QColor
     int blue = rgb & 255;
@@ -277,7 +277,7 @@ QColor Configure::intToColor(int rgb, bool a)
     return QColor(red, green, blue, alpha);
 }
 
-void Configure::updateConfig(QList<KeyValue> keyValue)
+void SketchConfigure::updateConfig(QList<KeyValue> keyValue)
 {
     QSettings *settings = new QSettings(CONFG_FILE_PATH, QSettings::IniFormat);
     for(int i=0; i<keyValue.length();i++){
@@ -286,7 +286,7 @@ void Configure::updateConfig(QList<KeyValue> keyValue)
     delete settings;
 }
 
-void Configure::onConfigChanged(QString name, QVariant value)
+void SketchConfigure::onConfigChanged(QString name, QVariant value)
 {
     if(settings->value(name) == value){
         return;

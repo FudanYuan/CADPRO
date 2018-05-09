@@ -1,6 +1,6 @@
-#include "configuredialog.h"
-#include "ui_configuredialog.h"
+#include "sketchconfiguredialog.h"
 #include <QDesktopWidget>
+#include <QApplication>
 #include <QSizePolicy>
 #include <QLabel>
 #include <QStringList>
@@ -11,11 +11,9 @@
 #include <QDebug>
 #include <debug.h>
 
-ConfigureDialog::ConfigureDialog(Configure *config, QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::ConfigureDialog)
+SketchConfigureDialog::SketchConfigureDialog(SketchConfigure *config, QWidget *parent) :
+    QDialog(parent)
 {
-    ui->setupUi(this);
     setWindowTitle(tr("CADPRO配置"));
 
     // 适应屏幕大小
@@ -28,19 +26,19 @@ ConfigureDialog::ConfigureDialog(Configure *config, QWidget *parent) :
     tabWidget = new QTabWidget(this);
     EntityStyleTab *eStyleTab = new EntityStyleTab(config->eStyle, this);
     tabWidget->addTab(eStyleTab, tr("实体类型"));
-    connect(eStyleTab, &EntityStyleTab::tabChanged, this, &ConfigureDialog::onChanged);
+    connect(eStyleTab, &EntityStyleTab::tabChanged, this, &SketchConfigureDialog::onChanged);
 
     AxesGridTab *axesGridTab = new AxesGridTab(config->axesGrid, this);
     tabWidget->addTab(axesGridTab, tr("轴和网格"));
-    connect(axesGridTab, &AxesGridTab::tabChanged, this, &ConfigureDialog::onChanged);
+    connect(axesGridTab, &AxesGridTab::tabChanged, this, &SketchConfigureDialog::onChanged);
 
     OffsetTab *offsetTab = new OffsetTab(config->offset, this);
     tabWidget->addTab(offsetTab, tr("轴和网格"));
-    connect(offsetTab, &OffsetTab::tabChanged, this, &ConfigureDialog::onChanged);
+    connect(offsetTab, &OffsetTab::tabChanged, this, &SketchConfigureDialog::onChanged);
 
     LanguageTab *languageTab = new LanguageTab(config->language, this);
     tabWidget->addTab(languageTab, tr("系统语言"));
-    connect(languageTab, &LanguageTab::tabChanged, this, &ConfigureDialog::onChanged);
+    connect(languageTab, &LanguageTab::tabChanged, this, &SketchConfigureDialog::onChanged);
 
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok
                                      | QDialogButtonBox::Cancel);
@@ -53,17 +51,16 @@ ConfigureDialog::ConfigureDialog(Configure *config, QWidget *parent) :
     setLayout(mainLayout);
 }
 
-ConfigureDialog::~ConfigureDialog()
+SketchConfigureDialog::~SketchConfigureDialog()
 {
 #ifdef DEBUG
     qDebug() << "configure dialog has deleted!";
 #endif
-    delete ui;
     delete tabWidget;
     delete buttonBox;
 }
 
-int ConfigureDialog::hasKey(QString key)
+int SketchConfigureDialog::hasKey(QString key)
 {
     int res = -1;
     for(int i=0; i<keyValueList.length(); i++){
@@ -75,36 +72,36 @@ int ConfigureDialog::hasKey(QString key)
     return res;
 }
 
-void ConfigureDialog::accept()
+void SketchConfigureDialog::accept()
 {
-    Configure::updateConfig(keyValueList);
+    SketchConfigure::updateConfig(keyValueList);
     QDialog::accept();
 }
 
-void ConfigureDialog::reject()
+void SketchConfigureDialog::reject()
 {
     QDialog::reject();
 }
 
-void ConfigureDialog::onChanged(QString key, QVariant value)
+void SketchConfigureDialog::onChanged(QString key, QVariant value)
 {
     int res = hasKey(key);
 #ifdef DEBUG
     qDebug() << res << " " << key << " " << value;
 #endif
     if(res == -1){
-        Configure::KeyValue keyValue(key, value);
+        SketchConfigure::KeyValue keyValue(key, value);
         keyValueList.append(keyValue);
     } else{
         //keyValueList.at(res).setValue(value);
 
         // 暂时以这种方式解决
-        Configure::KeyValue keyValue(key, value);
+        SketchConfigure::KeyValue keyValue(key, value);
         keyValueList.append(keyValue);
     }
 }
 
-EntityStyleTab::EntityStyleTab(Configure::EntityStyle &eStyle, QWidget *parent) :
+EntityStyleTab::EntityStyleTab(SketchConfigure::EntityStyle &eStyle, QWidget *parent) :
     CustomTabWidget(parent)
 {
     // group box
@@ -390,10 +387,10 @@ EntityStyleTab::EntityStyleTab(Configure::EntityStyle &eStyle, QWidget *parent) 
     QLabel *labelInterLineStyle = new QLabel(tr("内线类型"));
 
     ComboBox *interLineStyle = new ComboBox(tr("eStyle/eStyle_interLineStyle"), this);
-    interLineStyle->addItem(tr("标记"), QVariant((int)Configure::mark));
-    interLineStyle->addItem(tr("切割"), QVariant((int)Configure::cut));
-    interLineStyle->addItem(tr("缝线"), QVariant((int)Configure::stitch));
-    interLineStyle->addItem(tr("通用"), QVariant((int)Configure::generic));
+    interLineStyle->addItem(tr("标记"), QVariant((int)SketchConfigure::mark));
+    interLineStyle->addItem(tr("切割"), QVariant((int)SketchConfigure::cut));
+    interLineStyle->addItem(tr("缝线"), QVariant((int)SketchConfigure::stitch));
+    interLineStyle->addItem(tr("通用"), QVariant((int)SketchConfigure::generic));
     interLineStyle->setCurrentIndex((int)eStyle.interLineStyle);
     connect(interLineStyle, &ComboBox::customActivated, this, &EntityStyleTab::onComboBoxChanged);
 
@@ -476,7 +473,7 @@ EntityStyleTab::EntityStyleTab(Configure::EntityStyle &eStyle, QWidget *parent) 
     setLayout(mainLayout);
 }
 
-AxesGridTab::AxesGridTab(Configure::AxesGrid &axesGrid, QWidget *parent) :
+AxesGridTab::AxesGridTab(SketchConfigure::AxesGrid &axesGrid, QWidget *parent) :
     CustomTabWidget(parent)
 {
     // group box
@@ -499,8 +496,8 @@ AxesGridTab::AxesGridTab(Configure::AxesGrid &axesGrid, QWidget *parent) :
     connect(showAxes, &CheckBox::customStateChanged, this, &AxesGridTab::onCheckChanged);
 
     ComboBox *axesType = new ComboBox(tr("axesGrid/axesGrid_axesType"), this);
-    axesType->addItem(tr("小"), QVariant((int)Configure::small));
-    axesType->addItem(tr("大"), QVariant((int)Configure::large));
+    axesType->addItem(tr("小"), QVariant((int)SketchConfigure::small));
+    axesType->addItem(tr("大"), QVariant((int)SketchConfigure::large));
     axesType->setCurrentIndex(axesGrid.axes.axesType);
     connect(axesType, &ComboBox::customActivated, this, &AxesGridTab::onComboBoxChanged);
 
@@ -561,9 +558,9 @@ AxesGridTab::AxesGridTab(Configure::AxesGrid &axesGrid, QWidget *parent) :
     connect(showGrid, &CheckBox::customStateChanged, this, &AxesGridTab::onCheckChanged);
 
     ComboBox *gridType = new ComboBox(tr("axesGrid/axesGrid_gridType"), this);
-    gridType->addItem(tr("矩形"), QVariant((int)Configure::rectangular));
-    gridType->addItem(tr("交叉"), QVariant((int)Configure::across));
-    gridType->addItem(tr("节点"), QVariant((int)Configure::node));
+    gridType->addItem(tr("矩形"), QVariant((int)SketchConfigure::rectangular));
+    gridType->addItem(tr("交叉"), QVariant((int)SketchConfigure::across));
+    gridType->addItem(tr("节点"), QVariant((int)SketchConfigure::node));
     gridType->setCurrentIndex(axesGrid.grid.gridType);
     connect(gridType, &ComboBox::customActivated, this, &AxesGridTab::onComboBoxChanged);
 
@@ -630,13 +627,13 @@ AxesGridTab::AxesGridTab(Configure::AxesGrid &axesGrid, QWidget *parent) :
     setLayout(mainLayout);
 }
 
-OffsetTab::OffsetTab(QList<Configure::Offset> &offset, QWidget *parent) :
+OffsetTab::OffsetTab(QList<SketchConfigure::Offset> &offset, QWidget *parent) :
     CustomTabWidget(parent)
 {
 
 }
 
-LanguageTab::LanguageTab(Configure::Language &language, QWidget *parent) :
+LanguageTab::LanguageTab(SketchConfigure::Language &language, QWidget *parent) :
     CustomTabWidget(parent)
 {
 

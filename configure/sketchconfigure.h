@@ -1,5 +1,5 @@
-#ifndef CONFIGURE_H
-#define CONFIGURE_H
+#ifndef SKETCHCONFIGURE_H
+#define SKETCHCONFIGURE_H
 
 #include <QDialog>
 #include <QPushButton>
@@ -12,10 +12,10 @@
 #include <QList>
 #include <debug.h>
 
-#define CONFG_FILE_PATH "config.ini"
+#define CONFG_FILE_PATH "sketch_config.ini"
 
 // 配置类，此配置类用于整个软件的配置
-class Configure : public QObject
+class SketchConfigure : public QObject
 {
     Q_OBJECT
 public:
@@ -154,7 +154,7 @@ public:
     {
         Axes() :
             showAxes(false),
-            axesType(Configure::small),
+            axesType(SketchConfigure::small),
             xAxisColor(Qt::blue),
             yAxisColor(Qt::red),
             arrowSizeInPix(10),
@@ -184,7 +184,7 @@ public:
     {
         Grid() :
             showGrid(false),
-            gridType(Configure::rectangular),
+            gridType(SketchConfigure::rectangular),
             gridColor(Qt::gray),
             xStep(100),
             yStep(100)
@@ -269,8 +269,8 @@ public:
         }
     };
 
-    explicit Configure(QObject *parent=0);
-    ~Configure();
+    explicit SketchConfigure(QObject *parent=0);
+    ~SketchConfigure();
 
     EntityStyle eStyle;  // 实体样式
     AxesGrid axesGrid;  // 轴和网格
@@ -290,7 +290,6 @@ public:
     void readConfigOffset(QSettings *settings);
     void writeConfigLanguage(QSettings *settings);
     void readConfigLanguage(QSettings *settings);
-
     void writeConfigView(QSettings *settings);
     void readConfigView(QSettings *settings);
 
@@ -308,4 +307,4 @@ public slots:
     void onConfigChanged(QString name, QVariant value);  // 响应配置变化
 };
 
-#endif // CONFIGURE_H
+#endif // SKETCHCONFIGURE_H

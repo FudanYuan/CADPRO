@@ -192,7 +192,7 @@ Scene *Project::getDXFLayer(QString name)
         if(!sceneActive){
             sceneActive = new Scene(this);
             sceneActive->setName(name);
-            Configure config;
+            SketchConfigure config;
             sceneActive->setEntityStyle(config.eStyle);
             sceneList.append(sceneActive);
         }
@@ -201,7 +201,7 @@ Scene *Project::getDXFLayer(QString name)
         sceneActive = new Scene(this);
         QString newLayer = getNewSceneName();
         sceneActive->setName(newLayer);
-        Configure config;
+        SketchConfigure config;
         sceneActive->setEntityStyle(config.eStyle);
         sceneList.append(sceneActive);
     }
@@ -255,7 +255,7 @@ void Project::dxfLayerReader(const DxfFilter dxfFilter)
     if(type == Sketch){
         Scene *scene = new Scene();
         scene->setName(getNewSceneName());
-        Configure config;
+        SketchConfigure config;
         scene->setEntityStyle(config.eStyle);
         sceneList.append(scene);
     }
@@ -266,7 +266,7 @@ void Project::dxfLayerReader(const DxfFilter dxfFilter)
             QString name = layer;
             Scene *scene = new Scene();
             scene->setName(name);
-            Configure config;
+            SketchConfigure config;
             scene->setEntityStyle(config.eStyle);
             sceneList.append(scene);
         } else{

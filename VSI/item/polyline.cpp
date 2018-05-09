@@ -84,7 +84,7 @@ void Polyline::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         for (int i = 0; i < len - 1; ++i) {
             //painter->setBrush(QBrush(collides ? selectedEntity.color : penStyle.color));
             //drawRectPoint(painter, points.at(i), size);
-            painter->setBrush(QBrush());
+            painter->setBrush(QBrush(Qt::gray));
             path.lineTo(points.at(i+1));
         }
         if(!overFlag){
@@ -141,6 +141,7 @@ void Polyline::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     }
 //    drawRectPoint(painter, points.at(0), size);
     painter->drawPath(path);
+    drawRectPoint(painter, this->boundingRect().center(), 2);
     setPath(path);
 }
 

@@ -154,17 +154,17 @@ void Scene::setDrawable(bool flag)
     this->drawable = flag;
 }
 
-void Scene::setEntityStyle(Configure::EntityStyle eStyle)
+void Scene::setEntityStyle(SketchConfigure::EntityStyle eStyle)
 {
     this->eStyle = eStyle;
 }
 
-Configure::EntityStyle Scene::getEntityStyle()
+SketchConfigure::EntityStyle Scene::getEntityStyle()
 {
     return this->eStyle;
 }
 
-void Scene::setAxesGrid(Configure::AxesGrid axesGrid)
+void Scene::setAxesGrid(SketchConfigure::AxesGrid axesGrid)
 {
     this->axesGrid = axesGrid;
 }
@@ -175,7 +175,7 @@ void Scene::addCustomPointItem(Point *point)
         return;
     }
     point->setShapeId(getItemListLength()+1);
-    Configure::PenStyle pen(eStyle.referPoint.color, Qt::SolidLine, 1);
+    SketchConfigure::PenStyle pen(eStyle.referPoint.color, Qt::SolidLine, 1);
     point->setPenStyle(pen);
     point->setOffset(eStyle.referPoint.sizeInPix);
     point->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
@@ -495,7 +495,7 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                 case Shape::Point:{
                     Point *point = new Point;
                     point->setShapeId(id+1);
-                    Configure::PenStyle pen(eStyle.referPoint.color, Qt::SolidLine, 1);
+                    SketchConfigure::PenStyle pen(eStyle.referPoint.color, Qt::SolidLine, 1);
                     point->setPenStyle(pen);
                     point->setOffset(eStyle.referPoint.sizeInPix);
                     point->setEntityUnderCursorStyle(eStyle.entityUnderCursor);

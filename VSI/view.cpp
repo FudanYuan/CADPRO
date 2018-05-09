@@ -15,7 +15,7 @@ View::View(QWidget *parent)
       windowScale(1.0),
       zoomDelta(0.1),
       isTranslate(false),
-      translateSpeed(1.0)
+      translateSpeed(10)
 {
     setAlignment(Qt::AlignLeft | Qt::AlignTop);
     setMouseTracking(true);

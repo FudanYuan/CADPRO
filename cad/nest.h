@@ -10,7 +10,7 @@
 #include <QMap>
 #include "sheet.h"
 #include "GA.h"
-#include "configure.h"
+#include "sketchconfigure.h"
 #include "project.h"
 #include "view.h"
 #include "scene.h"

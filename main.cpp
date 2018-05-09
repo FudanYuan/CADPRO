@@ -6,6 +6,10 @@
 
 using namespace std;
 
+//Round(1.234,2) = 1.23
+//Round(1.234,0) = 1.0
+//Round(123.4,-1) = 120.0
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
@@ -18,8 +22,11 @@ int main(int argc, char *argv[])
     float timeuse;
     gettimeofday(&tpstart,NULL);
 
-    Sketch w;// Nest w; Sketch w;
+    Nest w;// Nest w; Sketch w;
     w.show();
+//    qDebug() << Round(1.234,2); // = 1.23
+//    qDebug() << Round(1.234,0); // = 1.0
+//    qDebug() << Round(123.4,-1); // = 120.0
 
     gettimeofday(&tpend,NULL);
     timeuse=(1000000*(tpend.tv_sec-tpstart.tv_sec) + tpend.tv_usec-tpstart.tv_usec)/1000000.0;

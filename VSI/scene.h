@@ -6,7 +6,7 @@
 #include <QPaintEvent>
 #include <QList>
 #include <QLine>
-#include "configure.h"
+#include "sketchconfigure.h"
 #include "shape.h"
 #include "point.h"
 #include "line.h"
@@ -62,10 +62,10 @@ public:
 
     void setDrawable(bool flag);  // 设置开始标识
 
-    void setEntityStyle(Configure::EntityStyle eStyle);  // 设置实体样式
-    Configure::EntityStyle getEntityStyle();  // 获取实体样式
+    void setEntityStyle(SketchConfigure::EntityStyle eStyle);  // 设置实体样式
+    SketchConfigure::EntityStyle getEntityStyle();  // 获取实体样式
 
-    void setAxesGrid(Configure::AxesGrid axesGrid);  // 设置网格坐标轴
+    void setAxesGrid(SketchConfigure::AxesGrid axesGrid);  // 设置网格坐标轴
 
     // 添加自定义图形元素
     void addCustomPointItem(Point *point);  // 添加自定义点
@@ -150,8 +150,8 @@ private:
     qreal scaleFactor;  // 缩放因子
 
     // 配置文件
-    Configure::EntityStyle eStyle;  // 实体类型
-    Configure::AxesGrid axesGrid;  // 坐标网格
+    SketchConfigure::EntityStyle eStyle;  // 实体类型
+    SketchConfigure::AxesGrid axesGrid;  // 坐标网格
 
     Eyelet *eyeletDialog ;//绘制鸡眼孔
     Text *textdialog;//文本的对话框传递

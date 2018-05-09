@@ -10,6 +10,8 @@
 #include <QVector>
 #include <qmath.h>
 
+#define PRECISION 6  // 保留6位小数
+
 enum crossType{
     none = 0,
     normal = 1,
@@ -21,6 +23,12 @@ void str2float(float &float_temp,const std::string &string_temp);
 void str2double(double &double_temp,const std::string &string_temp);
 QColor intToColor(const int rgb, bool a=false); // 将int转华为color
 
+// 计算精度
+qreal qrealPrecision(const qreal &dVal, short iPlaces);  // 数的保留小数位数
+QPointF pointPrecision(const QPointF &point, short iPlaces);  // 点的保留小数位数
+QRectF rectPrecision(const QRectF &rect, short iPlaces);  // 点的保留小数位数
+QVector<QPointF> pointsListPrecision(const QVector<QPointF> pointsList, short iPlaces);  // 点集保留小数位数
+
 // 坐标转换
 QPointF transformY(QPointF p);  // 转变纵坐标轴
 QPointF transformRotate(QPointF o, qreal r, qreal angle); // 返回旋转某一点之后的坐标
@@ -31,6 +39,9 @@ qreal calculatePointsDistance(QPointF p1, QPointF p2);  // 获取两点之间的
 QRectF calculatePolygonBoundingRect(QVector<QPointF> pList);  // 获取边缘矩形
 void getRectBoundValue(const QRectF rect, qreal &minX, qreal &minY, qreal &maxX, qreal &maxY);  // 获取矩形边界
 bool boundingRectSeperate(const QRectF rect1, const QRectF rect2);  // 判断两矩形是分离
+bool boundingRectContain(const QRectF rect1, const QRectF rect2);  // 判断两矩形是否包含，rect1包含rect2
+bool pointContainsInPolygon(QVector<QPointF> pList, const QPointF &point);  // 多边形包含某点
+bool pointOnPolygonBoundary(QVector<QPointF> pList, const QPointF &point);  // 点在多边形边上
 double calculatePolygonArea(QVector<QPointF> points);//多边形面积
 bool calculatePolygonDirection(QVector<QPointF> points);//多边形方向顺时针为true，逆时针为false
 QPointF calculatePolygonGravityCenter(QVector<QPointF> mPoints);//求多边形重心

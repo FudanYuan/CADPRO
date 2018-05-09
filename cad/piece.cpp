@@ -7,28 +7,33 @@ Piece::Piece() :
     angle(0),
     squareness(0),
     centerPoint(QPointF()),
-    count(0)
+    count(0),
+    precision(6)
 {
 }
 
-Piece::Piece(Polyline *p, int n)
+Piece::Piece(Polyline *p, int n, short i)
 {
-    pointsList = p->getPoints();
+    pointsList = pointsListPrecision(p->getPoints(), i);  // 读入边时，保留i位小数位
     area = calculatePolygonArea(pointsList);  // 计算多边形面积
     qreal minBoundingRectArea = calculatePloygonMinBoundingRectArea(pointsList, angle, minBoundingRect);
-    squareness = area / minBoundingRectArea;  // 计算方正度
-    centerPoint = calculatePolygonGravityCenter(pointsList); // 计算多边形的质心
+    minBoundingRect = rectPrecision(minBoundingRect, i);  // 边缘矩形，保留i位小数位
+    squareness = qrealPrecision(area / minBoundingRectArea, i);  // 计算方正度，保留i位小数位
+    centerPoint = pointPrecision(calculatePolygonGravityCenter(pointsList), i); // 计算多边形的质心，保留i位小数位
     count = n;
+    precision = i;
 }
 
-Piece::Piece(QVector<QPointF> points, int n)
+Piece::Piece(QVector<QPointF> points, int n, short i)
 {
-    pointsList = points;
+    pointsList = pointsListPrecision(points, i);  // 读入边时，保留i位小数位
     area = calculatePolygonArea(pointsList);  // 计算多边形面积
     qreal minBoundingRectArea = calculatePloygonMinBoundingRectArea(pointsList, angle, minBoundingRect);
-    squareness = area / minBoundingRectArea;  // 计算方正度
-    centerPoint = calculatePolygonGravityCenter(pointsList); // 计算多边形的质心
+    minBoundingRect = rectPrecision(minBoundingRect, i);  // 边缘矩形，保留i位小数位
+    squareness = qrealPrecision(area / minBoundingRectArea, i);  // 计算方正度，保留i位小数位
+    centerPoint = pointPrecision(calculatePolygonGravityCenter(pointsList), i); // 计算多边形的质心，保留i位小数位
     count = n;
+    precision = i;
 }
 
 Polyline *Piece::getPolyline()
@@ -38,34 +43,34 @@ Polyline *Piece::getPolyline()
     return polyline;
 }
 
-QVector<QPointF> Piece::getPointsList()
+QVector<QPointF> &Piece::getPointsList()
 {
     return pointsList;
 }
 
 qreal Piece::getArea() const
 {
-    return area;
+    return qrealPrecision(area, precision);
 }
 
 QRectF Piece::getMinBoundingRect() const
 {
-    return minBoundingRect;
+    return rectPrecision(minBoundingRect, precision);
 }
 
 qreal Piece::getAngle() const
 {
-    return angle;
+    return qrealPrecision(angle, precision);
 }
 
 qreal Piece::getSquareness() const
 {
-    return squareness;
+    return qrealPrecision(squareness, precision);
 }
 
 QPointF Piece::getCenterPoint() const
 {
-    return centerPoint;
+    return pointPrecision(centerPoint, precision);
 }
 
 int Piece::getCount() const
@@ -73,9 +78,20 @@ int Piece::getCount() const
     return count;
 }
 
+void Piece::setPrecision(short i)
+{
+    precision = i;
+}
+
+short Piece::getPrecision() const
+{
+    return precision;
+}
+
 void Piece::moveTo(const QPointF position)
 {
     QPointF offset = position - minBoundingRect.center();  // 偏移量
+    offset = pointPrecision(offset, precision);  // 保留i位小数位
     // 更新多边形点集
     QVector<QPointF> oldPointsList = pointsList;  // 多边形点集
     QVector<QPointF> newPointsList;  // 存储移动之后的点坐标
@@ -92,68 +108,79 @@ void Piece::moveTo(const QPointF position)
 
 void Piece::rotate(const QPointF cPoint, const qreal alpha)
 {
+    if(qrealPrecision(alpha, 0) == 0.0 || qrealPrecision(alpha, 0) == 360.0){
+        return;
+    }
     // 更新多边形点集
     QVector<QPointF> oldPointsList = pointsList;  // 多边形点集
     QVector<QPointF> newPointsList;  // 存储移动之后的点坐标
     for(int i=0; i<oldPointsList.length(); i++){
         QPointF oldPoint = oldPointsList[i];  // 初始点
         QPointF newPoint = transformRotate(cPoint, oldPoint, alpha);  // 移动之后的点
+        newPoint = pointPrecision(newPoint, precision);  // 保留i位小数位
         newPointsList.append(newPoint);
     }
     pointsList = newPointsList;  // 更新点集
-    centerPoint = transformRotate(cPoint, centerPoint, alpha); ; // 更新多边形质心
-    // 更新最小包络矩形
-    minBoundingRect = calculatePolygonBoundingRect(pointsList);
+    centerPoint = pointPrecision(transformRotate(cPoint, centerPoint, alpha), precision); // 更新多边形质心
+    minBoundingRect = rectPrecision(calculatePolygonBoundingRect(pointsList), precision);  // 更新最小包络矩形
     squareness = area / (minBoundingRect.width() * minBoundingRect.height());  // 计算方正度
+    squareness = qrealPrecision(squareness, precision);  // 保留i位小数位
 }
 
-bool Piece::contains(const QPointF point)
+bool Piece::hasRelationToPoint(const QPointF &point)
 {
-    qreal sigma = 0;
-    for(int i=0; i<pointsList.length()-1; i++){
-        QPointF p1 = pointsList[i];
-        QPointF p2 = pointsList[i+1];
-        QLineF v1(point, p1);  // 向量v1
-        QLineF v2(point, p2);  // 向量v2
-        qreal theta = v1.angleTo(v2);  // 获取两向量夹角
-        if(theta > 180){
-            theta -= 360;
-        }
-        sigma += theta;
+    PointRealtionToPiece relation = relationToPoint(point);
+    if(relation == Outside){
+        return false;
     }
-    return sigma == 0 ? false : true;
+    return true;
 }
 
-bool Piece::containsInSheet(const Sheet sheet)
+Piece::PointRealtionToPiece Piece::relationToPoint(const QPointF &point)
+{
+    if(!inMinBoundingRect(point)){
+        //qDebug() << "不在包络矩形内";
+        return Outside;
+    }
+    if(onBoundary(point)){
+        //qDebug() << "在边界上";
+        return OnBoundary;
+    }
+    if(contains(point)){
+        //qDebug() << "包含该点";
+        return Inside;
+    }
+    //qDebug() << "在包络矩形内, 但不包含该点";
+    return Outside;
+}
+
+bool Piece::inMinBoundingRect(const QPointF &point)
+{
+    qreal minX, minY, maxX, maxY;
+    getRectBoundValue(minBoundingRect, minX, minY, maxX, maxY);
+    qreal x = point.x();
+    qreal y = point.y();
+    if(x < minX || x > maxX || y < minY || y > maxY){
+        return false;
+    }
+    return true;
+}
+
+bool Piece::onBoundary(const QPointF &point)
+{
+    return pointOnPolygonBoundary(pointsList, point);
+}
+
+bool Piece::contains(const QPointF &point)
+{
+    return pointContainsInPolygon(pointsList, point);
+}
+
+bool Piece::containsInSheet(const Sheet &sheet)
 {
     // 获取材料的排版区域
     QRectF layoutRect = sheet.layoutRect();
-    QPointF topLeftPoint = layoutRect.topLeft();  // 材料排版区域左上角坐标
-    QPointF bottomRightPoint = layoutRect.bottomRight();  // 材料排版区域右下角坐标
-    // 获取边界值
-    qreal minX = topLeftPoint.rx();
-    qreal minY = topLeftPoint.ry();
-    qreal maxX = bottomRightPoint.rx();
-    qreal maxY = bottomRightPoint.ry();
-    // 遍历点集，判断每个点的坐标是否越界
-    for(int i=0; i<pointsList.length(); i++){
-        QPointF point = pointsList[i];
-        qreal xPos = point.rx();
-        qreal yPos = point.ry();
-        if(xPos < minX){
-            return false;
-        }
-        if(yPos < minY){
-            return false;
-        }
-        if(xPos > maxX){
-            return false;
-        }
-        if(yPos > maxY){
-            return false;
-        }
-    }
-    return true;
+    return boundingRectContain(layoutRect, minBoundingRect);
 }
 
 bool Piece::collidesWithPiece(Piece piece, const Piece::CollisionsMode mode)
@@ -164,11 +191,14 @@ bool Piece::collidesWithPiece(Piece piece, const Piece::CollisionsMode mode)
      * 2. 如果两矩形框重叠，再去进一步判断两多边形是否重叠
      */
     QRectF minBoundingRect1 = piece.getMinBoundingRect();
+    // qDebug() << minBoundingRect << "  " << minBoundingRect1;
     if(boundingRectSeperate(minBoundingRect, minBoundingRect1)){
+        // qDebug() << "边缘矩形不碰撞，结束判断";
         return false;
     }
     // 如果模式为边缘矩形的碰撞，则返回
     if(mode == BoundingRectCollisionMode){
+        //qDebug() << "边缘矩形碰撞";
         return true;
     }
     CollisionDectect collisionDectect(pointsList, piece.getPointsList());

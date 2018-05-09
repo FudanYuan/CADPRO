@@ -51,8 +51,6 @@ SOURCES += \
     dxf/dxflib/dl_writer_ascii.cpp \
     dxf/dxflib/dl_dxf.cpp \
     dxf/dxffilter.cpp \
-    configure/configure.cpp \
-    configure/configuredialog.cpp \
     VSI/view.cpp \
     VSI/scene.cpp \
     VSI/item/shape.cpp \
@@ -77,6 +75,12 @@ SOURCES += \
     nestFile/nf_writer.cpp \
     nestFile/nf_tnf.cpp \
     nestFile/nf_reader.cpp \
+    configure/sketchconfigure.cpp \
+    configure/sketchconfiguredialog.cpp \
+    configure/nestconfigure.cpp \
+    configure/nestconfiguredialog.cpp \
+    configure/nestengineconfiguredialog.cpp \
+    configure/nestengineconfigure.cpp
 
 HEADERS += \
     cad/project.h \
@@ -110,8 +114,6 @@ HEADERS += \
     dxf/dxflib/dl_attributes.h \
     dxf/dxflib/customentities.h \
     dxf/dxffilter.h \
-    configure/configure.h \
-    configure/configuredialog.h \
     VSI/view.h \
     VSI/scene.h \
     VSI/item/shape.h \
@@ -138,9 +140,14 @@ HEADERS += \
     nestFile/nf_tnf.h \
     nestFile/nf_reader.h \
     nestFile/nf_struct.h \
+    configure/sketchconfigure.h \
+    configure/sketchconfiguredialog.h \
+    configure/nestconfigure.h \
+    configure/nestconfiguredialog.h \
+    configure/nestengineconfiguredialog.h \
+    configure/nestengineconfigure.h
 
 FORMS += \
-    configure/configuredialog.ui \
     cad/sketch.ui \
     cad/nest.ui
 

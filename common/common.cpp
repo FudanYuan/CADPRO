@@ -1,5 +1,7 @@
 #include "common.h"
 #include <QDebug>
+#include <iostream>
+#include <iomanip>//要加入头文件
 
 void str2int(int &int_temp, const std::string &string_temp)
 {
@@ -32,6 +34,30 @@ QColor intToColor(const int rgb, bool a)
     return QColor(red, green, blue, alpha);
 }
 
+qreal qrealPrecision(const qreal &dVal, short iPlaces) {
+    qreal dRetval;
+    qreal dMod = 0.0000001;
+    if (dVal<0.0) dMod=-0.0000001;
+    dRetval=dVal;
+    dRetval += (5.0 / pow(10.0, iPlaces + 1.0));
+    dRetval *= pow(10.0, iPlaces);
+    dRetval = floor(dRetval + dMod);
+    dRetval /= pow(10.0, iPlaces);
+    return dRetval;
+}
+
+QPointF pointPrecision(const QPointF &point, short iPlaces){
+    return QPointF(qrealPrecision(point.x(), iPlaces),
+                   qrealPrecision(point.y(), iPlaces));
+}
+
+QVector<QPointF> pointsListPrecision(const QVector<QPointF> pointsList, short iPlaces){
+    QVector<QPointF> retList;
+    for(int i=0; i<pointsList.length(); i++){
+        retList.append(pointPrecision(pointsList[i], iPlaces));
+    }
+    return retList;
+}
 
 QPointF transformY(QPointF p)
 {
@@ -79,6 +105,10 @@ QRectF calculatePolygonBoundingRect(QVector<QPointF> pList)
     if(len < 1){
         return QRectF();
     }
+    if(pList[0] == pList[len-1]){  // 如果首尾相等时，删除最后一个点
+        pList.removeAt(len-1);
+        len = len-1;
+    }
     qreal minX = pList[0].rx();
     qreal minY = pList[0].ry();
     qreal maxX = pList[0].rx();
@@ -119,11 +149,112 @@ bool boundingRectSeperate(const QRectF rect1, const QRectF rect2)
     qreal minX1, minX2, minY1, minY2, maxX1, maxX2, maxY1, maxY2;
     getRectBoundValue(rect1, minX1, minY1, maxX1, maxY1);
     getRectBoundValue(rect2, minX2, minY2, maxX2, maxY2);
-    if(minX1 > maxX2
-            || maxX1 < minX2
-            || minY1 > maxY2
-            || maxY1 < minY1){
+    if(minX1 >= maxX2
+            || maxX1 <= minX2
+            || minY1 >= maxY2
+            || maxY1 <= minY2){
         return true;
+    }
+    return false;
+}
+
+bool boundingRectContain(const QRectF rect1, const QRectF rect2)
+{
+    qreal minX1, minX2, minY1, minY2, maxX1, maxX2, maxY1, maxY2;
+    getRectBoundValue(rect1, minX1, minY1, maxX1, maxY1);
+    getRectBoundValue(rect2, minX2, minY2, maxX2, maxY2);
+
+    // 最终使用这种
+    if(minX1 > minX2 || maxX1 < maxX2 || minY1 > minY2 || maxY1 < maxY2){
+        return false;
+    }
+
+    return true;
+}
+
+bool pointContainsInPolygon(QVector<QPointF> pList, const QPointF &point)
+{
+    int len = pList.length();
+    if(pList[0] == pList[len-1]){  // 如果首尾相等时，删除最后一个点
+        pList.removeAt(len-1);
+        len = len-1;
+    }
+    int nCross = 0;
+    for (int i = 0; i < len; i++) {
+        QPointF p1 = pList[i];
+        QPointF p2 = pList[(i+1)%len];
+        // 取多边形任意一个边,做点point的水平延长线,求解与当前边的交点个数
+        // p1p2是水平线段,要么没有交点,要么有无限个交点
+        if (p1.y() == p2.y()){
+            double minX = qMin(p1.x(), p2.x());
+            double maxX = qMax(p1.x(), p2.x());
+            // point在水平线段p1p2上,直接return false
+            if ((point.y() == p1.y()) && (point.x() >= minX && point.x() <= maxX)) {
+                return false;
+            }
+            continue;
+        }
+        // point 在p1p2 底部 --> 无交点
+        if (point.y() < qMin(p1.y(), p2.y())){
+            continue;
+        }
+        // point 在p1p2 顶部 --> 无交点
+        if (point.y() >= qMax(p1.y(), p2.y())){
+            continue;
+        }
+        // 求解point点水平线与当前p1p2边的交点的 X 坐标
+        double x = (point.y() - p1.y()) * (p2.x() - p1.x())
+                / (p2.y() - p1.y()) + p1.x();
+        if (x == point.x()){  // 当x=point.x时,说明point在p1p2线段上
+            return false;
+        }
+        if (x > point.x()){  // 只统计单边交点
+            nCross++;
+        }
+    }
+    // 单边交点为偶数，点在多边形之外 ---
+    return (nCross % 2 == 1);
+}
+
+bool pointOnPolygonBoundary(QVector<QPointF> pList, const QPointF &point)
+{
+    int len = pList.length();
+    if(pList[0] == pList[len-1]){  // 如果首尾相等时，删除最后一个点
+        pList.removeAt(len-1);
+        len = len-1;
+    }
+    for (int i = 0; i < len; i++) {
+        QPointF p1 = pList[i];
+        QPointF p2 = pList[(i+1)%len];
+
+        // 判断是否为顶点
+        if(point == p1 || point == p2){
+            return true;
+        }
+        // 取多边形任意一个边,做点point的水平延长线,求解与当前边的交点个数
+        // p1p2是水平线段,要么没有交点,要么有无限个交点
+        if (p1.y() == p2.y()){
+            double minX = qMin(p1.x(), p2.x());
+            double maxX = qMax(p1.x(), p2.x());
+            // point在水平线段p1p2上,直接return true
+            if ((point.y() == p1.y()) && (point.x() >= minX && point.x() <= maxX)) {
+                return true;
+            }
+            continue;
+        }
+        // point 在p1p2 底部 --> 无交点
+        if (point.y() < qMin(p1.y(), p2.y())){
+            continue;
+        }
+        // point 在p1p2 顶部 --> 无交点
+        if (point.y() > qMax(p1.y(), p2.y())){
+            continue;
+        }
+        double x = (point.y() - p1.y()) * (p2.x() - p1.x())
+                / (p2.y() - p1.y()) + p1.x();
+        if (x == point.x()) { // 当x=point.x时,说明point在p1p2线段上
+            return true;
+        }
     }
     return false;
 }
@@ -142,35 +273,24 @@ double calculatePolygonArea(QVector<QPointF> points){
 
 bool calculatePolygonDirection(QVector<QPointF> points){
 
-    int flag,pp,np, cp=0;
+    int flag, pp, np, cp=0;
     if(points.length()==2){
         return false;
-    }else{
-        for(int i=0;i<points.length()-1;i++){
-            if( points[cp].ry() <= points[i].ry()){
-                cp=i;
-            }
-        }
-//        if(cp==points.length()-1){
-//            pp=cp-1;
-//            np=0;
-//        }else if(cp==0){
-//            pp=points.length()-1;
-//            np=cp+1;
-//        }else{
-//             pp=cp-1;
-//             np=cp+1;
-//        }
-
-        pp=(cp-1+points.length())%points.length();
-        np=(cp+1)%points.length();
-
-        flag=(points[cp].rx() - points[pp].rx())*(points[np].ry()- points[cp].ry())-(points[cp].ry() - points[pp].ry())*(points[np].rx()- points[cp].rx());
-        if (flag>0){
-            return true;
-        }else if (flag<0)
-            return false;
     }
+    for(int i=0;i<points.length()-1;i++){
+        if( points[cp].ry() <= points[i].ry()){
+            cp=i;
+        }
+    }
+    pp=(cp-1+points.length())%points.length();
+    np=(cp+1)%points.length();
+
+    flag=(points[cp].rx() - points[pp].rx())*(points[np].ry()- points[cp].ry())
+            - (points[cp].ry() - points[pp].ry())*(points[np].rx()- points[cp].rx());
+    if(flag>0){
+        return true;
+    }
+    return false;
 }
 
 QPointF calculatePolygonGravityCenter(QVector<QPointF> mPoints){
@@ -317,4 +437,13 @@ void drawLineWithArrow(QPainter *painter, QLineF line, int offset)
     vector << p1 << p2 << p3 << p1;
     QPolygonF polygon(vector);
     painter->drawPolygon(polygon);
+}
+
+
+QRectF rectPrecision(const QRectF &rect, short iPlaces)
+{
+    QPointF topLeft = pointPrecision(rect.topLeft(), iPlaces);
+    qreal width = qrealPrecision(rect.width(), iPlaces);
+    qreal height = qrealPrecision(rect.height(), iPlaces);
+    return QRectF(topLeft.rx(), topLeft.ry(), width, height);
 }

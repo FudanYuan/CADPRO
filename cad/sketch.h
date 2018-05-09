@@ -9,7 +9,7 @@
 #include <QSettings>
 #include <QLabel>
 
-#include "configure.h"
+#include "sketchconfigure.h"
 #include "project.h"
 #include "view.h"
 #include "scene.h"
@@ -53,7 +53,7 @@ protected:
 private:
     Ui::Sketch *ui;
 
-    Configure *config;               // 配置
+    SketchConfigure *config;               // 配置
     View *view;                         // 视图
     QList<Project *> project_list;      // 项目列表
     Project *project_active;            // 活动项目

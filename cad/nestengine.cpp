@@ -5,7 +5,17 @@
 NestEngine::NestEngine() :
     autoRepeatLastSheet(false),
     compactStep(1),
-    compactAccuracy(0.0001)
+    compactAccuracy(0.1),
+    nestType(SigleRow),
+    mixingTyes(NoMixing),
+    adaptiveSpacingTypes(NoAdaptiveSpacing),
+    directions(AllDirectionNest),
+    nestEngineStrategys(NoStrategy),
+    oneKnifeCut(false),
+    cutStep(0),
+    rotatable(false),
+    maxRotateAngle(0),
+    minHeightOpt(false)
 {
 
 }
@@ -13,7 +23,17 @@ NestEngine::NestEngine() :
 NestEngine::NestEngine(const QVector<Piece> pieceList, QVector<Sheet> sheetList) :
     autoRepeatLastSheet(false),
     compactStep(1),
-    compactAccuracy(0.0001)
+    compactAccuracy(0.1),
+    nestType(SigleRow),
+    mixingTyes(NoMixing),
+    adaptiveSpacingTypes(NoAdaptiveSpacing),
+    directions(AllDirectionNest),
+    nestEngineStrategys(NoStrategy),
+    oneKnifeCut(false),
+    cutStep(0),
+    rotatable(false),
+    maxRotateAngle(0),
+    minHeightOpt(false)
 {
     this->pieceList = getSortedPieceListByArea(pieceList);
     this->sheetList = sheetList;
@@ -53,6 +73,109 @@ void NestEngine::setCompactAccuracy(qreal accuracy)
 qreal NestEngine::getCompactAccuracy()
 {
     return compactAccuracy;
+}
+
+void NestEngine::setNestEngineType(NestEngine::NestEngineType type)
+{
+    nestEngineType = type;
+}
+
+NestEngine::NestEngineType NestEngine::getNestEngineType()
+{
+    return nestEngineType;
+}
+
+void NestEngine::setNestType(NestEngine::NestType type)
+{
+    nestType = type;
+}
+
+NestEngine::NestType NestEngine::getNestType()
+{
+    return nestType;
+}
+
+void NestEngine::setNestMixingTypes(NestMixingTypes types)
+{
+    mixingTyes = types;
+}
+
+NestEngine::NestMixingTypes NestEngine::getNestMixingTypes()
+{
+    return mixingTyes;
+}
+
+void NestEngine::setNestAdaptiveSpacingTypes(NestAdaptiveSpacingTypes types)
+{
+    adaptiveSpacingTypes = types;
+}
+
+NestEngine::NestAdaptiveSpacingTypes NestEngine::getNestAdaptiveSpacingTypes()
+{
+    return adaptiveSpacingTypes;
+}
+
+void NestEngine::setNestDirections(NestDirections dires)
+{
+    directions = dires;
+    if(directions == AllDirectionNest){
+        qDebug() << "全向";
+    }else if(directions == HorizontalNest){
+        qDebug() << "横向";
+    } else if(directions == VerticalNest){
+        qDebug() << "纵向";
+    }
+}
+
+NestEngine::NestDirections NestEngine::getNestDirections()
+{
+    return directions;
+}
+
+void NestEngine::setNestEngineStrategys(NestEngineStrategys strategys)
+{
+    nestEngineStrategys = strategys;
+}
+
+NestEngine::NestEngineStrategys NestEngine::getNestEngineStrategys()
+{
+    return nestEngineStrategys;
+}
+
+void NestEngine::setCutStep(qreal step)
+{
+    cutStep = step;
+    if(cutStep != 0){
+        oneKnifeCut = true;
+    }
+}
+
+qreal NestEngine::getCutStep()
+{
+    return cutStep;
+}
+
+void NestEngine::setMaxRotateAngle(int angle)
+{
+    maxRotateAngle = angle;
+    if(maxRotateAngle != 0){
+        rotatable = true;
+    }
+}
+
+qreal NestEngine::getMaxRotateAngle()
+{
+    return maxRotateAngle;
+}
+
+void NestEngine::setMinHeightOpt(bool flag)
+{
+    minHeightOpt = flag;
+}
+
+bool NestEngine::getMinHeightOpt()
+{
+    return minHeightOpt;
 }
 
 QVector<Piece> NestEngine::getSortedPieceListByArea(QVector<Piece> pieceList)
