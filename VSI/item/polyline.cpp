@@ -21,6 +21,7 @@ Polyline::Polyline(QGraphicsItem *parent) :
     setAcceptDrops(true);
     // 设置图元为可接受hover事件
     setAcceptHoverEvents(true);
+    i=0;
 }
 
 void Polyline::startDraw(QGraphicsSceneMouseEvent *event)
@@ -83,7 +84,7 @@ void Polyline::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         for (int i = 0; i < len - 1; ++i) {
             //painter->setBrush(QBrush(collides ? selectedEntity.color : penStyle.color));
             //drawRectPoint(painter, points.at(i), size);
-            painter->setBrush(QBrush());
+            painter->setBrush(QBrush(Qt::gray));
             path.lineTo(points.at(i+1));
         }
         if(!overFlag){
@@ -140,6 +141,7 @@ void Polyline::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     }
 //    drawRectPoint(painter, points.at(0), size);
     painter->drawPath(path);
+    drawRectPoint(painter, this->boundingRect().center(), 2);
     setPath(path);
 }
 
@@ -157,7 +159,7 @@ bool Polyline::collidesWithItem(const QGraphicsItem *other, Qt::ItemSelectionMod
     return collision;
 }
 
-void Polyline::setPolyline(QList<QPointF> pList, int flag, qreal ele, qreal angle, const QPointF off)
+void Polyline::setPolyline(QVector<QPointF> pList, int flag, qreal ele, qreal angle, const QPointF off)
 {
     QPen pen = QPen();
     pen.setColor(penStyle.color);
@@ -174,12 +176,13 @@ void Polyline::setPolyline(QList<QPointF> pList, int flag, qreal ele, qreal angl
     overFlag = true;
 }
 
-void Polyline::setPoints(const QList<QPointF> &value)
+void Polyline::setPoints(const QVector<QPointF> &value)
 {
-    points = value;
+    points.clear();
+    points.append(value);
 }
 
-QList<QPointF> Polyline::getPoints()
+QVector<QPointF> Polyline::getPoints()
 {
     return this->points;
 }
@@ -230,7 +233,6 @@ void Polyline::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
 void Polyline::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-    // qDebug() << "Polyline::mouseMoveEvent";
     QGraphicsItem::mouseMoveEvent(event);
 }
 
@@ -286,7 +288,18 @@ void Polyline::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 void Polyline::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
     if(selectable){
-        setCursor(Qt::OpenHandCursor);
+        qDebug() << "Polyline::hoverMoveEvent";
+        setCursor(Qt::PointingHandCursor);
+        for(int j = 0; j<points.length();j++) {
+            QLineF line(points[j], points[(j+1)%points.length()]);
+            QLineF line1(line.p1(), event->scenePos());
+            if((0 <= line.angleTo(line1) && line.angleTo(line1) <= 2)
+                    || (178 <= line.angleTo(line1) && line.angleTo(line1) <= 182)
+                    || (358 <= line.angleTo(line1) && line.angleTo(line1)<= 360)){
+                qDebug() << "存在该点 " << i++;
+                setCursor(Qt::UpArrowCursor);
+            }
+        }
         QGraphicsItem::hoverMoveEvent(event);
     }
 }

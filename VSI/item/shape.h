@@ -6,7 +6,7 @@
 #include <QPainter>
 #include <QPointF>
 #include "common.h"
-#include "configure.h"
+#include "sketchconfigure.h"
 
 class Shape : public QObject
 {
@@ -40,13 +40,13 @@ public:
     virtual void drawing(QGraphicsSceneMouseEvent * event) = 0;
     virtual bool updateFlag(QGraphicsSceneMouseEvent *event) = 0;  // 更新标识
 
-    void setObjectSize(Configure::ObjSize objSize);  // 设置对象识别距离
+    void setObjectSize(SketchConfigure::ObjSize objSize);  // 设置对象识别距离
 
-    void setPenStyle(Configure::PenStyle penStyle);  // 设置实体类型
-    Configure::PenStyle getPenStyle();  // 获取画笔属性
+    void setPenStyle(SketchConfigure::PenStyle penStyle);  // 设置实体类型
+    SketchConfigure::PenStyle getPenStyle();  // 获取画笔属性
 
-    void setEntityUnderCursorStyle(Configure::PenStyle underCursorStyle);  // 设置光标下类型
-    void setSelectStyle(Configure::PenStyle selectedEntity);  // 选择实体类型
+    void setEntityUnderCursorStyle(SketchConfigure::PenStyle underCursorStyle);  // 设置光标下类型
+    void setSelectStyle(SketchConfigure::PenStyle selectedEntity);  // 选择实体类型
 
     void setShapeId(int id);  // 设置实体id
     int getShapeId();  // 获取实体id
@@ -90,7 +90,7 @@ protected:
     ShapeType shape;  // 类型
     int id;  // 编号
     int number;  // 图形个数
-
+    int precsion;  // 小数点位数
     qreal scaleFactor;  // 缩放因子
     bool moveable;  // 是否可移动
     bool selectable;  // 可选择标识
@@ -102,10 +102,10 @@ protected:
 
     mutable bool collision;  // 是否碰撞
 
-    Configure::ObjSize objSize;  // 对象大小
-    Configure::PenStyle penStyle;  // 属性
-    Configure::PenStyle underCursorStyle;  // 光标下属性
-    Configure::PenStyle selectedEntity;  // 选中属性
+    SketchConfigure::ObjSize objSize;  // 对象大小
+    SketchConfigure::PenStyle penStyle;  // 属性
+    SketchConfigure::PenStyle underCursorStyle;  // 光标下属性
+    SketchConfigure::PenStyle selectedEntity;  // 选中属性
 
 signals:
     void sceneMoveableChanged(bool moveable);  // 场景可移动性信号

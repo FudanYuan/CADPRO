@@ -12,6 +12,10 @@
 #include <QValidator>
 #include <QDebug>
 
+#include "piece.h"
+#include "packpointnestengine.h"
+#include <sys/time.h>
+
 #define COUNT 20
 
 // 初始化矩形排版引擎
@@ -166,7 +170,7 @@ void Nest::initActions()
 
     action_sheet_auto_duplicate = new QAction(tr("自动重复材料"));
     action_sheet_auto_duplicate->setStatusTip(tr("自动重复当前材料"));
-    action_sheet_auto_duplicate->setDisabled(true);
+    action_sheet_auto_duplicate->setDisabled(false);
     connect(action_sheet_auto_duplicate, &QAction::triggered, this, &Nest::onActionSheetAutoDuplicate);
 
     action_sheet_previous = new QAction(tr("上一张"));
@@ -176,7 +180,7 @@ void Nest::initActions()
 
     action_sheet_next = new QAction(tr("下一张"));
     action_sheet_next->setStatusTip(tr("转到下一张材料"));
-    action_sheet_next->setDisabled(true);
+    action_sheet_next->setDisabled(false);
     connect(action_sheet_next, &QAction::triggered, this, &Nest::onActionSheetNext);
 
     action_sheet_sheet_number = new QAction(tr("输入材料序号"));
@@ -275,7 +279,8 @@ void Nest::initDockWidget()
 
     // 绘图区不可移动、不可关闭、不可最小化
     dock_nest->setFeatures(QDockWidget::NoDockWidgetFeatures);
-
+    // 绘图区的最小宽度
+    dock_nest->setMinimumWidth(1000);
     // 将窗口添加至主窗口
     addDockWidget(Qt::LeftDockWidgetArea, dock_project);
     splitDockWidget(dock_project, dock_nest, Qt::Horizontal);
@@ -319,7 +324,7 @@ void Nest::updateNestView()
 
     // 画出边缘
     Rect *rect = new Rect;
-    Configure::PenStyle pen;
+    SketchConfigure::PenStyle pen;
     pen.setPenStyle(Qt::black, Qt::SolidLine, 2);
     rect->setPenStyle(pen);
     rect->setRect(curSheet->layoutRect());
@@ -424,10 +429,21 @@ void Nest::initSheet()
     mDialog.setDialogRole(SheetDialog::Nest);
     mDialog.exec();
     curSheet = mDialog.getSheetActive();
+
     if(!curSheet){
         qDebug() << "curSheet = NULL";
         return;
     }
+
+//    tabDialog *insertoffsetdialog =new tabDialog();
+//    //设置窗口显示在最前面
+//    insertoffsetdialog->setWindowFlags(insertoffsetdialog->windowFlags() | Qt::WindowStaysOnTopHint);
+//    insertoffsetdialog->showNormal();
+//    insertoffsetdialog->show();
+    nestEngineconfigDialog.exec();
+    connect(this, &Nest::nestEngineConfigChange, &nestEngineconfigDialog, &NestEngineConfigureDialog::onNestEngingeConfig);
+
+    emit(nestEngineConfigChange(2));
     QString pName = projectActive->getName();
     if(proSheetMap.contains(pName)){
         ProSheetMap *map = proSheetMap[pName];
@@ -494,9 +510,9 @@ void Nest::updateSheetTree()
         item_sheet->addChild(item_sheet_rate);
     }
 
-    char *ch1 = "排版信息（共";
-    char *ch2 = "张板材料，总产能（利用率）：";
-    char *ch3 = "%）";
+    const char *ch1 = "排版信息（共";
+    const char *ch2 = "张板材料，总产能（利用率）：";
+    const char *ch3 = "%）";
     char *buf = new char[strlen(ch1) + strlen(ch2) + strlen(ch3) + sizeof(sheetNum) + sizeof(rateTotal)];
     sprintf(buf, "%s%d%s%.2f%s", ch1, sheetNum, ch2, rateTotal, ch3);
     tree_sheet->setHeaderLabel(tr(buf)); //设置头的标题
@@ -622,14 +638,14 @@ void Nest::initRectNestEngine()
         QPointF offset = currentCenter - originCenter;
 
         // 构造新图形
-        QList<QPointF> pList;
+        QVector<QPointF> pList;
         for(int j=0;j<polyline->getPoints().length();j++){
             QPointF oldPoint = polyline->getPoints()[j];
             QPointF newPoint = oldPoint-offset+cp;
             pList.append(newPoint);
         }
         Polyline *p = new Polyline();
-        Configure::PenStyle pen;
+        SketchConfigure::PenStyle pen;
         pen.setPenStyle(Qt::blue, Qt::SolidLine, 1);
         p->setPenStyle(pen);
         p->setPolyline(pList, polyline->getType(), polyline->getElevation(), rotate ? 90.000 : 0.000);
@@ -825,7 +841,7 @@ void Nest::updateAll()
     }
 
     // 更新材料部分
-    updateSheetTree();
+    //updateSheetTree();
 
     // 更新窗口名称
     setWindowTitle("CADPRO-<" + pName + ">");
@@ -980,7 +996,6 @@ bool Nest::onActionFileSaveAll()
 
 void Nest::onActionFilePrint()
 {
-
 }
 
 void Nest::onActionFilePrintPreview()
@@ -1077,6 +1092,348 @@ void Nest::onActionSheetDuplicate()
 void Nest::onActionSheetAutoDuplicate()
 {
     qDebug() << "自动重复当前材料";
+#ifdef NESTENGINEDEBUG
+    // 初始化材料1
+    Sheet sheet1;
+    sheet1.height = 2000;
+    sheet1.width = 1000;
+    sheet1.type = Sheet::Whole;
+    sheet1.componentGap = 2;
+    sheet1.topMargin = 5;
+    sheet1.rightMargin = 5;
+    sheet1.bottomMargin = 5;
+    sheet1.leftMargin = 5;
+    // 初始化材料2
+    Sheet sheet2;
+    sheet2.height = 1000;
+    sheet2.width = 500;
+    sheet2.type = Sheet::Whole;
+    sheet2.componentGap = 2;
+    sheet2.topMargin = 5;
+    sheet2.rightMargin = 5;
+    sheet2.bottomMargin = 5;
+    sheet2.leftMargin = 5;
+
+    QVector<Sheet> sheetList;
+    sheetList.append(sheet1);
+//    sheetList.append(sheet2);
+
+    nestScene = new Scene(nestView);
+    nestScene->setSceneRect(-10, -10,
+                            sheet1.layoutRect().width(),
+                            sheet1.layoutRect().height());
+    nestScene->setMoveable(true);
+    Rect *rect1 = new Rect;
+    rect1->setRect(sheet1.layoutRect());
+    nestScene->addCustomRectItem(rect1);
+
+    nestView->setScene(nestScene);
+    nestView->centerOn(nestView->mapFromScene(0,0));
+//    Rect *rect2 = new Rect;
+//    rect2->setRect(sheet2.layoutRect());
+//    nestScene->addCustomRectItem(rect2);
+
+    // 初始化零件
+    QVector<QPointF> points1;
+//    points1.append(QPointF(0, 0));
+//    points1.append(QPointF(-100, -200));
+//    points1.append(QPointF(200, 0));
+//    points1.append(QPointF(100, 0));
+//    points1.append(QPointF(200, 200));
+//    points1.append(QPointF(-100, 300));
+//    points1.append(QPointF(0, 200));
+//    points1.append(QPointF(-100, 100));
+//    points1.append(QPointF(0, 0));
+//    凹多边形1
+    points1.append(QPointF(0, 0));
+    points1.append(QPointF(50, 0));
+    points1.append(QPointF(50, 50));
+    points1.append(QPointF(25, 100));
+    points1.append(QPointF(0, 50));
+    points1.append(QPointF(0, 0));
+    Piece piece1(points1, 50);
+
+    QVector<QPointF> points2;
+
+    // 测试凸边形1
+    points2.append(QPointF(0, 0));
+    points2.append(QPointF(100, 0));
+    points2.append(QPointF(100, 100));
+    points2.append(QPointF(50, 200));
+    points2.append(QPointF(0, 100));
+    points2.append(QPointF(0, 0));
+    Piece piece2(points2, 50);
+
+    QVector<Piece> pieceList;
+    pieceList.append(piece1);
+    pieceList.append(piece2);
+
+//    for(int i=0;i<projectActive->getSceneList().length();i++){
+//        Scene *s = projectActive->getSceneList().at(i);
+//        for(int j=0; j<s->getPolylineList().length(); j++){
+//            Polyline *p = s->getPolylineList()[j];
+//            Piece piece3(p, 20);
+//            pieceList.append(piece3);
+//        }
+//    }
+
+    // 初始化排样引擎
+    PackPointNestEngine packEngine(pieceList, sheetList, 50, 2);
+    packEngine.setCompactStep(5);
+    packEngine.setCompactAccuracy(1);
+    packEngine.setAutoRepeatLastSheet(true);
+    packEngine.setNestDirections(NestEngine::HorizontalNest);
+    packEngine.setNestEngineStrategys(NestEngine::LeftRightTurn | NestEngine::SizeDown);
+    packEngine.setMaxRotateAngle(360);
+    packEngine.setCutStep(300);
+#if 0
+    // 测试材料的移动、旋转、包络矩形及质心求解
+    piece1.moveTo(QPointF(-500, 200));
+    piece2.moveTo(QPointF(500, 200));
+    nestScene->addCustomPolylineItem(piece1.getPolyline());
+    nestScene->addCustomPolylineItem(piece2.getPolyline());
+
+    piece1.rotate(piece1.minBoundingRect.center(), 60);
+    piece2.rotate(piece2.minBoundingRect.center(), 60);
+    nestScene->addCustomPolylineItem(piece1.getPolyline());
+    nestScene->addCustomPolylineItem(piece2.getPolyline());
+
+    Point *p1 = new Point;
+    p1->setPos(piece1.minBoundingRect.center());
+    nestScene->addCustomPointItem(p1);
+    qDebug() << piece1.minBoundingRect.center() << "  " << piece1.centerPoint;
+
+    Point *p2 = new Point;
+    p2->setPos(piece2.minBoundingRect.center());
+    nestScene->addCustomPointItem(p2);
+    qDebug() << piece2.minBoundingRect.center() << "  " << piece2.centerPoint;
+
+    Rect *rect01 = new Rect;
+    rect01->setRect(piece1.minBoundingRect);
+    nestScene->addCustomRectItem(rect01);
+
+    Rect *rect02 = new Rect;
+    rect02->setRect(piece2.minBoundingRect);
+    nestScene->addCustomRectItem(rect02);
+
+    Rect *rect11 = new Rect;
+    rect11->setRect(piece1.centerPoint.rx(), piece1.centerPoint.ry(), 5, 5);
+    nestScene->addCustomRectItem(rect11);
+
+    Rect *rect12 = new Rect;
+    rect12->setRect(piece2.centerPoint.rx(), piece2.centerPoint.ry(), 5, 5);
+    nestScene->addCustomRectItem(rect12);
+    // 测试材料的移动、旋转、包络矩形及质心求解
+
+    // 测试排版引擎的排样零件详情
+    qDebug() << "排样零件详情：(共" << packEngine.nestPieceList.length() << "个)";
+    for(int i=0; i<packEngine.nestPieceList.length(); i++){
+        qDebug() << "--------";
+        qDebug() << "index: " << packEngine.nestPieceList[i].index;
+        qDebug() << "typeID: " << packEngine.nestPieceList[i].typeID;
+        qDebug() << "sheetID: " << packEngine.nestPieceList[i].sheetID;
+        qDebug() << "position: " << packEngine.nestPieceList[i].position;
+        qDebug() << "alpha: " << packEngine.nestPieceList[i].alpha;
+        qDebug() << "nested: " << packEngine.nestPieceList[i].nested;
+        qDebug() << "--------";
+    }
+    qDebug() << "";
+#endif
+
+#if 0
+    // 测试零件与材料的碰撞关系
+    qDebug() << "new test";
+    piece2.moveTo(QPointF(105,55));
+
+    qDebug() << "旋转0.";
+    piece2.rotate(QPointF(105,55), 0);
+    qDebug() << "零件的包络矩形：" << piece2.getMinBoundingRect();
+    qDebug() << "此时质心为：" << piece2.getCenterPoint();
+    qDebug() << "零件是否在材料内部"<< piece2.containsInSheet(sheet1);
+    Rect *rect32 = new Rect;
+    rect32->setRect(piece2.minBoundingRect);
+    nestScene->addCustomRectItem(rect32);
+    nestScene->addCustomPolylineItem(piece2.getPolyline());
+    qDebug() << "";
+
+    qDebug() << "旋转90.";
+    piece2.rotate(QPointF(105,55), 90);
+    qDebug() << "零件的包络矩形：" << piece2.getMinBoundingRect();
+    qDebug() << "此时质心为：" << piece2.getCenterPoint();
+    qDebug() << "零件是否在材料内部"<< piece2.containsInSheet(sheet1);
+    Rect *rect42 = new Rect;
+    rect42->setRect(piece2.minBoundingRect);
+    nestScene->addCustomRectItem(rect42);
+    nestScene->addCustomPolylineItem(piece2.getPolyline());
+    qDebug() << "";
+
+    qDebug() << "位置: " << piece2.hasRelationToPoint(QPointF(5, 105));
+    qDebug() << "";
+    qDebug() << "位置: " << piece2.hasRelationToPoint(QPointF(55, 105));
+    qDebug() << "";
+    qDebug() << "位置: " << piece2.hasRelationToPoint(QPointF(105, 105));
+    qDebug() << "";
+
+    qDebug() << "旋转180.";
+    piece2.rotate(QPointF(105,55), 180);
+    qDebug() << "零件的包络矩形：" << piece2.getMinBoundingRect();
+    qDebug() << "此时质心为：" << piece2.getCenterPoint();
+    qDebug() << "零件是否在材料内部"<< piece2.containsInSheet(sheet1);
+    Rect *rect52 = new Rect;
+    rect52->setRect(piece2.minBoundingRect);
+    nestScene->addCustomRectItem(rect52);
+    nestScene->addCustomPolylineItem(piece2.getPolyline());
+    qDebug() << "";
+
+    qDebug() << "旋转270.";
+    piece2.rotate(QPointF(105,55), 270);
+    qDebug() << "零件的包络矩形：" << piece2.getMinBoundingRect();
+    qDebug() << "此时质心为：" << piece2.getCenterPoint();
+    qDebug() << "零件是否在材料内部"<< piece2.containsInSheet(sheet1);
+    Rect *rect62 = new Rect;
+    rect62->setRect(piece2.minBoundingRect);
+    nestScene->addCustomRectItem(rect62);
+    nestScene->addCustomPolylineItem(piece2.getPolyline());
+
+    return;
+    // 测试点与零件的关系
+    for(int i=0; i<nestScene->getPointList().length(); i++){
+        QVector<Point *> points = nestScene->getPointList().toVector();
+        qDebug() << i << "  " << points[i]->point();
+        qDebug() << "包含于piece1: " << piece1.contains(points[i]->point());
+        qDebug() << "包含于piece2: " << piece2.contains(points[i]->point());
+        qDebug() << "";
+        qDebug() << "在piece1边界上: " << piece1.onBoundary(points[i]->point());
+        qDebug() << "在piece2边界上: " << piece2.onBoundary(points[i]->point());
+        qDebug() << "";
+        Piece::PointRealtionToPiece relation1 = piece1.relationToPoint(points[i]->point());
+        Piece::PointRealtionToPiece relation2 = piece2.relationToPoint(points[i]->point());
+        qDebug() << relation1 << " " << relation2;
+    }
+
+    nestScene->addCustomPolylineItem(piece1.getPolyline());
+    nestScene->addCustomPolylineItem(piece2.getPolyline());
+#endif
+
+#if 0
+    // 测试零件与材料的碰撞关系
+    nestScene->addCustomPolylineItem(piece1.getPolyline());
+    nestScene->addCustomPolylineItem(piece2.getPolyline());
+    piece1.moveTo(QPointF(855,105));
+    piece2.moveTo(QPointF(900,255));
+    piece2.rotate(QPointF(900,255), 180);
+    qDebug() << "是否碰撞：" << piece1.collidesWithPiece(piece2);
+
+    nestScene->addCustomPolylineItem(piece1.getPolyline());
+    nestScene->addCustomPolylineItem(piece2.getPolyline());
+
+    Rect *rect13 = new Rect;
+    rect13->setRect(piece1.minBoundingRect);
+    nestScene->addCustomRectItem(rect13);
+
+    Rect *rect23 = new Rect;
+    rect23->setRect(piece2.minBoundingRect);
+    nestScene->addCustomRectItem(rect23);
+
+    return;
+
+    ConcavePolygon concavePoly1(piece1.getPointsList());
+    QMap<int, QVector<QPointF>> splitRes1 = concavePoly1.onSeparateConcavePoly(piece1.getPointsList());
+    qDebug() << "分成图多边形的个数：" << splitRes1.size();
+    QMap<int, QVector<QPointF>>::const_iterator i1;
+    for(i1=splitRes1.constBegin(); i1!=splitRes1.constEnd(); ++i1){
+        Polyline *p1 = new Polyline;
+        p1->setPolyline(i1.value(), Polyline::line);
+        nestScene->addCustomPolylineItem(p1);
+    }
+    ConcavePolygon concavePoly2(piece2.getPointsList());
+    QMap<int, QVector<QPointF>> splitRes2 = concavePoly2.onSeparateConcavePoly(piece2.getPointsList());
+    qDebug() << "分成图多边形的个数：" << splitRes2.size();
+    QMap<int, QVector<QPointF>>::const_iterator i2;
+    for(i2=splitRes2.constBegin(); i2!=splitRes2.constEnd(); ++i2){
+        Polyline *p2 = new Polyline;
+        p2->setPolyline(i2.value(), Polyline::line);
+        nestScene->addCustomPolylineItem(p2);
+    }
+    nestScene->addCustomPolylineItem(piece1.getPolyline());
+    nestScene->addCustomPolylineItem(piece2.getPolyline());
+
+    // 测试排样点
+    qDebug() << "排样点详情测试：";
+    for(int i=0; i<sheetList.length(); i++){
+        qDebug() << "--------";
+        qDebug() << "材料ID：#" << packEngine.packPointInfoList[i].sheetID;
+        qDebug() << "XOffset: " << packEngine.packPointInfoList[i].XOffset;
+        qDebug() << "YOffset: " << packEngine.packPointInfoList[i].YOffset;
+        qDebug() << "rows: " << packEngine.packPointInfoList[i].rows;
+        qDebug() << "columns: " << packEngine.packPointInfoList[i].columns;
+        qDebug() << "--------";
+        QMap<int, PackPointNestEngine::PackPoint> pieceAreaMap = packEngine.sheetPackPointPositionMap[i];
+        QMap<int, PackPointNestEngine::PackPoint>::const_iterator it;
+        for(it=pieceAreaMap.constBegin(); it!=pieceAreaMap.constEnd(); ++it){
+            qDebug() << "材料ID#" << it.key() << "排样点信息";
+            qDebug() << "id: " << it.value().index;
+            qDebug() << "position: " << it.value().position;
+            qDebug() << "covered: " << it.value().coverd;
+            Point *p = new Point;
+            p->setPos(it.value().position);
+            nestScene->addCustomPointItem(p);
+        }
+    }
+    qDebug() << "";
+    return;
+#endif
+    // 记录程序运行时间
+    struct timeval tpstart,tpend;
+    float timeuse;
+    gettimeofday(&tpstart,NULL);
+
+    // 测试排版算法
+    int genLength = packEngine.nestPieceList.length();
+    int genome[genLength];
+    for(int n=0; n<genLength; n++){
+        genome[n] = n;
+    }
+    std::random_shuffle(genome, genome+genLength);
+    QVector<int> toNestList;
+    for(int i=0; i<genLength; i++){
+//        toNestList.append(genome[i]);
+        toNestList.append(i);
+    }
+    packEngine.layoutAlg(toNestList);
+
+    gettimeofday(&tpend,NULL);
+    timeuse=(1000000*(tpend.tv_sec-tpstart.tv_sec) + tpend.tv_usec-tpstart.tv_usec)/1000000.0;
+    qDebug()<< "运行时间：" << timeuse << "s";
+
+    qDebug() << packEngine.unnestedPieceIDlist.length();
+    qDebug() << packEngine.nestedPieceIDlist.length();
+    for(int j=0; j<packEngine.nestedPieceIDlist.length(); j++){
+        int i = packEngine.nestedPieceIDlist[j];
+        Polyline *p = new Polyline;
+        int typeID = packEngine.nestPieceList[i].typeID;
+        QPointF pos = packEngine.nestPieceList[i].position;
+        qreal angle = packEngine.nestPieceList[i].alpha;
+        Piece piece = packEngine.pieceList[typeID];
+        piece.moveTo(pos);
+        piece.rotate(piece.minBoundingRect.center(), angle);
+        p->setPolyline(piece.getPointsList(), Polyline::line);
+        nestScene->addCustomPolylineItem(p);
+    }
+
+    for(int i = 0; i<packEngine.sheetPackPointPositionMap.size(); i++){
+        for(int j=0; j<packEngine.sheetPackPointPositionMap[i].size(); j++){
+            PackPointNestEngine::PackPoint packPoint = packEngine.sheetPackPointPositionMap[i].value(j);
+            if(!packPoint.coverd){
+                Point *p = new Point;
+                QPointF point = packPoint.position;
+                p->setPoint(point);
+                nestScene->addCustomPointItem(p);
+            }
+        }
+    }
+    qDebug() << "sheetList.len: " << packEngine.sheetList.length();
+#endif
 }
 
 void Nest::onActionSheetPrevious()
@@ -1087,6 +1444,7 @@ void Nest::onActionSheetPrevious()
 void Nest::onActionSheetNext()
 {
     qDebug() << "转到下一张材料";
+    nestView->zoomBack();
 }
 
 void Nest::onActionSheetSheetNumber()
@@ -1101,7 +1459,7 @@ void Nest::onActionSheetUseLastSheet()
 
 void Nest::onActionSheetProperty()
 {
-    qDebug() << "更改材料&余良/边距";
+    qDebug() << "更改材料&余量/边距";
 }
 
 void Nest::onActionTreeExpandAll()
@@ -1184,8 +1542,8 @@ void Nest::onActionTreeProjectNestScene()
 void Nest::onActionTreeProjectAddScene()
 {
     qDebug() << "import dxf files";
-    QString fileName;// = QFileDialog::getOpenFileName(this, tr("打开DXF文件"), QDir::currentPath());
-    fileName = "/Users/Jeremy/Qt5.10.0/Projects/build-CADPRO-Desktop_Qt_5_10_0_clang_64bit-Debug/CADPRO.app/Contents/MacOS/toNest.dxf";
+    QString fileName = QFileDialog::getOpenFileName(this, tr("打开DXF文件"), QDir::currentPath());
+    //fileName = "/Users/Jeremy/Qt5.10.0/Projects/build-CADPRO-Desktop_Qt_5_10_0_clang_64bit-Debug/CADPRO.app/Contents/MacOS/toNest.dxf";
     if (!fileName.isEmpty()) {
         if(!projectActive){
             QString name_project_new = getNewProjectName();

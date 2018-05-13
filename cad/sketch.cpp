@@ -2,7 +2,7 @@
 #include "ui_sketch.h"
 #include "customdocktitlebar.h"
 
-#include "configuredialog.h"
+#include "sketchconfiguredialog.h"
 #include "polygondialog.h"
 #include "trapeziumdialog.h"
 #include "itemproperties.h"
@@ -384,7 +384,7 @@ void Sketch::initActions()
 
     action_modify_transform_move = new QAction(tr("&移动"), this);
     action_modify_transform_move->setStatusTip(tr("移动实体"));
-    action_modify_transform_move->setDisabled(true);
+    action_modify_transform_move->setDisabled(false);
     connect(action_modify_transform_move, &QAction::triggered, this, &Sketch::onActionModifyTransformMove);
 
     action_modify_transform_rotate = new QAction(tr("&旋转"), this);
@@ -1336,8 +1336,8 @@ void Sketch::initConfiguration()
 {
     qDebug() << "初始化配置文件";
 //    if(config) delete config;
-    config = new Configure(this);
-    connect(this, &Sketch::configChanged, config, &Configure::onConfigChanged);
+    config = new SketchConfigure(this);
+    connect(this, &Sketch::configChanged, config, &SketchConfigure::onConfigChanged);
     action_view_xy_axes->setChecked(config->axesGrid.axes.showAxes);
     action_view_grid->setChecked(config->axesGrid.grid.showGrid);
     action_view_grading_rules->setChecked(config->view.gradingRules);
@@ -1779,7 +1779,7 @@ void Sketch::onActionFileExportTEF()
 
 void Sketch::onActionFileConfiguration()
 {
-    ConfigureDialog configDialog(config);
+    SketchConfigureDialog configDialog(config);
     configDialog.exec();
     initConfiguration();
 }
@@ -1912,37 +1912,38 @@ void Sketch::onActionDrawShankLine()
     qDebug() << "上插线";
     QList<Polyline*> polylineList = scene_active->getPolylineList();
 
-    for(int i=0;i<polylineList.length()-1;i++){
-        for(int j=i+1;j<polylineList.length();j++){
-            if(polylineList[i]->collidesWithItem(polylineList[j])){
-                qDebug() << polylineList[i]->getShapeId() << " 与"
-                         << polylineList[j]->getShapeId() << "碰撞";
-            }
+    foreach (Polyline* p, polylineList) {
+        QVector<QPointF> points = p->getPoints();
+        QVector<QPointF> points2;
+        for(int i=0; i<points.length(); i++){
+            points2.append(points[i] + QPointF(10, 10));
         }
+        Polyline *p1 = new Polyline;
+        p1->setPolyline(points2, Polyline::line);
+        scene_active->addCustomPolylineItem(p1);
     }
 }
 
 void Sketch::onActionDrawPerpendicular()
 {
     qDebug() << "垂直线";
-    QList<Polyline*> polylineList = scene_active->getPolylineList();
+//    QList<Polyline*> polylineList = scene_active->getPolylineList();
+//    int delta = 2;
+//    for(int i=0;i<polylineList.length();i++){
+//        QVector<QPointF> newPointsList;
+//        QVector<QPointF> pointsList = polylineList[i]->getPoints();
+//        for(int m=0; m<pointsList.length()-1; m++){
+//            for(int n=m+1; n<pointsList.length(); n++){
+//                QPointF p1 = pointsList[m];
+//                QPointF p2 = pointsList[n];
+//                QLineF line(p1, p2);
 
-    int delta = 2;
-    for(int i=0;i<polylineList.length();i++){
-        QList<QPointF> newPointsList;
-        QList<QPointF> pointsList = polylineList[i]->getPoints();
-        for(int m=0; m<pointsList.length()-1; m++){
-            for(int n=m+1; n<pointsList.length(); n++){
-                QPointF p1 = pointsList[m];
-                QPointF p2 = pointsList[n];
-                QLineF line(p1, p2);
-
-            }
-        }
-        Polyline *polyline = new Polyline;
-        //polyline->setPolyline();
-        scene_active->addCustomPolylineItem(polyline);
-    }
+//            }
+//        }
+//        Polyline *polyline = new Polyline;
+//        //polyline->setPolyline();
+//        scene_active->addCustomPolylineItem(polyline);
+//    }
 }
 
 void Sketch::onActionDrawImage()
@@ -2020,14 +2021,14 @@ void Sketch::onActionInsertAdvancedOffset()
     qDebug() << "创建高级偏移";
     Rect *rect = new Rect();
     rect->setRect(0, 0, 100, 100);
-    QList<QPointF> points = rect->toPolyline();
+    QVector<QPointF> points = rect->toPolyline();
 
     Polyline *polyline = new Polyline;
     polyline->setPolyline(points, Polyline::line);
 
     Rect *rect1 = new Rect();
     rect1->setRect(-100, -100, 1000, 1000);
-    QList<QPointF> points1 = rect1->toPolyline();
+    QVector<QPointF> points1 = rect1->toPolyline();
 
     Polyline *polyline1 = new Polyline;
     polyline1->setPolyline(points1, Polyline::line);
@@ -2170,6 +2171,7 @@ void Sketch::onActionModifyTransformMove()
 void Sketch::onActionModifyTransformRotate()
 {
     qDebug() << "旋转";
+
 }
 
 void Sketch::onActionModifyTransformRotateKnotsContinuely()
@@ -2940,7 +2942,6 @@ void Sketch::onEllipseSelected(Ellipse *ellipse)
 {
 
 }
-
 
 void Sketch::onCircleSelected(Circle *circle)
 {

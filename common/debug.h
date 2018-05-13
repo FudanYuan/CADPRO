@@ -25,4 +25,8 @@
 #define DEBUGNFREADER
 #endif
 
+#if 1
+#define NESTENGINEDEBUG
+#endif
+
 #define DISCARD_DXF_ENTITY_PROPERTITY  // 丢掉dxf文件中的实体属性

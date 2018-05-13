@@ -33,16 +33,24 @@ INCLUDEPATH += VSI/item
 
 SOURCES += \
     main.cpp \
+    cad/sketch.cpp \
+    cad/nest.cpp \
+    cad/project.cpp \
+    cad/sheet.cpp \
+    cad/rectnestengine.cpp \
+    cad/packpointnestengine.cpp \
+    cad/piece.cpp \
+    cad/nestengine.cpp \
     common/common.cpp \
     common/painter.cpp \
     common/customdocktitlebar.cpp \
     common/customwidget.cpp \
     common/GA.cpp \
+    common/collisiondectect.cpp \
+    common/quadtree.cpp \
     dxf/dxflib/dl_writer_ascii.cpp \
     dxf/dxflib/dl_dxf.cpp \
     dxf/dxffilter.cpp \
-    configure/configure.cpp \
-    configure/configuredialog.cpp \
     VSI/view.cpp \
     VSI/scene.cpp \
     VSI/item/shape.cpp \
@@ -64,16 +72,26 @@ SOURCES += \
     VSI/item/textdialog.cpp \
     VSI/item/itemproperties.cpp \
     VSI/item/insertoffsetdialog.cpp \
-    cad/project.cpp \
-    cad/sketch.cpp \
-    cad/nest.cpp \
-    cad/sheet.cpp \
     nestFile/nf_writer.cpp \
     nestFile/nf_tnf.cpp \
     nestFile/nf_reader.cpp \
-    cad/rectnestengine.cpp
+    configure/sketchconfigure.cpp \
+    configure/sketchconfiguredialog.cpp \
+    configure/nestconfigure.cpp \
+    configure/nestconfiguredialog.cpp \
+    configure/nestengineconfiguredialog.cpp \
+    configure/nestengineconfigure.cpp \
+    cad/tabdialog.cpp
 
 HEADERS += \
+    cad/project.h \
+    cad/sketch.h \
+    cad/nest.h \
+    cad/sheet.h \
+    cad/rectnestengine.h \
+    cad/packpointnestengine.h \
+    cad/piece.h \
+    cad/nestengine.h \
     common/debug.h \
     common/common.h \
     common/painter.h \
@@ -82,6 +100,8 @@ HEADERS += \
     common/GA.h \
     common/binarytree.h \
     common/ternarytree.h \
+    common/collisiondectect.h \
+    common/quadtree.h \
     dxf/dxflib/dl_writer.h \
     dxf/dxflib/dl_writer_ascii.h \
     dxf/dxflib/dl_global.h \
@@ -95,8 +115,6 @@ HEADERS += \
     dxf/dxflib/dl_attributes.h \
     dxf/dxflib/customentities.h \
     dxf/dxffilter.h \
-    configure/configure.h \
-    configure/configuredialog.h \
     VSI/view.h \
     VSI/scene.h \
     VSI/item/shape.h \
@@ -118,20 +136,20 @@ HEADERS += \
     VSI/item/textdialog.h \
     VSI/item/itemproperties.h \
     VSI/item/insertoffsetdialog.h \
-    cad/project.h \
-    cad/sketch.h \
-    cad/nest.h \
-    common/binaryfile.h \
-    cad/sheet.h \
     nestFile/nf_global.h \
     nestFile/nf_writer.h \
     nestFile/nf_tnf.h \
     nestFile/nf_reader.h \
     nestFile/nf_struct.h \
-    cad/rectnestengine.h
+    configure/sketchconfigure.h \
+    configure/sketchconfiguredialog.h \
+    configure/nestconfigure.h \
+    configure/nestconfiguredialog.h \
+    configure/nestengineconfiguredialog.h \
+    configure/nestengineconfigure.h \
+    cad/tabdialog.h
 
 FORMS += \
-    configure/configuredialog.ui \
     cad/sketch.ui \
     cad/nest.ui
 

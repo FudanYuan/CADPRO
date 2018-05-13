@@ -11,7 +11,7 @@
 #include <QFile>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
-
+#include "tabdialog.h"
 Sheet::Sheet() :
       name(""),
       type(Whole),
@@ -253,7 +253,7 @@ void SheetDialog::initSheetInfoPanel()
 
     sheetView = new View(sheetInfoGroupBox);  // 初始化sheet view
     sheetScene = new Scene(sheetView);
-    Configure config;
+    SketchConfigure config;
     sheetScene->setEntityStyle(config.eStyle);
 //    sheetView->setMouseFlag(false);  // 忽略鼠标事件
 //    sheetView->setWheelFlag(false);  // 忽略滚轮事件
@@ -347,7 +347,7 @@ void SheetDialog::updateSheetInfo(const Sheet *sheetActive)
     qDebug() << sheetScene->width() << " " << sheetScene->height();
 
     Rect *rect = new Rect;
-    Configure::PenStyle pen;
+    SketchConfigure::PenStyle pen;
     pen.setPenStyle(Qt::black, Qt::DashLine, 1);
     rect->setPenStyle(pen);
     rect->setRect(sheetActive->layoutRect());
@@ -697,7 +697,10 @@ void SheetDialog::onDialogButtonClicked(QAbstractButton *button)
         QDialog::accept();
     }
 }
+void SheetDialog::tabdlg()
+{
 
+}
 void SheetDialog::onSheetSelected(const QModelIndex &index)
 {
     currentIndex = index.row();

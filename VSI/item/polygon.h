@@ -16,10 +16,10 @@ public:
     void drawing(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;  // 绘图开始
     bool updateFlag(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
-    void toPolyline();//转变成polyline
+    QVector<QPointF> toPolyline();//转变成polyline
 
-    QList<QPointF> getPoints() const;
-    void setPoints(const QList<QPointF> &value);
+    QVector<QPointF> getPoints() const;
+    void setPoints(const QVector<QPointF> &value);
     
 	void setType(int type);
     int getType();
@@ -51,14 +51,14 @@ protected:
 
 private:
     QPointF cPoint, sPoint;
-    QList<QPointF> points;  // 各个点的坐标
+    QVector<QPointF> points;  // 各个点的坐标
 
     qreal r; // 半径
     qreal alpha;  // 旋转角度
 
     int type;  //线类型
-    int lineNum;//边的个数
-    double radius;//半径
+    int lineNum;  //边的个数
+    double radius;  //半径
 
 public slots:
     void on_commandLinkButton_2_clicked();

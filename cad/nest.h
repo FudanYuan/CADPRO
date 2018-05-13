@@ -10,12 +10,14 @@
 #include <QMap>
 #include "sheet.h"
 #include "GA.h"
-#include "configure.h"
+#include "sketchconfigure.h"
 #include "project.h"
 #include "view.h"
 #include "scene.h"
 #include "shape.h"
 #include "binarytree.h"
+#include "tabdialog.h"
+#include "nestengineconfiguredialog.h"
 #include <QDebug>
 
 namespace Ui {
@@ -43,14 +45,14 @@ public:
         }
         Component(Polyline *p, int n){
             polyline = p;
-            rect = p->boundingRect();
+            rect = p->boundingRect();  // 改成最小包络矩形
             count = n;
             qreal w = rect.width();
             qreal h = rect.height();
             qDebug() << "边缘矩形: " << w << ", " << h << ", " << n;
         }
-        QRectF rect;  // 零件对应的最小矩形
-        Polyline *polyline;  // 零件原形状
+        QRectF rect;  // 零件对应的最小包络矩形
+        Polyline *polyline;  // 零件形状
         int count;  // 零件个数
     };
 
@@ -99,6 +101,7 @@ private:
     QList<Project *> projectList; // 项目列表
     Project *projectActive;  // 活动项目
     Scene *nestScene;  // 排版图层
+    NestEngineConfigureDialog nestEngineconfigDialog;
     QMap<QString, QList<Scene *>> outMap;  // 保存对象<项目名称，图层列表>
     QMap<QString, QList<PieceCenter>> pieceCenterMap; // 保存项目的零件中心图
     QMap<QString, QList<PieceOffset>> pieceOffsetMap; // 保存项目的零件中心图
@@ -208,6 +211,9 @@ private:
     QAction *action_tree_project_scene_move_down_one;
     QAction *action_tree_project_scene_move_down_bottom;
     QAction *action_tree_project_scene_delete;
+
+signals:
+    void nestEngineConfigChange(int i);
 
 public slots:
     void onProjectNameChanged(QString lastName, QString presentName);  // 响应项目名称改变

@@ -2,13 +2,8 @@
 #define CONFIGUREDIALOG_H
 
 #include <QDialog>
-#include <configure.h>
+#include <sketchconfigure.h>
 #include <QList>
-
-namespace Ui {
-class ConfigureDialog;
-}
-
 class CustomTabWidget : public QWidget
 {
     Q_OBJECT
@@ -30,7 +25,7 @@ class EntityStyleTab : public CustomTabWidget
 {
     Q_OBJECT
 public:
-    explicit EntityStyleTab(Configure::EntityStyle &eStyle, QWidget *parent = 0);
+    explicit EntityStyleTab(SketchConfigure::EntityStyle &eStyle, QWidget *parent = 0);
 };
 //! [0]
 
@@ -40,7 +35,7 @@ class AxesGridTab : public CustomTabWidget
 {
     Q_OBJECT
 public:
-    explicit AxesGridTab(Configure::AxesGrid &axesGrid, QWidget *parent = 0);
+    explicit AxesGridTab(SketchConfigure::AxesGrid &axesGrid, QWidget *parent = 0);
 };
 //! [1]
 
@@ -50,7 +45,7 @@ class OffsetTab : public CustomTabWidget
 {
     Q_OBJECT
 public:
-    explicit OffsetTab(QList<Configure::Offset> &offset, QWidget *parent = 0);
+    explicit OffsetTab(QList<SketchConfigure::Offset> &offset, QWidget *parent = 0);
 };
 //! [2]
 
@@ -60,31 +55,30 @@ class LanguageTab : public CustomTabWidget
 {
     Q_OBJECT
 public:
-    explicit LanguageTab(Configure::Language &language, QWidget *parent = 0);
+    explicit LanguageTab(SketchConfigure::Language &language, QWidget *parent = 0);
 };
 //! [3]
 
 
-class ConfigureDialog : public QDialog
+class SketchConfigureDialog : public QDialog
 {
     Q_OBJECT
 public:
-    ConfigureDialog(Configure *config, QWidget *parent=0);
-    ~ConfigureDialog();
+    SketchConfigureDialog(SketchConfigure *config, QWidget *parent=0);
+    ~SketchConfigureDialog();
     int hasKey(QString key);
 
 private:
-    Ui::ConfigureDialog *ui;
     QTabWidget *tabWidget;
-    QList<Configure::KeyValue> keyValueList;
+    QList<SketchConfigure::KeyValue> keyValueList;
     QDialogButtonBox *buttonBox;
 
 signals:
-    void changed(QList<Configure::KeyValue>);
+    void changed(QList<SketchConfigure::KeyValue>);
 public slots:
     void accept();
     void reject();
     void onChanged(QString key, QVariant value);
 };
 
-#endif // CONFIGUREDIALOG_H
+#endif // SKETCHCONFIGUREDIALOG_H
