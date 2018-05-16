@@ -47,7 +47,6 @@ SOURCES += \
     common/customwidget.cpp \
     common/GA.cpp \
     common/collisiondectect.cpp \
-    common/quadtree.cpp \
     dxf/dxflib/dl_writer_ascii.cpp \
     dxf/dxflib/dl_dxf.cpp \
     dxf/dxffilter.cpp \
@@ -100,7 +99,7 @@ HEADERS += \
     common/binarytree.h \
     common/ternarytree.h \
     common/collisiondectect.h \
-    common/quadtree.h \
+    common/quadtreenode.h \
     dxf/dxflib/dl_writer.h \
     dxf/dxflib/dl_writer_ascii.h \
     dxf/dxflib/dl_global.h \

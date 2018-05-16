@@ -682,8 +682,7 @@ void Sketch::initActions()
     action_utility_pattern_search = new QAction(tr("&搜索图样"), this);
     action_utility_pattern_search->setDisabled(true);
     connect(action_utility_pattern_search, &QAction::triggered, this, &Sketch::onActionUtilityPatternSearch);
-
-    // ![7] 效用
+// ![7] 效用
 
 // ![8] 级放
     action_grading_parameters = new QAction(tr("&图样"), this);
@@ -1087,9 +1086,9 @@ void Sketch::initToolBar()
     tool_standard->addSeparator();
     tool_standard->addAction(action_modify_undo);
     tool_standard->addAction(action_modify_redo);
-// ![3] 标准工具栏
+// ![2] 标准工具栏
 
-// ![4] 草图工具栏
+// ![3] 草图工具栏
     tool_sketch = new QToolBar(tr("草图"), this);
     tool_sketch->setOrientation(Qt::Horizontal);
     tool_sketch->setAllowedAreas(Qt::AllToolBarAreas);
@@ -1110,9 +1109,9 @@ void Sketch::initToolBar()
     tool_sketch->addAction(action_draw_reference);
     tool_sketch->addSeparator();
     tool_sketch->addAction(action_draw_perpendicular);
-// ![4] 草图工具栏
+// ![3] 草图工具栏
 
-// ![5] 对象捕捉
+// ![4] 对象捕捉
     tool_object_snap = new QToolBar(tr("对象捕捉"), this);
     tool_object_snap->setOrientation(Qt::Horizontal);
     tool_object_snap->setAllowedAreas(Qt::AllToolBarAreas);
@@ -1124,9 +1123,9 @@ void Sketch::initToolBar()
     tool_object_snap->addSeparator();
     tool_object_snap->addAction(action_object_snap_ortho);
     tool_object_snap->addAction(action_object_snap_enter_coordinates);
-// ![5] 对象捕捉
+// ![4] 对象捕捉
 
-// ![6] 缩放
+// ![5] 缩放
     tool_zoom = new QToolBar(tr("缩放"), this);
     tool_zoom->setOrientation(Qt::Horizontal);
     tool_zoom->setAllowedAreas(Qt::AllToolBarAreas);
@@ -1145,9 +1144,9 @@ void Sketch::initToolBar()
     tool_zoom->addAction(action_view_voerlap_patterns);
     tool_zoom->addAction(action_view_design_rules);
     tool_zoom->addAction(action_view_grading_rules);
-// ![6] 缩放
+// ![5] 缩放
 
-// ![7] 修改
+// ![6] 修改
     tool_modify = new QToolBar(tr("修改"), this);
     tool_modify->setOrientation(Qt::Horizontal);
     tool_modify->setAllowedAreas(Qt::AllToolBarAreas);
@@ -1179,9 +1178,9 @@ void Sketch::initToolBar()
     tool_modify->addAction(action_modify_springing);
     tool_modify->addAction(action_modify_warp);
     tool_modify->addAction(action_modify_replace_part);
-// ![7] 修改
+// ![6] 修改
 
-// ![8] 图片
+// ![7] 图片
     tool_image = new QToolBar(tr("图片"), this);
     tool_image->setOrientation(Qt::Horizontal);
     tool_image->setAllowedAreas(Qt::AllToolBarAreas);
@@ -1191,9 +1190,9 @@ void Sketch::initToolBar()
     tool_image->addAction(action_draw_image_crop);
     tool_image->addAction(action_draw_image_calibrate);
     tool_image->addAction(action_draw_image_agjustement);
-// ![8] 图片
+// ![7] 图片
 
-// ![9] 数字化仪
+// ![8] 数字化仪
     tool_digitizer = new QToolBar(tr("数字化仪"), this);
     tool_digitizer->setOrientation(Qt::Horizontal);
     tool_digitizer->setAllowedAreas(Qt::AllToolBarAreas);
@@ -1201,9 +1200,9 @@ void Sketch::initToolBar()
     tool_digitizer->addAction(action_draw_digitizer_activate);
     tool_digitizer->addAction(action_draw_digitizer_set_position);
     tool_digitizer->addAction(action_draw_digitizer_configure);
-// ![9] 数字化仪
+// ![8] 数字化仪
 
-// ![10] 级放
+// ![9] 级放
     tool_grading = new QToolBar(tr("级放"), this);
     tool_grading->setOrientation(Qt::Horizontal);
     tool_grading->setAllowedAreas(Qt::AllToolBarAreas);
@@ -1221,9 +1220,9 @@ void Sketch::initToolBar()
     tool_grading->addAction(action_grading_horizontal_zone);
     tool_grading->addAction(action_grading_vertical_zone);
     tool_grading->addAction(action_grading_delete_zone);
-// ![10] 级放
+// ![9] 级放
 
-// ![11] 扫描仪
+// ![10] 扫描仪
     tool_scanner = new QToolBar(tr("扫描仪"), this);
     tool_scanner->setOrientation(Qt::Horizontal);
     tool_scanner->setAllowedAreas(Qt::AllToolBarAreas);
@@ -1231,9 +1230,9 @@ void Sketch::initToolBar()
     tool_scanner->addAction(action_draw_scanner_vectorize_from_scanner);
     tool_scanner->addAction(action_draw_scanner_select_source);
     tool_scanner->addAction(action_draw_scanner_vectorize_image);
-// ![11] 扫描仪
+// ![10] 扫描仪
 
-// ![12] 插入
+// ![11] 插入
     tool_insert = new QToolBar(tr("插入"), this);
     tool_insert->setOrientation(Qt::Horizontal);
     tool_insert->setAllowedAreas(Qt::AllToolBarAreas);
@@ -1250,9 +1249,9 @@ void Sketch::initToolBar()
     tool_insert->addSeparator();
     tool_insert->addAction(action_insert_margin);
     tool_insert->addAction(action_insert_canal);
-// ![12] 插入
+// ![11] 插入
 
-// ![13] 图样
+// ![12] 图样
     tool_pattern = new QToolBar(tr("图样"), this);
     tool_pattern->setOrientation(Qt::Horizontal);
     tool_pattern->setAllowedAreas(Qt::AllToolBarAreas);
@@ -1269,7 +1268,7 @@ void Sketch::initToolBar()
     tool_pattern->addAction(action_pattern_close_trim);
     tool_pattern->addSeparator();
     tool_pattern->addAction(action_pattern_extract_manual);
-// ![13] 图样
+// ![12] 图样
 
     addToolBar(Qt::TopToolBarArea, tool_standard);
     addToolBar(Qt::TopToolBarArea, tool_sketch);

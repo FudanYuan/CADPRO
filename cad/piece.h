@@ -5,6 +5,7 @@
 #include <polyline.h>
 #include <sheet.h>
 #include "collisiondectect.h"
+#include "quadtreenode.h"
 
 class Piece
 {
@@ -23,9 +24,12 @@ public:
     Piece();
     Piece(Polyline *p, int n=1, short i=6);
     Piece(QVector<QPointF> points, int n=1, short i=6);
+    Piece(QVector<QPointF> points, QVector<QLineF> lines, int n=1, short i=6);  // 带有参考线的多边形
 
     Polyline* getPolyline();
+    Object* toObject();
     QVector<QPointF> &getPointsList();
+    QVector<QLineF> getReferenceLinesList();
     qreal getArea() const;
     QRectF getMinBoundingRect() const;
     qreal getAngle() const;
@@ -35,6 +39,8 @@ public:
 
     void setPrecision(short i);
     short getPrecision() const;
+
+    bool isHorizontal() const;  // 如果包络矩形的宽>高，则认为是横置的，否则，认为是竖置
 
     void moveTo(const QPointF position);  // 移动零件至给定位置
     void rotate(const QPointF cPoint, const qreal alpha);  // 将零件旋转alpha度
@@ -48,6 +54,7 @@ public:
 
 //private:
     QVector<QPointF> pointsList;  // 多边形点集
+    QVector<QLineF> referenceLines;  // 参考线集合
     qreal area;  // 零件面积
     QRectF minBoundingRect;  // 零件对应的最小包络矩形,其中心为参考点
     qreal angle;  // 零件最小包络矩形对应多变形顺时针旋转angle之后的外包矩形

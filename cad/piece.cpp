@@ -14,7 +14,12 @@ Piece::Piece() :
 
 Piece::Piece(Polyline *p, int n, short i)
 {
-    pointsList = pointsListPrecision(p->getPoints(), i);  // 读入边时，保留i位小数位
+    QVector<QPointF> points = p->getPoints();
+    if(points.length() < 3){
+        return;
+    }
+    pointsList = pointsListPrecision(points, i);  // 读入边时，保留i位小数位
+    // referenceLine = linesListPrecision(p->getReferenceLines(), i);  // 读入参考线
     area = calculatePolygonArea(pointsList);  // 计算多边形面积
     qreal minBoundingRectArea = calculatePloygonMinBoundingRectArea(pointsList, angle, minBoundingRect);
     minBoundingRect = rectPrecision(minBoundingRect, i);  // 边缘矩形，保留i位小数位
@@ -26,6 +31,9 @@ Piece::Piece(Polyline *p, int n, short i)
 
 Piece::Piece(QVector<QPointF> points, int n, short i)
 {
+    if(points.length() < 3){
+        return;
+    }
     pointsList = pointsListPrecision(points, i);  // 读入边时，保留i位小数位
     area = calculatePolygonArea(pointsList);  // 计算多边形面积
     qreal minBoundingRectArea = calculatePloygonMinBoundingRectArea(pointsList, angle, minBoundingRect);
@@ -36,6 +44,15 @@ Piece::Piece(QVector<QPointF> points, int n, short i)
     precision = i;
 }
 
+Piece::Piece(QVector<QPointF> points, QVector<QLineF> lines, int n, short i) :
+    Piece(points, n, i)
+{
+    if(lines.length() < 1){
+        return;
+    }
+    referenceLines = linesListPrecision(lines, i);
+}
+
 Polyline *Piece::getPolyline()
 {
     Polyline *polyline = new Polyline;
@@ -43,9 +60,22 @@ Polyline *Piece::getPolyline()
     return polyline;
 }
 
+Object *Piece::toObject()
+{
+    return new Object(minBoundingRect.topLeft().rx(),
+                      minBoundingRect.topLeft().ry(),
+                      minBoundingRect.width(),
+                      minBoundingRect.height());
+}
+
 QVector<QPointF> &Piece::getPointsList()
 {
     return pointsList;
+}
+
+QVector<QLineF> Piece::getReferenceLinesList()
+{
+    return referenceLines;
 }
 
 qreal Piece::getArea() const
@@ -88,6 +118,11 @@ short Piece::getPrecision() const
     return precision;
 }
 
+bool Piece::isHorizontal() const
+{
+    return minBoundingRect.width() > minBoundingRect.height();
+}
+
 void Piece::moveTo(const QPointF position)
 {
     QPointF offset = position - minBoundingRect.center();  // 偏移量
@@ -125,6 +160,7 @@ void Piece::rotate(const QPointF cPoint, const qreal alpha)
     minBoundingRect = rectPrecision(calculatePolygonBoundingRect(pointsList), precision);  // 更新最小包络矩形
     squareness = area / (minBoundingRect.width() * minBoundingRect.height());  // 计算方正度
     squareness = qrealPrecision(squareness, precision);  // 保留i位小数位
+    angle -= alpha;  // 该图形对应最小矩形顺时针转angle度
 }
 
 bool Piece::hasRelationToPoint(const QPointF &point)

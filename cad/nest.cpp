@@ -14,6 +14,8 @@
 
 #include "piece.h"
 #include "packpointnestengine.h"
+#include "queue"
+#include "quadtreenode.h"
 #include <sys/time.h>
 
 #define COUNT 20
@@ -149,7 +151,37 @@ void Nest::initActions()
     connect(action_edit_paste, &QAction::triggered, this, &Nest::onActionEditPaste);
 // ![2] 编辑
 
-// ![3] 材料
+// ![3] 排版
+    action_nest_config = new QAction(tr("自动排版配置"));
+    action_nest_config->setStatusTip(tr("自动排版配置"));
+    connect(action_nest_config, &QAction::triggered, this, &Nest::onActionNestConfig);
+
+    action_nest_side_left = new QAction(tr("左靠边"));
+    action_nest_side_left->setStatusTip(tr("零件紧靠材料左边"));
+    connect(action_nest_side_left, &QAction::triggered, this, &Nest::onActionNestSideLeft);
+
+    action_nest_side_right = new QAction(tr("右靠边"));
+    action_nest_side_right->setStatusTip(tr("零件紧靠材料右边"));
+    connect(action_nest_side_right, &QAction::triggered, this, &Nest::onActionNestSideRight);
+
+    action_nest_side_top = new QAction(tr("顶靠边"));
+    action_nest_side_top->setStatusTip(tr("零件紧靠材料顶部"));
+    connect(action_nest_side_top, &QAction::triggered, this, &Nest::onActionNestSideTop);
+
+    action_nest_side_bottom = new QAction(tr("底靠边"));
+    action_nest_side_bottom->setStatusTip(tr("零件紧靠材料底部"));
+    connect(action_nest_side_bottom, &QAction::triggered, this, &Nest::onActionNestSideBottom);
+
+    action_nest_direction_horizontal = new QAction(tr("横向"));
+    action_nest_direction_horizontal->setStatusTip(tr("横向排版，即自左至右"));
+    connect(action_nest_direction_horizontal, &QAction::triggered, this, &Nest::onActionNestDirectionHorizontal);
+
+    action_nest_direction_vertical = new QAction(tr("纵向"));
+    action_nest_direction_vertical->setStatusTip(tr("纵向排版，即自上而下"));
+    connect(action_nest_direction_vertical, &QAction::triggered, this, &Nest::onActionNestSideDirectionVertical);
+// ![3] 排版
+
+// ![4] 材料
     action_sheet_manager = new QAction(tr("材料管理"));
     action_sheet_manager->setStatusTip(tr("创建或编辑材料"));
     connect(action_sheet_manager, &QAction::triggered, this, &Nest::onActionSheetManager);
@@ -197,7 +229,86 @@ void Nest::initActions()
     action_sheet_sheet_property->setStatusTip(tr("更改材料&余良/边距"));
     action_sheet_sheet_property->setDisabled(true);
     connect(action_sheet_sheet_property, &QAction::triggered, this, &Nest::onActionSheetProperty);
-// ![3] 材料
+// ![4] 材料
+
+// ![5] 视图
+    action_view_grid = new QAction(tr("&网格"), this);
+    action_view_grid->setCheckable(true);
+    action_view_grid->setStatusTip(tr("显示/隐藏网格"));
+    connect(action_view_grid, &QAction::toggled, this, &Nest::onActionViewGrid);
+
+    action_view_zoom_window = new QAction(tr("&缩放窗口"), this);
+    action_view_zoom_window->setStatusTip(tr("&缩放窗口"));
+    connect(action_view_zoom_window, &QAction::triggered, this, &Nest::onActionViewZoomWindow);
+
+    action_view_zoom_all = new QAction(tr("&全部缩放"), this);
+    action_view_zoom_all->setStatusTip(tr("&全部缩放"));
+    connect(action_view_zoom_all, &QAction::triggered, this, &Nest::onActionViewZoomAll);
+
+    action_view_zoom_in = new QAction(tr("&放大"), this);
+    action_view_zoom_in->setShortcut(QKeySequence::ZoomIn);
+    action_view_zoom_in->setStatusTip(tr("放大"));
+    connect(action_view_zoom_in, &QAction::triggered, this, &Nest::onActionViewZoomIn);
+
+    action_view_zoom_out = new QAction(tr("&缩小"), this);
+    action_view_zoom_out->setShortcut(QKeySequence::ZoomOut);
+    action_view_zoom_out->setStatusTip(tr("缩小"));
+    connect(action_view_zoom_out, &QAction::triggered, this, &Nest::onActionViewZoomOut);
+
+    action_view_zoom_back = new QAction(tr("&还原"), this);
+    action_view_zoom_back->setStatusTip(tr("还原"));
+    connect(action_view_zoom_back, &QAction::triggered, this, &Nest::onActionViewZoomBack);
+
+    action_view_lock_layout = new QAction(tr("&锁定布局"), this);
+    action_view_lock_layout->setCheckable(true);
+    connect(action_view_lock_layout, &QAction::toggled, this, &Nest::onActionViewLockLayout);
+
+    action_view_tool_projects = new QAction(tr("&项目列表"), this);
+    action_view_tool_projects->setCheckable(true);
+    connect(action_view_tool_projects, &QAction::toggled, this, &Nest::onActionViewToolProjectsToggled);
+
+    action_view_tool_pieces = new QAction(tr("&零件列表"), this);
+    action_view_tool_pieces->setCheckable(true);
+    connect(action_view_tool_pieces, &QAction::toggled, this, &Nest::onActionViewToolPiecesToggled);
+
+    action_view_tool_sheets = new QAction(tr("&材料列表"), this);
+    action_view_tool_sheets->setCheckable(true);
+    connect(action_view_tool_sheets, &QAction::toggled, this, &Nest::onActionViewToolSheetsToggled);
+
+    action_view_tool_slide = new QActionGroup(this);
+    action_view_tool_slide->setExclusive(false);
+
+    action_view_tool_slide->addAction(action_view_tool_projects);
+    action_view_tool_slide->addAction(action_view_tool_pieces);
+    action_view_tool_slide->addAction(action_view_tool_sheets);
+
+    connect(action_view_lock_layout, &QAction::toggled, action_view_tool_slide, &QActionGroup::setDisabled);
+
+    action_view_tool_customize = new QAction(tr("&自定义"),this);
+    connect(action_view_tool_customize, &QAction::toggled, this, &Nest::onActionViewToolCustomizeToggled);
+
+    action_view_status_bar = new QAction(tr("&状态栏"), this);
+    action_view_status_bar->setCheckable(true);
+    action_view_status_bar->setChecked(true);
+    connect(action_view_status_bar, &QAction::toggled, this, &Nest::onActionViewStatusBar);
+// ![5] 视图
+
+// ![6] 实用
+    action_utility_measure_distance = new QAction(tr("&测量距离"), this);
+    connect(action_utility_measure_distance, &QAction::triggered, this, &Nest::onActionUtilityMeasureDis);
+// ![6] 实用
+
+// ![7] 帮助
+    action_help_help = new QAction(tr("&帮助(&H)"), this);
+    action_help_help->setShortcut(QKeySequence::HelpContents);
+    connect(action_help_help, &QAction::triggered, this, &Nest::onActionHelpHelp);
+
+    action_help_license = new QAction(tr("&许可(&L)"), this);
+    connect(action_help_license, &QAction::triggered, this, &Nest::onActionHelpLicense);
+
+    action_help_about = new QAction(tr("&关于"), this);
+    connect(action_help_about, &QAction::triggered, this, &Nest::onActionHelpAbout);
+// ![7] 帮助
 }
 
 void Nest::initMenuBar()
@@ -229,7 +340,23 @@ void Nest::initMenuBar()
     menu_edit->addAction(action_edit_paste);
 // ![2] 编辑栏
 
-// ![3] 材料栏
+// ![3] 排版栏
+    menu_nest = ui->menuBar->addMenu(tr("排版"));
+    menu_nest->addAction(action_nest_config);
+    menu_nest->addSeparator();
+    menu_action_nest_side = menu_nest->addMenu(tr("靠边"));
+    menu_action_nest_side->addAction(action_nest_side_left);
+    menu_action_nest_side->addAction(action_nest_side_right);
+    menu_action_nest_side->addAction(action_nest_side_top);
+    menu_action_nest_side->addAction(action_nest_side_bottom);
+    menu_nest->addMenu(menu_action_nest_side);
+    menu_nest->addSeparator();
+    menu_action_nest_direction = menu_nest->addMenu(tr("方向"));
+    menu_action_nest_direction->addAction(action_nest_direction_horizontal);
+    menu_action_nest_direction->addAction(action_nest_direction_vertical);
+// ![3] 排版栏
+
+// ![4] 材料栏
     menu_sheet = ui->menuBar->addMenu(tr("材料(&M)"));
     menu_sheet->addAction(action_sheet_manager);
     menu_sheet->addSeparator();
@@ -245,12 +372,124 @@ void Nest::initMenuBar()
     menu_sheet->addAction(action_sheet_use_last_sheet);
     menu_sheet->addSeparator();
     menu_sheet->addAction(action_sheet_sheet_property);
-// ![3] 材料栏
+// ![4] 材料栏
+
+// ![5] 查看
+    menu_view = ui->menuBar->addMenu(tr("查看(&V)"));
+    menu_view->addAction(action_view_grid);
+    menu_view->addSeparator();
+    menu_view->addAction(action_view_zoom_window);
+    menu_view->addAction(action_view_zoom_all);
+    menu_view->addAction(action_view_zoom_in);
+    menu_view->addAction(action_view_zoom_out);
+    menu_view->addAction(action_view_zoom_back);
+    menu_view->addSeparator();
+    menu_view->addAction(action_view_lock_layout);
+    menu_view_tool_bar = new QMenu(tr("&工具栏"), this);
+    menu_view_tool_bar->addActions(action_view_tool_slide->actions());
+    menu_view_tool_bar->addSeparator();
+    menu_view_tool_bar->addAction(action_view_tool_customize);
+    menu_view->addMenu(menu_view_tool_bar);
+    menu_view->addAction(action_view_status_bar);
+    menu_view->addSeparator();
+// ![5] 查看
+
+// ![6] 实用
+    menu_utility = ui->menuBar->addMenu(tr("效用(&U)"));
+    menu_utility->addAction(action_utility_measure_distance);
+// ![6] 实用
+
+// ![7] 帮助
+    menu_help = ui->menuBar->addMenu(tr("帮助"));
+    menu_help->addAction(action_help_help);
+    menu_help->addSeparator();
+    menu_help->addAction(action_help_license);
+    menu_help->addSeparator();
+    menu_help->addAction(action_help_about);
+// ![7] 帮助
 }
 
 void Nest::initToolBar()
 {
+    if(ui->toolBar) delete ui->toolBar;
+// ![1] 边栏工具栏
+//    tool_slide = new QToolBar(tr("边栏"), this);
+//    addToolBar(Qt::LeftToolBarArea, tool_slide);
+//    tool_slide->setOrientation(Qt::Vertical);
+//    tool_slide->setAllowedAreas(Qt::LeftToolBarArea);
+//    tool_slide->setFloatable(false);
+//    tool_slide->setMovable(false);
+//    tool_slide->addActions(action_tool_slide->actions());
+//    onToolSlideChanged();
+// ![1] 边栏工具栏
 
+// ![2] 标准工具栏
+    tool_standard = new QToolBar(tr("标准"), this);
+    tool_standard->setOrientation(Qt::Horizontal);
+    tool_standard->setAllowedAreas(Qt::AllToolBarAreas);
+
+    tool_standard->addAction(action_file_new);
+    tool_standard->addAction(action_file_open);
+    tool_standard->addAction(action_file_save);
+    tool_standard->addSeparator();
+    tool_standard->addAction(action_edit_cut);
+    tool_standard->addAction(action_edit_copy);
+    tool_standard->addAction(action_edit_paste);
+    tool_standard->addAction(action_file_print);
+    tool_standard->addAction(action_help_about);
+    tool_standard->addAction(action_help_help);
+    tool_standard->addSeparator();
+    tool_standard->addAction(action_edit_undo);
+    tool_standard->addAction(action_edit_redo);
+// ![2] 标准工具栏
+
+// ![4] 视图工具栏
+    tool_view = new QToolBar(tr("视图"), this);
+    tool_view->setOrientation(Qt::Horizontal);
+    tool_view->setAllowedAreas(Qt::AllToolBarAreas);
+
+    tool_view->addAction(action_view_zoom_window);
+    tool_view->addAction(action_view_zoom_in);
+    tool_view->addAction(action_view_zoom_out);
+    tool_view->addAction(action_view_zoom_all);
+    tool_view->addSeparator();
+    tool_view->addAction(action_view_grid);
+// ![4] 视图工具栏
+
+// ![5] 排版工具栏
+    tool_nest = new QToolBar(tr("排版"), this);
+    tool_nest->setOrientation(Qt::Horizontal);
+    tool_nest->setAllowedAreas(Qt::AllToolBarAreas);
+
+    tool_nest->addAction(action_nest_config);
+    tool_nest->addSeparator();
+    tool_nest->addAction(action_nest_side_left);
+    tool_nest->addAction(action_nest_side_right);
+    tool_nest->addAction(action_nest_side_top);
+    tool_nest->addAction(action_nest_side_bottom);
+    tool_nest->addSeparator();
+    tool_nest->addAction(action_nest_direction_horizontal);
+    tool_nest->addAction(action_nest_direction_vertical);
+// ![5] 排版工具栏
+
+// ![6] 材料工具栏
+    tool_sheet = new QToolBar(tr("材料"), this);
+    tool_sheet->setOrientation(Qt::Horizontal);
+    tool_sheet->setAllowedAreas(Qt::AllToolBarAreas);
+
+    tool_sheet->addAction(action_sheet_add);
+    tool_sheet->addAction(action_sheet_remove);
+    tool_sheet->addAction(action_sheet_duplicate);
+    tool_sheet->addAction(action_sheet_auto_duplicate);
+    tool_sheet->addAction(action_sheet_previous);
+    tool_sheet->addAction(action_sheet_next);
+    tool_sheet->addAction(action_sheet_sheet_number);
+// ![6] 材料工具栏
+
+    addToolBar(Qt::TopToolBarArea, tool_standard);
+    addToolBar(Qt::TopToolBarArea, tool_view);
+    addToolBar(Qt::TopToolBarArea, tool_nest);
+    addToolBar(Qt::TopToolBarArea, tool_sheet);
 }
 
 void Nest::initStatusBar()
@@ -317,20 +556,22 @@ void Nest::updateNestView()
     if(outMap.contains(pName)){
         outMap[pName].clear();
     }
-    nestScene->setSceneRect(-10, -10,
-                            curSheet->layoutRect().width(),
-                            curSheet->layoutRect().height());
 
-    // 画出边缘
-    Rect *rect = new Rect;
-    SketchConfigure::PenStyle pen;
-    pen.setPenStyle(Qt::black, Qt::SolidLine, 2);
-    rect->setPenStyle(pen);
-    rect->setRect(curSheet->layoutRect());
-    nestScene->addCustomRectItem(rect);
+//    nestScene = new Scene(nestView);
+//    nestScene->setSceneRect(-10, -10,
+//                            curSheet->layoutRect().width(),
+//                            curSheet->layoutRect().height());
 
-    nestView->setScene(nestScene);
-    nestView->centerOn(nestView->mapFromScene(0,0));
+//    // 画出边缘
+//    Rect *rect = new Rect;
+//    SketchConfigure::PenStyle pen;
+//    pen.setPenStyle(Qt::black, Qt::SolidLine, 2);
+//    rect->setPenStyle(pen);
+//    rect->setRect(curSheet->layoutRect());
+//    nestScene->addCustomRectItem(rect);
+
+//    nestView->setScene(nestScene);
+//    nestView->centerOn(nestView->mapFromScene(0,0));
 }
 
 void Nest::initProjectView()
@@ -433,6 +674,10 @@ void Nest::initSheet()
         qDebug() << "curSheet = NULL";
         return;
     }
+
+    nestEngineconfigDialog.exec();
+    connect(this, &Nest::nestEngineConfigChange, &nestEngineconfigDialog, &NestEngineConfigureDialog::onNestEngingeConfig);
+    emit(nestEngineConfigChange(2));
     QString pName = projectActive->getName();
     if(proSheetMap.contains(pName)){
         ProSheetMap *map = proSheetMap[pName];
@@ -1013,16 +1258,6 @@ void Nest::onActionFileExit()
 void Nest::onActionEditUndo()
 {
     qDebug() << "撤销上个操作";
-    QList<Polyline*> polylineList = nestScene->getPolylineList();
-
-    for(int i=0;i<polylineList.length()-1;i++){
-        for(int j=i+1;j<polylineList.length();j++){
-            if(polylineList[i]->collidesWithItem(polylineList[j])){
-                qDebug() << polylineList[i]->getShapeId() << " 与"
-                         << polylineList[j]->getShapeId() << "碰撞";
-            }
-        }
-    }
 }
 
 void Nest::onActionEditRedo()
@@ -1055,6 +1290,41 @@ void Nest::onActionEditPaste()
     qDebug() << "粘贴";
 }
 
+void Nest::onActionNestConfig()
+{
+    qDebug() << "自动排版配置";
+}
+
+void Nest::onActionNestSideLeft()
+{
+    qDebug() << "左靠边";
+}
+
+void Nest::onActionNestSideRight()
+{
+    qDebug() << "右靠边";
+}
+
+void Nest::onActionNestSideTop()
+{
+    qDebug() << "顶靠边";
+}
+
+void Nest::onActionNestSideBottom()
+{
+    qDebug() << "底靠边";
+}
+
+void Nest::onActionNestDirectionHorizontal()
+{
+    qDebug() << "横向";
+}
+
+void Nest::onActionNestSideDirectionVertical()
+{
+    qDebug() << "纵向";
+}
+
 void Nest::onActionSheetManager()
 {
     qDebug() << "创建或编辑材料";
@@ -1085,7 +1355,7 @@ void Nest::onActionSheetAutoDuplicate()
 #ifdef NESTENGINEDEBUG
     // 初始化材料1
     Sheet sheet1;
-    sheet1.height = 2000;
+    sheet1.height = 600;
     sheet1.width = 1000;
     sheet1.type = Sheet::Whole;
     sheet1.componentGap = 2;
@@ -1095,9 +1365,9 @@ void Nest::onActionSheetAutoDuplicate()
     sheet1.leftMargin = 5;
     // 初始化材料2
     Sheet sheet2;
-    sheet2.height = 1000;
-    sheet2.width = 500;
-    sheet2.type = Sheet::Whole;
+    sheet2.height = 600;
+    sheet2.width = 1000;
+    sheet2.type = Sheet::Strip;
     sheet2.componentGap = 2;
     sheet2.topMargin = 5;
     sheet2.rightMargin = 5;
@@ -1108,23 +1378,9 @@ void Nest::onActionSheetAutoDuplicate()
     sheetList.append(sheet1);
 //    sheetList.append(sheet2);
 
-    nestScene = new Scene(nestView);
-    nestScene->setSceneRect(-10, -10,
-                            sheet1.layoutRect().width(),
-                            sheet1.layoutRect().height());
-    nestScene->setMoveable(true);
-    Rect *rect1 = new Rect;
-    rect1->setRect(sheet1.layoutRect());
-    nestScene->addCustomRectItem(rect1);
-
-    nestView->setScene(nestScene);
-    nestView->centerOn(nestView->mapFromScene(0,0));
-//    Rect *rect2 = new Rect;
-//    rect2->setRect(sheet2.layoutRect());
-//    nestScene->addCustomRectItem(rect2);
-
     // 初始化零件
     QVector<QPointF> points1;
+//    凹多边形1
 //    points1.append(QPointF(0, 0));
 //    points1.append(QPointF(-100, -200));
 //    points1.append(QPointF(200, 0));
@@ -1134,17 +1390,16 @@ void Nest::onActionSheetAutoDuplicate()
 //    points1.append(QPointF(0, 200));
 //    points1.append(QPointF(-100, 100));
 //    points1.append(QPointF(0, 0));
-//    凹多边形1
+
     points1.append(QPointF(0, 0));
     points1.append(QPointF(50, 0));
-    points1.append(QPointF(50, 50));
-    points1.append(QPointF(25, 100));
-    points1.append(QPointF(0, 50));
+    points1.append(QPointF(50, -50));
+    points1.append(QPointF(25, -100));
+    points1.append(QPointF(0, -50));
     points1.append(QPointF(0, 0));
-    Piece piece1(points1, 50);
+    Piece piece1(points1, 100);
 
     QVector<QPointF> points2;
-
     // 测试凸边形1
     points2.append(QPointF(0, 0));
     points2.append(QPointF(100, 0));
@@ -1152,36 +1407,83 @@ void Nest::onActionSheetAutoDuplicate()
     points2.append(QPointF(50, 200));
     points2.append(QPointF(0, 100));
     points2.append(QPointF(0, 0));
-    Piece piece2(points2, 50);
+
+    QVector<QLineF> lines2;
+    lines2.append(QLineF(0, 100, 100, 100));
+    Piece piece2(points2, lines2, 28);
 
     QVector<Piece> pieceList;
-    pieceList.append(piece1);
     pieceList.append(piece2);
+//    pieceList.append(piece1);
+
+    nestScene = new Scene(nestView);
+    nestScene->setSceneRect(-10, -10,
+                            sheet1.layoutRect().width(),
+                            sheet1.layoutRect().height());
+    nestScene->setMoveable(true);
+    Rect *rect = new Rect;
+    rect->setRect(sheet1.layoutRect());
+    nestScene->addCustomRectItem(rect);
+
+    nestView->setScene(nestScene);
+    nestView->centerOn(nestView->mapFromScene(0,0));
 
 //    for(int i=0;i<projectActive->getSceneList().length();i++){
 //        Scene *s = projectActive->getSceneList().at(i);
 //        for(int j=0; j<s->getPolylineList().length(); j++){
 //            Polyline *p = s->getPolylineList()[j];
-//            Piece piece3(p, 20);
+//            Piece piece3(p, 50);
 //            pieceList.append(piece3);
 //        }
 //    }
 
+//    return;
+    /// 000000000
     // 初始化排样引擎
-    PackPointNestEngine packEngine(pieceList, sheetList, 50, 2);
+    PackPointNestEngine packEngine(pieceList, sheetList, 50, 0);
     packEngine.setCompactStep(5);
     packEngine.setCompactAccuracy(1);
-    packEngine.setAutoRepeatLastSheet(true);
-    packEngine.setNestDirections(NestEngine::HorizontalNest);
-    packEngine.setNestEngineStrategys(NestEngine::LeftRightTurn | NestEngine::SizeDown);
-    packEngine.setMaxRotateAngle(360);
+    packEngine.setAutoRepeatLastSheet(false);
+    // strip
+    packEngine.setNestEngineStrategys(NestEngine::SizeDown | NestEngine::LeftRightTurn);  // 方式
+    packEngine.setNestAdaptiveSpacingTypes(NestEngine::HorizontalAdaptiveSpacing);  // 自适应间隔
+
+    // whole or package
+    packEngine.setMaxRotateAngle(180); // 设置旋转角度
+    packEngine.setNestOrientations(NestEngine::AllOrientationNest); //  排版方向
+    packEngine.setNestMixingTypes(NestEngine::TailPieceMixing | NestEngine::TailLineMixing);  // 混合类型
+    /// 000000000
+
     packEngine.setCutStep(300);
+//    packEngine.setMinHeightOpt(true);
 #if 0
+
+    nestScene->addCustomPolylineItem(piece1.getPolyline());
+    nestScene->addCustomPolylineItem(piece2.getPolyline());
+
+    // 测试材料的移动、旋转、包络矩形及质心求解
+    piece1.moveTo(QPointF(-100, 200));
+    piece2.moveTo(QPointF(100, 200));
+
+    piece1.rotate(piece1.minBoundingRect.center(), 60);
+    piece2.rotate(piece2.minBoundingRect.center(), 60);
+    nestScene->addCustomPolylineItem(piece1.getPolyline());
+    nestScene->addCustomPolylineItem(piece2.getPolyline());
+
+    Polyline *p1 = new Polyline;
+    p1->setPolyline(points1, Polyline::line);
+    nestScene->addCustomPolylineItem(p1);
+
+    Polyline *p2 = new Polyline;
+    p2->setPolyline(points2, Polyline::line);
+    nestScene->addCustomPolylineItem(p2);
+
+    nestScene->addCustomPolylineItem(piece1.getPolyline());
+    nestScene->addCustomPolylineItem(piece2.getPolyline());
+
     // 测试材料的移动、旋转、包络矩形及质心求解
     piece1.moveTo(QPointF(-500, 200));
     piece2.moveTo(QPointF(500, 200));
-    nestScene->addCustomPolylineItem(piece1.getPolyline());
-    nestScene->addCustomPolylineItem(piece2.getPolyline());
 
     piece1.rotate(piece1.minBoundingRect.center(), 60);
     piece2.rotate(piece2.minBoundingRect.center(), 60);
@@ -1372,57 +1674,256 @@ void Nest::onActionSheetAutoDuplicate()
     }
     qDebug() << "";
     return;
+
+    qDebug() << "排样零件详情：(共" << packEngine.nestPieceList.length() << "个)";
+    for(int i=0; i<packEngine.nestPieceList.length(); i++){
+        qDebug() << "--------";
+        qDebug() << "index: " << packEngine.nestPieceList[i].index;
+        qDebug() << "typeID: " << packEngine.nestPieceList[i].typeID;
+        qDebug() << "sheetID: " << packEngine.nestPieceList[i].sheetID;
+        qDebug() << "position: " << packEngine.nestPieceList[i].position;
+        qDebug() << "alpha: " << packEngine.nestPieceList[i].alpha;
+        qDebug() << "nested: " << packEngine.nestPieceList[i].nested;
+        qDebug() << "--------";
+    }
+    qDebug() << "";
+
+    QuadTreeNode<Object> *quadTree=new QuadTreeNode<Object>(0,0,200,200,1,2,5,ROOT,NULL);
+
+//    quadTree->InsertObject(new Object(50,50,100,100));
+//    quadTree->InsertObject(new Object(50,60,100,90));
+//    quadTree->InsertObject(new Object(50,70,100,80));
+//    quadTree->InsertObject(new Object(25,25,50,50));
+//    quadTree->InsertObject(new Object(62.5,12.5,25,25));
+//    quadTree->InsertObject(new Object(62.5,62.5,25,25));
+//    quadTree->InsertObject(new Object(63.5,63.6,25,25));
+//    quadTree->InsertObject(new Object(125,25,50,50));
+//    quadTree->InsertObject(new Object(112.5,62.5,25,25));
+    quadTree->insert(new Object(50,50,100,100));
+    quadTree->insert(new Object(50,60,100,90));
+    quadTree->insert(new Object(50,70,100,80));
+    quadTree->insert(new Object(25,25,50,50));
+    quadTree->insert(new Object(62.5,12.5,25,25));
+    quadTree->insert(new Object(62.5,62.5,25,25));
+    quadTree->insert(new Object(63.5,63.6,25,25));
+    quadTree->insert(new Object(125,25,50,50));
+    quadTree->insert(new Object(112.5,62.5,25,25));
+    for(auto &t : quadTree->getMiddleAxis()){
+        Line* line = new Line;
+        line->setLine(*t);
+        nestScene->addCustomLineItem(line);
+    }
+
+    std::list<Object *> allObjects = quadTree->objects;
+    for(auto &t:allObjects){
+        qDebug()<<t->x<<' '<<t->y<<' '<<t->width<<' '<<t->height;
+//        Rect *r = new Rect;
+//        r->setRect(t->x, t->y, t->width, t->height);
+//        nestScene->addCustomRectItem(r);
+    }
+    qDebug() << "";
+    if(quadTree->upRightNode != NULL){
+        qDebug() << "UpRight";
+        std::list<Object *> objs = quadTree->upRightNode->objects;
+        for(auto &t:objs){
+            qDebug()<<t->x<<' '<<t->y<<' '<<t->width<<' '<<t->height;
+//            Rect *r = new Rect;
+//            r->setRect(t->x, t->y, t->width, t->height);
+//            nestScene->addCustomRectItem(r);
+        }
+        qDebug() << "";
+    }
+    if(quadTree->upLeftNode != NULL){
+        qDebug() << "UpLeft";
+        std::list<Object *> objs = quadTree->upLeftNode->objects;
+        for(auto &t:objs){
+            qDebug()<<t->x<<' '<<t->y<<' '<<t->width<<' '<<t->height;
+//            Rect *r = new Rect;
+//            r->setRect(t->x, t->y, t->width, t->height);
+//            nestScene->addCustomRectItem(r);
+        }
+        qDebug() << "";
+    }
+
+    if(quadTree->bottomLeftNode != NULL){
+        qDebug() << "BottomLeft";
+        std::list<Object *> objs = quadTree->bottomLeftNode->objects;
+        for(auto &t:objs){
+            qDebug()<<t->x<<' '<<t->y<<' '<<t->width<<' '<<t->height;
+//            Rect *r = new Rect;
+//            r->setRect(t->x, t->y, t->width, t->height);
+//            nestScene->addCustomRectItem(r);
+        }
+        qDebug() << "";
+    }
+    if(quadTree->bottomRightNode != NULL){
+        qDebug() << "BottomRight";
+        std::list<Object *> objs = quadTree->bottomRightNode->objects;
+        for(auto &t:objs){
+            qDebug()<<t->x<<' '<<t->y<<' '<<t->width<<' '<<t->height;
+//            Rect *r = new Rect;
+//            r->setRect(t->x, t->y, t->width, t->height);
+//            nestScene->addCustomRectItem(r);
+        }
+        qDebug() << "";
+    }
+
+//    return;
+//    quadTree->RemoveObjectsAt(100,0,110,110);
+    std::list<Object *> resObjects=quadTree->retrieve(0,0,100,100);
+    std::cout<<resObjects.size()<<"\n";
+    Rect *rt = new Rect;
+    rt->setRect(0,0,200,200);
+    nestScene->addCustomRectItem(rt);
+    for(auto &t:resObjects){
+        qDebug()<<t->x<<' '<<t->y<<' '<<t->width<<' '<<t->height;
+        Rect *r = new Rect;
+        r->setRect(t->x, t->y, t->width, t->height);
+        nestScene->addCustomRectItem(r);
+    }
+    delete quadTree;
+
+    // 测试排版算法
+//    int genLength = packEngine.nestPieceList.length();
+//    int genome[genLength];
+//    for(int n=0; n<genLength; n++){
+//        genome[n] = n;
+//    }
+//    std::random_shuffle(genome, genome+genLength);
+//    QVector<int> toNestList;
+//    for(int i=0; i<genLength; i++){
+////        toNestList.append(genome[i]);
+//        toNestList.append(i);
+//    }
+//    packEngine.packPieces(toNestList);
+    // 测试排版引擎的排样零件详情
+    return;
 #endif
+
     // 记录程序运行时间
     struct timeval tpstart,tpend;
     float timeuse;
     gettimeofday(&tpstart,NULL);
 
-    // 测试排版算法
-    int genLength = packEngine.nestPieceList.length();
-    int genome[genLength];
-    for(int n=0; n<genLength; n++){
-        genome[n] = n;
-    }
-    std::random_shuffle(genome, genome+genLength);
-    QVector<int> toNestList;
-    for(int i=0; i<genLength; i++){
-//        toNestList.append(genome[i]);
-        toNestList.append(i);
-    }
-    packEngine.layoutAlg(toNestList);
+    ////1·1111111111111 初始化
+    // 初始化排版零件列表
+    packEngine.initNestPieceList();  // *
+    // 调用排版算法进行排版
+    packEngine.packAlg();  // *
+    ////1·1111111111111 初始化
 
     gettimeofday(&tpend,NULL);
     timeuse=(1000000*(tpend.tv_sec-tpstart.tv_sec) + tpend.tv_usec-tpstart.tv_usec)/1000000.0;
     qDebug()<< "运行时间：" << timeuse << "s";
 
-    qDebug() << packEngine.unnestedPieceIDlist.length();
-    qDebug() << packEngine.nestedPieceIDlist.length();
-    for(int j=0; j<packEngine.nestedPieceIDlist.length(); j++){
-        int i = packEngine.nestedPieceIDlist[j];
+    qDebug() << packEngine.unnestedPieceIndexlist.length();
+    qDebug() << packEngine.nestedPieceIndexlist.length();
+
+    // 222222222 22 22222 显示排版结果
+    for(int j=0; j<packEngine.nestedPieceIndexlist.length(); j++){
+        int i = packEngine.nestedPieceIndexlist[j];
         Polyline *p = new Polyline;
         int typeID = packEngine.nestPieceList[i].typeID;
+        int sheetID = packEngine.nestPieceList[i].sheetID;
         QPointF pos = packEngine.nestPieceList[i].position;
         qreal angle = packEngine.nestPieceList[i].alpha;
         Piece piece = packEngine.pieceList[typeID];
-        piece.moveTo(pos);
-        piece.rotate(piece.minBoundingRect.center(), angle);
+        piece.moveTo(pos + sheetID * QPointF(1005, 0)); // 移动
+        piece.rotate(piece.minBoundingRect.center(), angle);  // 旋转
         p->setPolyline(piece.getPointsList(), Polyline::line);
         nestScene->addCustomPolylineItem(p);
     }
 
-    for(int i = 0; i<packEngine.sheetPackPointPositionMap.size(); i++){
+    // 222222222 22 22222 显示排版结果
+    QList<Scene*> sceneList;
+    for(int i=0; i<packEngine.sheetList.length(); i++){
         for(int j=0; j<packEngine.sheetPackPointPositionMap[i].size(); j++){
             PackPointNestEngine::PackPoint packPoint = packEngine.sheetPackPointPositionMap[i].value(j);
             if(!packPoint.coverd){
                 Point *p = new Point;
-                QPointF point = packPoint.position;
+                QPointF point = packPoint.position + i * QPointF(1005, 0);
                 p->setPoint(point);
                 nestScene->addCustomPointItem(p);
             }
         }
     }
-    qDebug() << "sheetList.len: " << packEngine.sheetList.length();
+    qDebug() << "碰撞检测次数" << packEngine.collisionCount;
+
+    return;
+    QuadTreeNode<Object> *quadTree = packEngine.quadTreeMap[0];
+
+    qDebug() << "levels: " << quadTree->level;
+    for(auto &t : quadTree->getMiddleAxis()){
+        Line* line = new Line;
+        line->setLine(*t);
+        nestScene->addCustomLineItem(line);
+    }
+
+    std::list<Object *> allObjects = quadTree->objects;
+    for(auto &t:allObjects){
+        qDebug()<<t->x<<' '<<t->y<<' '<<t->width<<' '<<t->height;
+//        Rect *r = new Rect;
+//        r->setRect(t->x, t->y, t->width, t->height);
+//        nestScene->addCustomRectItem(r);
+    }
+    qDebug() << "";
+    qDebug() << "ROOT";
+    std::list<Object *> objs = quadTree->objects;
+    for(auto &t:objs){
+        qDebug()<<t->x<<' '<<t->y<<' '<<t->width<<' '<<t->height;
+//            Rect *r = new Rect;
+//            r->setRect(t->x, t->y, t->width, t->height);
+//            nestScene->addCustomRectItem(r);
+    }
+    qDebug() << "";
+    if(quadTree->upRightNode != NULL){
+        qDebug() << "UpRight";
+        std::list<Object *> objs = quadTree->upRightNode->objects;
+        for(auto &t:objs){
+            qDebug()<<t->x<<' '<<t->y<<' '<<t->width<<' '<<t->height;
+//            Rect *r = new Rect;
+//            r->setRect(t->x, t->y, t->width, t->height);
+//            nestScene->addCustomRectItem(r);
+        }
+        qDebug() << "";
+    }
+    if(quadTree->upLeftNode != NULL){
+        qDebug() << "UpLeft";
+        std::list<Object *> objs = quadTree->upLeftNode->objects;
+        for(auto &t:objs){
+            qDebug()<<t->x<<' '<<t->y<<' '<<t->width<<' '<<t->height;
+//            Rect *r = new Rect;
+//            r->setRect(t->x, t->y, t->width, t->height);
+//            nestScene->addCustomRectItem(r);
+        }
+        qDebug() << "";
+    }
+
+    if(quadTree->bottomLeftNode != NULL){
+        qDebug() << "BottomLeft";
+        std::list<Object *> objs = quadTree->bottomLeftNode->objects;
+        for(auto &t:objs){
+            qDebug()<<t->x<<' '<<t->y<<' '<<t->width<<' '<<t->height;
+//            Rect *r = new Rect;
+//            r->setRect(t->x, t->y, t->width, t->height);
+//            nestScene->addCustomRectItem(r);
+        }
+        qDebug() << "";
+    }
+    if(quadTree->bottomRightNode != NULL){
+        qDebug() << "BottomRight";
+        std::list<Object *> objs = quadTree->bottomRightNode->objects;
+        for(auto &t:objs){
+            qDebug()<<t->x<<' '<<t->y<<' '<<t->width<<' '<<t->height;
+//            Rect *r = new Rect;
+//            r->setRect(t->x, t->y, t->width, t->height);
+//            nestScene->addCustomRectItem(r);
+        }
+        qDebug() << "";
+    }
+
+//    outMap.insert("test", sceneList);
+//    qDebug() << "sheetList.len: " << packEngine.sheetList.length();
 #endif
 }
 
@@ -1434,7 +1935,6 @@ void Nest::onActionSheetPrevious()
 void Nest::onActionSheetNext()
 {
     qDebug() << "转到下一张材料";
-    nestView->zoomBack();
 }
 
 void Nest::onActionSheetSheetNumber()
@@ -1450,6 +1950,101 @@ void Nest::onActionSheetUseLastSheet()
 void Nest::onActionSheetProperty()
 {
     qDebug() << "更改材料&余量/边距";
+}
+
+void Nest::onActionViewGrid(bool toggled)
+{
+    // 显示网格
+    for(int i=0; i<projectList.length();i++){
+        for(int j=0; j<projectList.at(i)->getSceneList().length();j++){
+            projectList.at(i)->getScene(j)->onGridChanged(toggled);
+        }
+    }
+}
+
+void Nest::onActionViewZoomWindow()
+{
+    qDebug() << "缩放窗口";
+}
+
+void Nest::onActionViewZoomAll()
+{
+    qDebug() << "全部缩放";
+}
+
+void Nest::onActionViewZoomIn()
+{
+    nestView->zoomIn();
+}
+
+void Nest::onActionViewZoomOut()
+{
+    nestView->zoomOut();
+}
+
+void Nest::onActionViewZoomBack()
+{
+    nestView->zoomBack();
+}
+
+void Nest::onActionViewLockLayout(bool toggled)
+{
+    qDebug() << "锁定布局" << toggled;
+}
+
+void Nest::onActionViewToolProjectsToggled(bool toggled)
+{
+    qDebug() << "项目视图" << toggled;
+}
+
+void Nest::onActionViewToolPiecesToggled(bool toggled)
+{
+    qDebug() << "零件视图" << toggled;
+}
+
+void Nest::onActionViewToolSheetsToggled(bool toggled)
+{
+    qDebug() << "材料视图" << toggled;
+}
+
+void Nest::onActionViewToolSlideToggled(bool toggled)
+{
+    qDebug() << "slide about to " << toggled;
+}
+
+void Nest::onActionViewToolCustomizeToggled(bool toggled)
+{
+    qDebug() << "customize about to " << toggled;
+}
+
+void Nest::onActionViewStatusBar(bool toggled)
+{
+    qDebug() << "status_bar about to " << toggled;
+}
+
+void Nest::onActionUtilityMeasureDis()
+{
+    qDebug() << "测量距离" ;
+}
+
+void Nest::onActionHelpHelp()
+{
+    qDebug() << "帮助";
+}
+
+void Nest::onActionHelpLicense()
+{
+    qDebug() << "许可";
+}
+
+void Nest::onActionHelpAbout()
+{
+    QMessageBox::about(this, tr("关于CADPRO"),
+        tr("The <b>Style Sheet</b> example shows how widgets can be styled "
+           "using <a href=\"http://doc.qt.io/qt-5/stylesheet.html\">Qt "
+           "Style Sheets</a>. Click <b>File|Edit Style Sheet</b> to pop up the "
+           "style editor, and either choose an existing style sheet or design "
+           "your own."));
 }
 
 void Nest::onActionTreeExpandAll()
@@ -1729,6 +2324,7 @@ void Nest::onActionTreeProjectSceneDelete()
         //QMessageBox::information(this, tr("通知"), tr("删除成功！"));
         if(projectActive->getScene(0)){
             projectActive->setActiveScene(projectActive->getScene(0));
+            updateAll();
         }
     } else{
         QMessageBox::warning(this, tr("警告"), tr("删除失败！"));
