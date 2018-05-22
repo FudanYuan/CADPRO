@@ -3,12 +3,12 @@
 #include <QDebug>
 
 Project::Project(QObject *parent) :
-QObject(parent),
-type(Sketch),
-name(""),
-saved(false),
-modified(false),
-entityFlag(false)
+    QObject(parent),
+    type(Sketch),
+    name(""),
+    saved(false),
+    modified(false),
+    entityFlag(false)
 {
     
 }

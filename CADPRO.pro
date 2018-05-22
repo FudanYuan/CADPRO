@@ -79,7 +79,7 @@ SOURCES += \
     configure/nestconfigure.cpp \
     configure/nestconfiguredialog.cpp \
     configure/nestengineconfiguredialog.cpp \
-    configure/nestengineconfigure.cpp
+    configure/nestengineconfigure.cpp \
 
 HEADERS += \
     cad/project.h \
@@ -144,7 +144,7 @@ HEADERS += \
     configure/nestconfigure.h \
     configure/nestconfiguredialog.h \
     configure/nestengineconfiguredialog.h \
-    configure/nestengineconfigure.h
+    configure/nestengineconfigure.h \
 
 FORMS += \
     cad/sketch.ui \

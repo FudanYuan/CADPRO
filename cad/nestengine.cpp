@@ -279,6 +279,24 @@ void NestEngine::initNestPieceList()
         }
         break;
     }
+    case ReferenceLine:{  // 参考线一定是左右交替
+        // 该策略下，需要根据参考线的方向指定旋转方向，
+        // 如果排版线列号为奇数，就是顺时针；
+        // 如果排版线列号为偶数，就是逆时针；
+        for(int i=0; i<sheetList.length(); i++){
+            Piece piece = pieceList[i];
+            PieceIndexRange indexRange(i, count, count+piece.getCount()-1);
+            nestPieceIndexRangeMap.insert(i, indexRange);  // 初始化排版零件序号范围
+            for(int j=0; j<piece.getCount(); j++){
+                // 左右交替，即两个图形相差180*
+                NestPiece nestPiece(count++, i);
+                nestPiece.alpha = j % 2 == 0 ? 0 : 180;
+                nestPieceList.append(nestPiece);  // 初始化排版零件列表
+            }
+            pieceMaxPackPointMap.insert(i, 0);  // 初始化零件排样点最大值map
+        }
+        break;
+    }
     case AllStrategys: {
         QMap<int, int> transformMap;
         pieceList = getSortedPieceListByArea(pieceList, transformMap);

@@ -12,26 +12,6 @@
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 
-Sheet::Sheet() :
-      name(""),
-      type(Whole),
-      material(""),
-      width(1000),
-      height(1000),
-      componentGap(0),
-      topMargin(0),
-      rightMargin(0),
-      bottomMargin(0),
-      leftMargin(0),
-      layers(1),
-      margin(0),
-      doubleStrip(false),
-      cutPaneSize(INT_MAX)
-{
-    StripPW pw;
-    stripPW.append(pw);
-}
-
 SheetDialog::SheetDialog() :
     role(Manager),
     sheetActive(NULL),

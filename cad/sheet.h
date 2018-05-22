@@ -40,8 +40,24 @@ struct Sheet
         Package
     };
 
-    Sheet();
+    Sheet() :
+        name(""),
+        type(Whole),
+        material(""),
+        width(1000),
+        height(1000),
+        componentGap(0),
+        topMargin(0),
+        rightMargin(0),
+        bottomMargin(0),
+        leftMargin(0),
+        layers(1),
+        margin(0),
+        doubleStrip(false),
+        cutPaneSize(INT_MAX)
+    {
 
+    }
     QString name;  // 材料名称
     SheetType type;  // 材料类型
     QString material; // 材料构成，非必填
@@ -87,8 +103,8 @@ struct Sheet
             break;
         case Strip:
             for(int i=0; i<stripPW.length(); i++){
-                retRects.append(QRectF(leftMargin, stripPW[i].position,
-                                 width-2*leftMargin, stripPW[i].width));
+                retRects.append(QRectF(stripPW[i].position, topMargin,
+                                       stripPW[i].width, height-2*topMargin));
             }
             break;
         case Package:
@@ -98,6 +114,27 @@ struct Sheet
             break;
         }
         return retRects;
+    }
+
+    Sheet *sheet(){
+        Sheet *s = new Sheet;
+        s->name = name;
+        s->type = type;
+        s->material = material;
+        s->width = width;
+        s->height = height;
+        s->componentGap = componentGap;
+        s->topMargin = topMargin;
+        s->rightMargin = rightMargin;
+        s->bottomMargin = bottomMargin;
+        s->leftMargin = leftMargin;
+        s->layers = layers;
+        s->margin = margin;
+        s->doubleStrip = doubleStrip;
+        s->cutPaneSize = cutPaneSize;
+        s->stripPW = stripPW;
+
+        return s;
     }
 };
 

@@ -37,49 +37,89 @@ void PackPointNestEngine::initPackPoint(QVector<Sheet> sheetList, qreal PPD)
 void PackPointNestEngine::initPackPointOneSheet(int sheetID, qreal PPD)
 {
     Sheet sheet = sheetList[sheetID];
-    QRectF layoutRect = sheet.layoutRect();
-    qreal width = layoutRect.width();
-    qreal height = layoutRect.height();
-    qreal XOffset = sheet.leftMargin;
-    qreal YOffset = sheet.topMargin;
 
-    // 记录第i个材料的排样点信息
-    QMap<int, PackPoint> packPointMap;
-    // 记录剩余排样点
-    QList<int> unusedPackPointList;
-    // 获取行列数即排样点个数总数
-    int rows = qFloor(height / PPD) + 1;
-    int columns = qFloor(width / PPD)  + 1;
-    int PPN = rows * columns;
-    for(int j=0; j<PPN; j++){
-        int row = j / columns;  // 获取序号为j的排样点在第几行
-        int column = (j - columns * row) % columns;  // 获取序号为j的排样点在第几列
-        // 将序号为j的排样点添加至map中
-        qreal px = column * PPD + XOffset;
-        qreal py = row * PPD + YOffset;
-        PackPoint packPoint(j, QPointF(px, py), false);
-        packPointMap.insert(j, packPoint);
-        // 将序号为j的排样点加入到剩余排样点map中
-        unusedPackPointList.append(j);
+    // 首先判断材料类型
+    if(sheet.type == Sheet::Whole){
+        QRectF layoutRect = sheet.layoutRect();
+        qreal width = layoutRect.width();
+        qreal height = layoutRect.height();
+        qreal XOffset = sheet.leftMargin;
+        qreal YOffset = sheet.topMargin;
+
+        // 记录第i个材料的排样点信息
+        QMap<int, PackPoint> packPointMap;
+        // 记录剩余排样点
+        QList<int> unusedPackPointList;
+        // 获取行列数即排样点个数总数
+        int rows = qFloor(height / PPD) + 1;
+        int columns = qFloor(width / PPD)  + 1;
+        int PPN = rows * columns;
+        for(int j=0; j<PPN; j++){
+            int row = j / columns;  // 获取序号为j的排样点在第几行
+            int column = (j - columns * row) % columns;  // 获取序号为j的排样点在第几列
+            // 将序号为j的排样点添加至map中
+            qreal px = column * PPD + XOffset;
+            qreal py = row * PPD + YOffset;
+            PackPoint packPoint(j, QPointF(px, py), false);
+            packPointMap.insert(j, packPoint);
+            // 将序号为j的排样点加入到剩余排样点map中
+            unusedPackPointList.append(j);
+        }
+        // 记录该材料的排样点信息
+        PackPointInfo info(sheetID, rows, columns, XOffset, YOffset);
+        packPointInfoList.append(info);
+        // 将第i个材料的排样点信息加入到map中去
+        sheetPackPointPositionMap.insert(sheetID, packPointMap);
+        // 剩余排样点
+        unusedSheetPackPointMap.insert(sheetID,unusedPackPointList);
+        return;
     }
-    // 记录该材料的排样点信息
-    PackPointInfo info(sheetID, rows, columns, XOffset, YOffset);
-    packPointInfoList.append(info);
-    // 将第i个材料的排样点信息加入到map中去
-    sheetPackPointPositionMap.insert(sheetID, packPointMap);
-    // 剩余排样点
-    unusedSheetPackPointMap.insert(sheetID,unusedPackPointList);
+
+    if(sheet.type == Sheet::Strip){
+        QVector<double> posList;
+        int columns = 0;  // 条板列数
+        for(int i=0; i<sheet.stripPW.length(); i++){
+            posList.append(sheet.stripPW[i].position);
+            posList.append(sheet.stripPW[i].position + sheet.stripPW[i].width);
+            columns += 2;
+        }
+        qreal height = sheet.height - 2 * sheet.topMargin;
+        qreal XOffset = 0;
+        qreal YOffset = sheet.topMargin;
+
+        // 记录第i个材料的排样点信息
+        QMap<int, PackPoint> packPointMap;
+        // 记录剩余排样点
+        QList<int> unusedPackPointList;
+        // 获取行列数即排样点个数总数
+        int rows = qFloor(height / PPD) + 1;
+        int PPN = rows * columns;
+        for(int j=0; j<PPN; j++){
+            int row = j / columns;  // 获取序号为j的排样点在第几行
+            int column = (j - columns * row) % columns;  // 获取序号为j的排样点在第几列
+            // 将序号为j的排样点添加至map中
+            qreal px = posList[column];
+            qreal py = row * PPD + YOffset;
+            PackPoint packPoint(j, QPointF(px, py), false);
+            packPointMap.insert(j, packPoint);
+            // 将序号为j的排样点加入到剩余排样点map中
+            unusedPackPointList.append(j);
+        }
+        // 记录该材料的排样点信息
+        PackPointInfo info(sheetID, rows, columns, XOffset, YOffset, posList);
+        packPointInfoList.append(info);
+        // 将第i个材料的排样点信息加入到map中去
+        sheetPackPointPositionMap.insert(sheetID, packPointMap);
+        // 剩余排样点
+        unusedSheetPackPointMap.insert(sheetID,unusedPackPointList);
+        return;
+    }
 }
 
 void PackPointNestEngine::updatePackPointOneSheet(int sheetID, Piece piece)
 {
     //qDebug() << "";
     //qDebug() << "更新排样点";
-    // 获取该材料的排样点状态
-    PackPointInfo &info = packPointInfoList[sheetID];
-    int columns = info.columns;
-    qreal XOffset = info.XOffset;
-    qreal YOffset = info.YOffset;
 
     // 获取该零件的最小包络矩形
     QRectF minBoundingRect = piece.getMinBoundingRect();
@@ -88,12 +128,35 @@ void PackPointNestEngine::updatePackPointOneSheet(int sheetID, Piece piece)
     qreal minX, minY, maxX, maxY;
     getRectBoundValue(minBoundingRect, minX, minY, maxX, maxY);
 
-    // 获取边界范围内排样点的序号
-    int minRow = qFloor((minY - YOffset) / PPD);  // 最小行
-    int minColumn = qFloor((minX - XOffset) / PPD);  // 最小列
-    int maxRow = qFloor((maxY - YOffset) / PPD);  // 最大行
-    int maxColumn = qFloor((maxX - XOffset) / PPD);  // 最大列
+    // 获取该材料的排样点状态
+    PackPointInfo &info = packPointInfoList[sheetID];
+    int columns = info.columns;
+    qreal XOffset = info.XOffset;
+    qreal YOffset = info.YOffset;
+    QVector<qreal> colList = info.columnPosList;
 
+    // 获取边界范围内排样点的序号
+    int minRow, maxRow, minColumn, maxColumn;
+    if(colList.length() < 1){
+        minRow = qFloor((minY - YOffset) / PPD);  // 最小行
+        maxRow = qFloor((maxY - YOffset) / PPD);  // 最大行
+        minColumn = qFloor((minX - XOffset) / PPD);  // 最小列
+        maxColumn = qFloor((maxX - XOffset) / PPD);  // 最大列
+    } else{
+        minRow = qFloor((minY - YOffset) / PPD);  // 最小行
+        maxRow = qFloor((maxY - YOffset) / PPD);  // 最大行
+        int column = -1;
+        for(int i=0; i<colList.length(); i++){
+            if(colList[i] >= minX && colList[i] <= maxX){
+                column = i;
+            }
+        }
+        if(column == -1){
+            qDebug() << "error";
+            return;
+        }
+        minColumn = maxColumn = column;
+    }
     //qDebug() << "矩形边界" << minBoundingRect;
     //qDebug() << "minRow: " << minRow;
     //qDebug() << "minColumn: " << minColumn;
@@ -201,17 +264,6 @@ bool PackPointNestEngine::packOnePieceOnSheet(Piece piece, int sheetID, NestEngi
      * 此时如果开启了尾行优化，则允许任意角度排入
      */
     if(!nestRet && (mixingTyes & NestEngine::TailLineMixing) == NestEngine::TailLineMixing){
-//        Piece p = piece;
-//        qreal minBoundingAngle = p.getAngle();  // 获取得到最小包络矩形需要顺时针旋转的角度
-//        p.rotate(p.getMinBoundingRect().center(), -minBoundingAngle);  // 将该零件旋转至最小包络矩形的位置
-//        qreal w = qrealPrecision(p.getMinBoundingRect().width(), PRECISION);  // 宽度
-//        qreal h = qrealPrecision(p.getMinBoundingRect().height(), PRECISION);  // 高度
-//        if(w < h){
-//            p.rotate(p.getMinBoundingRect().center(), 90);  // 保证横放可放下
-//            qreal temp = w;
-//            w = h;
-//            h = temp;
-//        }
         qDebug() << "尾行优化";
         nestRet = packOnePieceAttempt(piece, sheetID, nestPiece, unusedSheetPackPointMap[sheetID], 360, 36);
     }
@@ -225,6 +277,7 @@ bool PackPointNestEngine::packOnePieceOnSheet(Piece piece, int sheetID, NestEngi
     if(nestRet && compact(sheetID, nestPiece)){
         piece.moveTo(nestPiece.position);
         piece.rotate(nestPiece.position, nestPiece.alpha);  // 确定此零件的位置
+        qDebug() << "参考线" << piece.referenceLines[0];
         updatePackPointOneSheet(sheetID, piece);  // 更新排样点状态
         if(!nestSheetPieceMap.contains(sheetID)){  // 更新材料-零件索引
             QVector<int> pieceIDList;
@@ -240,8 +293,8 @@ bool PackPointNestEngine::packOnePieceOnSheet(Piece piece, int sheetID, NestEngi
 
         qDebug() << "排放位置: " << nestPiece.position;
         qDebug() << "旋转度数：" << nestPiece.alpha;
-        qDebug() << "最终选择" << (nestPiece.position.ry() - 5) / 50 * 20 + ((nestPiece.position.rx() - 5) / 50);
-        qDebug() << "行：" << (nestPiece.position.ry() - 5) / 50 << ", 列：" << (nestPiece.position.rx() - 5) / 50;
+//        qDebug() << "最终选择" << (nestPiece.position.ry() - 5) / 50 * 20 + ((nestPiece.position.rx() - 5) / 50);
+//        qDebug() << "行：" << (nestPiece.position.ry() - 5) / 50 << ", 列：" << (nestPiece.position.rx() - 5) / 50;
         qDebug() << "";
         return true;
     }
@@ -276,6 +329,10 @@ bool PackPointNestEngine::packOnePieceAttempt(Piece piece, int sheetID, NestEngi
     int PPN =  rows * columns;
     int upperIndex = PPN;  // 上界
     bool upperFlag = false;  // 上界已设置标志
+    qreal nestPieceAngle = 0;
+    if(nestEngineStrategys == NestEngine::ReferenceLine){
+        nestPieceAngle  = nestPiece.alpha;
+    }
     foreach(int j, packPointList){
         // 如果未设置尾只混合方式，则需要从该种零件最大的排样点去排
         if(((mixingTyes & NestEngine::TailPieceMixing) == NestEngine::NoMixing) && j < maxPackPointIndexTemp){
@@ -298,12 +355,21 @@ bool PackPointNestEngine::packOnePieceAttempt(Piece piece, int sheetID, NestEngi
             QPointF pos = packPointMap[j].position;  // 该排样点对应的位置坐标
             qreal alpha;
             if(RN == 0){
-                alpha = nestPiece.alpha;  // 如果RN=0，代表不能对该零件进行额外的旋转
+                alpha = nestPieceAngle;  // 如果RN=0，代表不能对该零件进行额外的旋转
             }else{
                 alpha = maxRotateAngle * k / RN;  // 旋转角度
             }
-            pieceTmp.moveTo(pos);  // 将零件最小包络矩形中心移至该位置
-            pieceTmp.rotate(pos, alpha);  // 绕参考点旋转alpha度
+            if(nestEngineStrategys == ReferenceLine){
+                // 判断该排样点的列号
+                int row = j / columns; // 获取排样点行号
+                int column = (j - row * columns) % columns;
+                pieceTmp.moveToByReferenceLine(pos);
+                pieceTmp.rotateByReferenceLine(pos, (column % 2==0));
+                qDebug() << pieceTmp.referenceLines[0];
+            } else{
+                pieceTmp.moveTo(pos);  // 将零件最小包络矩形中心移至该位置
+                pieceTmp.rotate(pos, alpha);  // 绕参考点旋转alpha度
+            }
             qreal height = pieceTmp.getCenterPoint().ry();  // 得到零件形心
             //qDebug() << "尝试位置: #" << j << " - " << pieceTmp.getMinBoundingRect().center();
             //qDebug() << ", 旋转角度: " << alpha << "  ";
@@ -330,8 +396,18 @@ bool PackPointNestEngine::packOnePieceAttempt(Piece piece, int sheetID, NestEngi
                 //qDebug() << "可以排放" << j << height;
                 minHeight = height;
                 nestPiece.sheetID = sheetID;
-                nestPiece.position = pos;
-                nestPiece.alpha = alpha;
+
+                if(nestEngineStrategys == ReferenceLine){
+                    nestPiece.position = pos + pieceTmp.refLineCenterToMinBoundRectCenter();
+                    nestPiece.alpha = pieceTmp.getAngle() - piece.getAngle();
+                    qDebug() << "中心点位置：" << pos << ", 排版位置：" << nestPiece.position;
+                    qDebug() << "新零件旋转角度：" << pieceTmp.getAngle() << ", 原零件旋转角度：" << piece.getAngle();
+                    qDebug() << "排版件旋转角度：" << nestPiece.alpha;
+                } else{
+                    nestPiece.position = pos;
+                    nestPiece.alpha = alpha;
+                }
+
                 nestPiece.nested = true;
                 if(j>maxPackPointIndex){
                     pieceMaxPackPointMap[nestPiece.typeID] = j;  // 更新该种型号零件排样点最大值
@@ -407,6 +483,11 @@ bool PackPointNestEngine::compact(int sheetID, NestEngine::NestPiece &nestPiece)
         pos.setY(pos.ry() - stepY);
     }
     //qDebug() << "重力方向靠接后的位置：" << pos;
+
+    // 如果是参考线排版，则不再进行水平方向的靠接
+    if(nestEngineStrategys == ReferenceLine){
+        return true;
+    }
 
     // 水平方向靠接
     qreal stepX = compactStep;

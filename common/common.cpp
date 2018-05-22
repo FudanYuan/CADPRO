@@ -54,6 +54,11 @@ QPointF pointPrecision(const QPointF &point, short iPlaces){
                    qrealPrecision(point.y(), iPlaces));
 }
 
+QLineF linePrecision(const QLineF &line, short iPlaces){
+    return QLineF(pointPrecision(line.p1(), iPlaces),
+                  pointPrecision(line.p2(), iPlaces));
+}
+
 QVector<QPointF> pointsListPrecision(const QVector<QPointF> pointsList, short iPlaces){
     QVector<QPointF> retList;
     for(int i=0; i<pointsList.length(); i++){
@@ -178,12 +183,12 @@ bool boundingRectContain(const QRectF rect1, const QRectF rect2)
     getRectBoundValue(rect1, minX1, minY1, maxX1, maxY1);
     getRectBoundValue(rect2, minX2, minY2, maxX2, maxY2);
 
-    qDebug() << "";
-    qDebug() << minX1 << "  " << maxX1 << "  " << minY1 << "  " << maxY1;
-    qDebug() << minX2 << "  " << maxX2 << "  " << minY2 << "  " << maxY2;
+    //qDebug() << "";
+    //qDebug() << minX1 << "  " << maxX1 << "  " << minY1 << "  " << maxY1;
+    //qDebug() << minX2 << "  " << maxX2 << "  " << minY2 << "  " << maxY2;
     // 最终使用这种
     if(minX1 > minX2 || maxX1 < maxX2 || minY1 > minY2 || maxY1 < maxY2){
-        qDebug() << "false";
+        //qDebug() << "false";
         return false;
     }
 
@@ -344,7 +349,7 @@ bool isConcaveConvex(QPointF ppoint,QPointF cpoint,QPointF npoint,bool direction
 }
 
 double calculatePloygonMinBoundingRectArea(QVector<QPointF> &points, qreal &alpha, QRectF &minBoundingRect){
-    QPointF maxp,minp,centerpont = calculatePolygonGravityCenter(points);
+    QPointF maxp,minp,centerpont = QPointF(0,0); //calculatePolygonGravityCenter(points);
     QVector<QPointF> listpoint;
     qreal angles[points.length()];
     double area,areas[points.length()];

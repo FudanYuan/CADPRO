@@ -51,6 +51,17 @@ public:
 
         }
 
+        PackPointInfo(int id, int r, int c, qreal x, qreal y, QVector<qreal> list) :
+            sheetID(id),
+            rows(r),
+            columns(c),
+            XOffset(x),
+            YOffset(y),
+            columnPosList(list)
+        {
+
+        }
+
         // 获取排样点个数
         int getPackPointNumber(){
             return rows * columns;
@@ -61,6 +72,7 @@ public:
         int columns; // 列数
         qreal XOffset;  // x方向的偏移
         qreal YOffset;  // y方向的偏移
+        QVector<qreal> columnPosList;  // 该数组是针对于样板材料设置，用于记录参考线排版位置
         QVector<int> coverdList;  // 覆盖列表
     };
 
@@ -75,10 +87,11 @@ public:
     void packPieces(QVector<int> indexList) Q_DECL_OVERRIDE;  // 排版算法
     bool packOnePiece(Piece piece, NestEngine::NestPiece &nestPiece) Q_DECL_OVERRIDE;  // 排放单个零件
     bool packOnePieceOnSheet(Piece piece, int sheetID, NestEngine::NestPiece &nestPiece) Q_DECL_OVERRIDE;  // 在给定材料上排放单个零件
-    bool packOnePieceAttempt(Piece piece, int sheetID, NestEngine::NestPiece &nestPiece, QList<int> packPointList, int maxRotateAngle, int RN);  // 在给定材料上尝试排放单个零件
+    bool packOnePieceAttempt(Piece piece, int sheetID, NestEngine::NestPiece &nestPiece, QList<int> packPointList, int maxRotateAngle, int RN);  // 在给定材料上尝试排放单个零件    
     bool compact(int sheetID, NestPiece &nestPiece) Q_DECL_OVERRIDE;  // 紧凑算法
     bool collidesWithOtherPieces(int sheetID, Piece piece) Q_DECL_OVERRIDE;  // 判断该零件是否与其他零件重叠
 
+    bool packOnePieceReferenceLine(Piece piece, int sheetID, NestEngine::NestPiece &nestPiece, QList<int> packPointList, int maxRotateAngle, int RN);
 //private:
     qreal PPD; // pack point distance--排样点取样间隔
     int RN;  // rotate number--旋转个数

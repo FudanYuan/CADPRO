@@ -42,8 +42,14 @@ public:
 
     bool isHorizontal() const;  // 如果包络矩形的宽>高，则认为是横置的，否则，认为是竖置
 
+    QPointF refLineCenterToMinBoundRectCenter() const;  // 参考线中心与最小矩形的相对关系
+
     void moveTo(const QPointF position);  // 移动零件至给定位置
     void rotate(const QPointF cPoint, const qreal alpha);  // 将零件旋转alpha度
+
+    void moveToByReferenceLine(const QPointF position);  // 移动零件至给定位置
+    void rotateByReferenceLine(const QPointF cPoint, bool flag);  // 将零件旋转alpha度
+
     bool hasRelationToPoint(const QPointF &point);  // 点与零件有关系
     PointRealtionToPiece relationToPoint(const QPointF &point);  // 返回点与零件的关系
     bool inMinBoundingRect(const QPointF &point);  // 点在零件的最小包络矩形范围内

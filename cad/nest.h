@@ -55,19 +55,40 @@ public:
         int count;  // 零件个数
     };
 
-    struct ProSheetMap
+    // 项目-材料信息
+    struct ProSheetInfo
     {
-        ProSheetMap(QString name) :
-            projectName(name)
+        ProSheetInfo(QString name) :
+            projectName(name),
+            curSheetID(-1)
         {
 
         }
+
+        ~ProSheetInfo() {
+            projectName = "";
+            qDeleteAll(sheetList);
+            sheetList.clear();
+            pieceNumList.clear();
+            usageList.clear();
+            qDebug() << "delete proSheetMap";
+        }
+
         QString projectName; // 项目名称
         QList<Sheet*> sheetList;  // 材料列表
         QList<qreal> pieceNumList;  // 切割件数量
         QList<qreal> usageList;  // 材料使用率列表
+        int curSheetID;  // 当前sheet的ID
     };
 
+    // 项目-零件信息
+    struct  ProPieceInfo {
+        ProPieceInfo();
+
+        QString projectName;  // 项目名称
+        QList<Piece*> pieceList;  // 零件列表
+        int curPieceID;  // 当前零件的ID
+    };
     explicit Nest(QWidget *parent = 0);
     ~Nest();
 
@@ -81,6 +102,8 @@ public:
     void updateNestView();  // 更新排版视图
     void initProjectView();  // 初始化项目视图
     void initPieceView();  // 初始化切割件视图
+    void initConnect();  // 初始化信号和槽的链接
+
     void addProject();  // 添加项目
     void initSheet();  // 初始化材料
     void updateSheetTree();  // 更新材料树
@@ -88,12 +111,13 @@ public:
     void showNestResult();  // 显示排版结果
     QString getNewProjectName();  // 获取新项目名称
     Project *getProjectByName(QString project_name);  // 根据项目获取对象
-
+    void removeProjectByName(QString project_name);  // 根据项目名称删除对象
     void showTreeMenu(QPoint pos);  // 显示项目栏菜单
     void updateAll();  // 更新整个软件
     bool maybeSave();  // 是否保存项目
     bool saveFile(QString fileName);  // 实现文件的存储
 
+    void setNestActionDisabled(bool flag);  // 使除能与Nest相关的action
 private:
     Ui::Nest *ui;
     View *nestView;  // 排版视图
@@ -101,14 +125,14 @@ private:
     Project *projectActive;  // 活动项目
     Scene *nestScene;  // 排版图层
     NestEngineConfigureDialog nestEngineconfigDialog;
-    QMap<QString, QList<Scene *>> outMap;  // 保存对象<项目名称，图层列表>
+    QMap<QString, QList<Scene *>> proSceneListMap;  // 保存对象<项目名称，图层列表>
     QMap<QString, QList<PieceCenter>> pieceCenterMap; // 保存项目的零件中心图
     QMap<QString, QList<PieceOffset>> pieceOffsetMap; // 保存项目的零件偏移图
 
     QMap<QString, int> nestNum; // 每个图形的个数
     View *pieceView;  // 切割件视图
     Scene *pieceScene;   // 切割件图层
-    QMap<QString, ProSheetMap*> proSheetMap;  // 使用材料列表
+    QMap<QString, ProSheetInfo*> proSheetInfoMap;  // 使用材料列表
     Sheet* curSheet;  // 当前使用材料
 
     QWidget *widget;
@@ -235,11 +259,12 @@ private:
 
 signals:
     void nestEngineConfigChange(int i);
+    void nestProjectChange(Project *curProject);  // 排版项目改变信号
 
 public slots:
     void onProjectNameChanged(QString lastName, QString presentName);  // 响应项目名称改变
     void onMousePositionChanged(QPointF pos);  // 鼠标位置更新
-
+    void onNestProjectChanged(Project *curProject);  // 响应排版项目改变
 protected:
     void closeEvent(QCloseEvent *event);
 

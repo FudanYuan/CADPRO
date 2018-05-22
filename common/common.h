@@ -26,7 +26,8 @@ QColor intToColor(const int rgb, bool a=false); // 将int转华为color
 // 计算精度
 qreal qrealPrecision(const qreal &dVal, short iPlaces);  // 数的保留小数位数
 QPointF pointPrecision(const QPointF &point, short iPlaces);  // 点的保留小数位数
-QRectF rectPrecision(const QRectF &rect, short iPlaces);  // 点的保留小数位数
+QLineF linePrecision(const QLineF &line, short iPlaces);  // 点的保留小数位数
+QRectF rectPrecision(const QRectF &rect, short iPlaces);  // 矩形的保留小数位数
 QVector<QPointF> pointsListPrecision(const QVector<QPointF> pointsList, short iPlaces);  // 点集保留小数位数
 QVector<QLineF> linesListPrecision(const QVector<QLineF> linesList, short iPlaces);  // 点集保留小数位数
 
