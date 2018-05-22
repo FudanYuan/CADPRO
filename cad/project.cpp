@@ -192,7 +192,7 @@ Scene *Project::getDXFLayer(QString name)
         if(!sceneActive){
             sceneActive = new Scene(this);
             sceneActive->setName(name);
-            Configure config;
+            SketchConfigure config;
             sceneActive->setEntityStyle(config.eStyle);
             sceneList.append(sceneActive);
         }
@@ -201,7 +201,7 @@ Scene *Project::getDXFLayer(QString name)
         sceneActive = new Scene(this);
         QString newLayer = getNewSceneName();
         sceneActive->setName(newLayer);
-        Configure config;
+        SketchConfigure config;
         sceneActive->setEntityStyle(config.eStyle);
         sceneList.append(sceneActive);
     }
@@ -255,7 +255,7 @@ void Project::dxfLayerReader(const DxfFilter dxfFilter)
     if(type == Sketch){
         Scene *scene = new Scene();
         scene->setName(getNewSceneName());
-        Configure config;
+        SketchConfigure config;
         scene->setEntityStyle(config.eStyle);
         sceneList.append(scene);
     }
@@ -266,7 +266,7 @@ void Project::dxfLayerReader(const DxfFilter dxfFilter)
             QString name = layer;
             Scene *scene = new Scene();
             scene->setName(name);
-            Configure config;
+            SketchConfigure config;
             scene->setEntityStyle(config.eStyle);
             sceneList.append(scene);
         } else{
@@ -414,7 +414,7 @@ void Project::dxfPolylineReader(const DxfFilter dxfFilter)
 
         // 获取polyline的基本信息
         QList<DL_VertexData> v = dxfFilter.polylines.at(i).vertexList;
-        QList<QPointF> points;
+        QVector<QPointF> points;
         for(int j=0; j<v.length(); j++){
             // 获取vertex基本信息
             qreal px = v.at(j).x;
@@ -851,7 +851,7 @@ void Project::dxfLineWriter(const QList<Line *> &list, DL_Dxf &dxf, DL_WriterA *
 void Project::dxfPolylineWriter(const QList<Polyline *> &list, DL_Dxf &dxf, DL_WriterA *dw)
 {
     for(int i=0; i<list.length(); i++){
-        QList<QPointF> points = list[i]->getPoints();
+        QVector<QPointF> points = list[i]->getPoints();
         int pCount = points.length();
         Polyline::Type type = list[i]->getType();
         

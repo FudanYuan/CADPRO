@@ -31,10 +31,10 @@ public:
 
     bool collidesWithItem(const QGraphicsItem *other, Qt::ItemSelectionMode mode = Qt::IntersectsItemShape) const Q_DECL_OVERRIDE;
 
-    void setPolyline(QList<QPointF> pList, int flag, qreal ele=0, qreal angle=0, const QPointF off=QPointF());
+    void setPolyline(QVector<QPointF> pList, int flag, qreal ele=0, qreal angle=0, const QPointF off=QPointF());
 
-    void setPoints(const QList<QPointF> &value);
-    QList<QPointF> getPoints();  // 获取点
+    void setPoints(const QVector<QPointF> &value);
+    QVector<QPointF> getPoints();  // 获取点
 
     void setType(Type type);  // 设置类型
     Type getType();  // 获取类型
@@ -59,7 +59,8 @@ protected:
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) Q_DECL_OVERRIDE;
 
 private:
-    QList<QPointF> points;  // 各个点的坐标
+    int i;
+    QVector<QPointF> points;  // 各个点的坐标
     QPointF newPoint;  // 最后一个点
     Type type;  // 类型
     double elevation;  // 高程

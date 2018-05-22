@@ -432,7 +432,7 @@ bool NF_Reader::getStrippedLine(std::string &s, unsigned int size, FILE *fp, boo
             stripWhiteSpace(&line, stripSpace);
 
             s = line;
-            assert(size > s.length());
+            //assert(size > s.length());
         }
 
         delete[] wholeLine; // Done with wholeLine

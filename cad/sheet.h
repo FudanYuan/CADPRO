@@ -16,6 +16,7 @@
 #define SHEET_XML "sheet.xml"
 #define WHOLE tr("整体")
 #define STRIP tr("样条")
+#define PACKAGE tr("卷装")
 
 struct StripPW
 {
@@ -35,7 +36,8 @@ struct Sheet
 {
     enum SheetType{
         Whole,
-        Strip
+        Strip,
+        Package
     };
 
     Sheet();
@@ -73,6 +75,30 @@ struct Sheet
                       (width - leftMargin - rightMargin),
                       (height - topMargin - bottomMargin));
     }
+
+    // 材料的排版区域集合
+    QVector<QRectF> layoutRects() const{
+        QVector<QRectF> retRects;
+        switch (type) {
+        case Whole:
+            retRects.append(QRectF(leftMargin, topMargin,
+                                   (width - leftMargin - rightMargin),
+                                   (height - topMargin - bottomMargin)));
+            break;
+        case Strip:
+            for(int i=0; i<stripPW.length(); i++){
+                retRects.append(QRectF(leftMargin, stripPW[i].position,
+                                 width-2*leftMargin, stripPW[i].width));
+            }
+            break;
+        case Package:
+
+            break;
+        default:
+            break;
+        }
+        return retRects;
+    }
 };
 
 // sheet管理对话框
@@ -94,18 +120,26 @@ public:
     void loadSheetInfo();  // 下载材料信息
     void saveSheetInfo();  // 保存材料信息
     void updateSheetInfo(const Sheet *sheetActive);
+    void updateSheetActive(Sheet *sheetActive);  // 更新
     void updateSheetListTable(QList<Sheet*> sheetList);  // 更新表格
     void updateStripConfigTable(QList<StripPW> stripPW);  // 更新strip配置表格
+    void setSheetInfoDisable(bool flag);  // 使能材料属性框
     QList<Sheet*> xmlFileReader(QString fileName);  // 读取xml数据
     void xmlFileWrite(QString fileName, QList<Sheet*> list);  // 写入xml数据
-
     Sheet* getSheetActive();
+    bool sheetNameConflict(const int index);  // 检查名字是否冲突
+protected:
+     void closeEvent(QCloseEvent *) Q_DECL_OVERRIDE;
 private:
     RoleType role;  // 打开该对话框的角色类型
     QList<Sheet*> sheetList;  // 材料列表
     Sheet *sheetActive;  // 选中材料
     int currentIndex;  // 当前序号
-    int newSheetItem;  // 新材料个数
+    bool insertFlag;  // 添加标志
+    bool editFlag;  // 编辑标志
+    int insertCounter; // 添加计数器
+    int editCounter; // 编辑计数器
+    int removeCounter; // 删除计数器
     QVBoxLayout *mainLayout;  // 主布局
     QGroupBox *sheetListGroupBox;  // 列表组件
     QTableWidget *sheetListTable;  // 列表表格
@@ -154,7 +188,6 @@ signals:
     void sheetSelected(int i);  // 材料被选中
 
 private slots:
-    void onStripConfigTableChanged(int row, int column);
     void onDoubleStripChanged(bool checkd);
     void onSheetTypeComChanged(int index);  // 响应类型下拉框选项改变
     void onDialogButtonClicked(QAbstractButton *button);  // 响应材料信息改变

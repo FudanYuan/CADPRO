@@ -16,7 +16,7 @@ public:
     bool updateFlag(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) Q_DECL_OVERRIDE; // paint
     void rotateAndPaintRect(QPainter *painter, const QRect &rect, int angle);
-    QList<QPointF> toPolyline();//转变成polyline
+    QVector<QPointF> toPolyline();//转变成polyline
 
 protected:
     //鼠标事件
