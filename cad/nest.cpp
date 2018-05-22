@@ -12,9 +12,7 @@
 #include <QValidator>
 #include <QDebug>
 
-#include "piece.h"
 #include "packpointnestengine.h"
-#include "queue"
 #include "quadtreenode.h"
 #include <sys/time.h>
 

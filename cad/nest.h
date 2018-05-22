@@ -17,6 +17,7 @@
 #include "shape.h"
 #include "binarytree.h"
 #include "nestengineconfiguredialog.h"
+#include "piece.h"
 #include <QDebug>
 
 namespace Ui {
