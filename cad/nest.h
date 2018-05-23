@@ -84,7 +84,10 @@ public:
 
     // 项目-零件信息
     struct  ProPieceInfo {
-        ProPieceInfo();
+        ProPieceInfo() :
+            projectName(""),
+            curPieceID(-1)
+        {}
 
         QString projectName;  // 项目名称
         QList<Piece*> pieceList;  // 零件列表
@@ -119,13 +122,13 @@ public:
     bool saveFile(QString fileName);  // 实现文件的存储
 
     void setNestActionDisabled(bool flag);  // 使除能与Nest相关的action
+
 private:
     Ui::Nest *ui;
     View *nestView;  // 排版视图
     QList<Project *> projectList; // 项目列表
     Project *projectActive;  // 活动项目
     Scene *nestScene;  // 排版图层
-    NestEngineConfigureDialog nestEngineconfigDialog;
     QMap<QString, QList<Scene *>> proSceneListMap;  // 保存对象<项目名称，图层列表>
     QMap<QString, QList<PieceCenter>> pieceCenterMap; // 保存项目的零件中心图
     QMap<QString, QList<PieceOffset>> pieceOffsetMap; // 保存项目的零件偏移图
@@ -133,6 +136,9 @@ private:
     QMap<QString, int> nestNum; // 每个图形的个数
     View *pieceView;  // 切割件视图
     Scene *pieceScene;   // 切割件图层
+
+    QMap<QString, ProPieceInfo*> proPieceInfoMap;  // 零件列表<项目名称，零件列表>
+
     QMap<QString, ProSheetInfo*> proSheetInfoMap;  // 使用材料列表
     Sheet* curSheet;  // 当前使用材料
 
@@ -290,7 +296,7 @@ private slots:
     void onActionEditCopy();            // 复制
     void onActionEditPaste();           // 粘贴
 
-    void onActionNestConfig();          // 自动排版配置
+    void onActionNestEngineConfig();          // 自动排版配置
     void onActionNestSideLeft();        // 左靠边
     void onActionNestSideRight();       // 右靠边
     void onActionNestSideTop();         // 顶靠边

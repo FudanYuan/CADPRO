@@ -153,7 +153,7 @@ void Nest::initActions()
 // ![3] 排版
     action_nest_config = new QAction(tr("自动排版配置"));
     action_nest_config->setStatusTip(tr("自动排版配置"));
-    connect(action_nest_config, &QAction::triggered, this, &Nest::onActionNestConfig);
+    connect(action_nest_config, &QAction::triggered, this, &Nest::onActionNestEngineConfig);
 
     action_nest_side_left = new QAction(tr("左靠边"));
     action_nest_side_left->setStatusTip(tr("零件紧靠材料左边"));
@@ -690,7 +690,7 @@ void Nest::initSheet()
     mDialog.exec();
     curSheet = mDialog.getSheetActive();
 
-    if(!curSheet){  // 如果选择的材料为空，则
+    if(!curSheet){  // 如果选择的材料为空，则返回
         QMessageBox::warning(this, tr("错误"), tr("未选择材料！"));
         return;
     }
@@ -698,18 +698,18 @@ void Nest::initSheet()
     QString pName = projectActive->getName();
     // 添加proSheetInfoMap
     if(proSheetInfoMap.contains(pName)){
-        ProSheetInfo *map = proSheetInfoMap[pName];
-        map->sheetList.append(curSheet);
-        map->usageList.append(0.0);
-        map->pieceNumList.append(0);
-        map->curSheetID = map->sheetList.length() - 1;  // 当前材料为最后一张
+        ProSheetInfo *proSheetInfo = proSheetInfoMap[pName];
+        proSheetInfo->sheetList.append(curSheet);
+        proSheetInfo->usageList.append(0.0);
+        proSheetInfo->pieceNumList.append(0);
+        proSheetInfo->curSheetID = proSheetInfo->sheetList.length() - 1;  // 当前材料为最后一张
     } else{
-        ProSheetInfo *map = new ProSheetInfo(pName);
-        map->sheetList.append(curSheet);
-        map->usageList.append(0.0);
-        map->pieceNumList.append(0);
-        map->curSheetID = 0;    // 当前材料为第一张
-        proSheetInfoMap.insert(pName, map);
+        ProSheetInfo *proSheetInfo = new ProSheetInfo(pName);
+        proSheetInfo->sheetList.append(curSheet);
+        proSheetInfo->usageList.append(0.0);
+        proSheetInfo->pieceNumList.append(0);
+        proSheetInfo->curSheetID = 0;    // 当前材料为第一张
+        proSheetInfoMap.insert(pName, proSheetInfo);
     }
 
     Scene *scene = new Scene;
@@ -731,7 +731,7 @@ void Nest::updateSheetTree()
     // 首先，获取当前项目的材料信息
     QString pName = projectActive->getName();
     if(!proSheetInfoMap.contains(pName)){
-        qDebug() << "当前项目的材料信息为空";
+        qDebug() << "当前项目的材料信息为空！";
         return;
     }
 
@@ -1215,8 +1215,16 @@ void Nest::onProjectNameChanged(QString lastName, QString presentName)
         if(tree_project_item_list.at(i)->text(0) == lastName){
             // 改变项目名称
             tree_project_item_list.at(i)->setText(0, presentName);
+            // 改变项目对应的零件信息
+            if(proPieceInfoMap.contains(lastName)){
+                proPieceInfoMap[lastName]->projectName = presentName;
+                proPieceInfoMap.insert(presentName, proPieceInfoMap[lastName]);
+                proPieceInfoMap.remove(lastName);
+            }
+
             // 改变项目对应的材料信息
             if(proSheetInfoMap.contains(lastName)){
+                proSheetInfoMap[lastName]->projectName = presentName;
                 proSheetInfoMap.insert(presentName, proSheetInfoMap[lastName]);
                 proSheetInfoMap.remove(lastName);
             }
@@ -1380,9 +1388,17 @@ void Nest::onActionEditPaste()
     qDebug() << "粘贴";
 }
 
-void Nest::onActionNestConfig()
+void Nest::onActionNestEngineConfig()
 {
     qDebug() << "自动排版配置";
+    // 实例化排版引擎配置
+    NestEngineConfigure *engineConfig = new NestEngineConfigure();
+    QList<int> list;
+    list << 0 << 0 << 1 << 1<< 1<< 0 << 1;
+    engineConfig->WriteConfigureXml(0, list);
+    //engineConfig->LoadConfigureXml(0);
+    //NestEngineConfigureDialog nestEngineDialog(engineConfig);
+    //nestEngineDialog.exec();
 }
 
 void Nest::onActionNestSideLeft()
@@ -1445,20 +1461,20 @@ void Nest::onActionSheetRemove()
         QMessageBox::warning(this, tr("错误"), tr("不存在该名称的项目！"));
         return;
     }
-    ProSheetInfo *map = proSheetInfoMap[pName];  // 获取该项目的项目-材料指针
-    if(map->sheetList.length() < 1){  // 如果该项目的材料列表为空，返回
+    ProSheetInfo *proSheetInfo = proSheetInfoMap[pName];  // 获取该项目的项目-材料指针
+    if(proSheetInfo->sheetList.length() < 1){  // 如果该项目的材料列表为空，返回
         QMessageBox::warning(this, tr("错误"), tr("材料列表已空！"));
         return;
     }
-    int id = map->curSheetID;  // 获取当前材料id
-    Sheet *s = map->sheetList[id];   // 在列表删除该材料
-    map->sheetList.removeAt(id);
+    int id = proSheetInfo->curSheetID;  // 获取当前材料id
+    Sheet *s = proSheetInfo->sheetList[id];   // 在列表删除该材料
+    proSheetInfo->sheetList.removeAt(id);
     delete s;  // 释放内存，防止内存泄漏
     s = NULL;
-    if(id > map->sheetList.length() - 1){  // 如果id大于列表长度，则为最后一张
-        map->curSheetID = map->sheetList.length() - 1;  // 更新当前材料id
+    if(id > proSheetInfo->sheetList.length() - 1){  // 如果id大于列表长度，则为最后一张
+        proSheetInfo->curSheetID = proSheetInfo->sheetList.length() - 1;  // 更新当前材料id
     }
-    qDebug() << "删除之后：" << map->curSheetID;
+    qDebug() << "删除之后：" << proSheetInfo->curSheetID;
     updateSheetTree();  // 更新材料列表
 }
 
@@ -1474,17 +1490,17 @@ void Nest::onActionSheetDuplicate()
         QMessageBox::warning(this, tr("错误"), tr("不存在该名称的项目！"));
         return;
     }
-    ProSheetInfo *map = proSheetInfoMap[pName];  // 获取该项目的项目-材料指针
-    if(map->sheetList.length() < 1){  // 如果材料列表为空，返回
-        QMessageBox::warning(this, tr("错误"), tr("材料列表为空"));
+    ProSheetInfo *proSheetInfo = proSheetInfoMap[pName];  // 获取该项目的项目-材料指针
+    if(proSheetInfo->sheetList.length() < 1){  // 如果材料列表为空，返回
+        QMessageBox::warning(this, tr("错误"), tr("材料列表为空！"));
         return;
     }
-    int id = map->curSheetID;  // 获取当前材料id
-    Sheet *sheet = map->sheetList[id]->sheet();  // 获取当前材料指针
-    map->sheetList.append(sheet);  // 将该材料指针加入材料列表
-    map->pieceNumList.append(0);
-    map->usageList.append(0.0);
-    map->curSheetID = map->curSheetID + 1;
+    int id = proSheetInfo->curSheetID;  // 获取当前材料id
+    Sheet *sheet = proSheetInfo->sheetList[id]->sheet();  // 获取当前材料指针
+    proSheetInfo->sheetList.append(sheet);  // 将该材料指针加入材料列表
+    proSheetInfo->pieceNumList.append(0);
+    proSheetInfo->usageList.append(0.0);
+    proSheetInfo->curSheetID = proSheetInfo->curSheetID + 1;
 
     // 添加图层
     Scene *scene = new Scene;
@@ -1521,18 +1537,18 @@ void Nest::onActionSheetPrevious()
         QMessageBox::warning(this, tr("错误"), tr("不存在该名称的项目！"));
         return;
     }
-    ProSheetInfo *map = proSheetInfoMap[pName];
-    if(map->sheetList.length() < 1){  // 如果材料列表为空，返回
-        QMessageBox::warning(this, tr("错误"), tr("材料列表为空"));
+    ProSheetInfo *proSheetInfo = proSheetInfoMap[pName];
+    if(proSheetInfo->sheetList.length() < 1){  // 如果材料列表为空，返回
+        QMessageBox::warning(this, tr("错误"), tr("材料列表为空！"));
         return;
     }
-    int id = map->curSheetID;  // 获取当前sheetID
+    int id = proSheetInfo->curSheetID;  // 获取当前sheetID
     if(id == 0){
         QMessageBox::warning(this, tr("通知"), tr("目前已经是第一张材料"));
         return;
     }
     nestScene = proSceneListMap[pName][id-1];
-    map->curSheetID = id - 1;
+    proSheetInfo->curSheetID = id - 1;
 
     // 按材料更新nest Scene的背景
     nestView->setScene(nestScene);
@@ -1553,18 +1569,18 @@ void Nest::onActionSheetNext()
         QMessageBox::warning(this, tr("错误"), tr("不存在该名称的项目！"));
         return;
     }
-    ProSheetInfo *map = proSheetInfoMap[pName];
-    if(map->sheetList.length() < 1){  // 如果材料列表为空，返回
-        QMessageBox::warning(this, tr("错误"), tr("材料列表为空"));
+    ProSheetInfo *proSheetInfo = proSheetInfoMap[pName];
+    if(proSheetInfo->sheetList.length() < 1){  // 如果材料列表为空，返回
+        QMessageBox::warning(this, tr("错误"), tr("材料列表为空！"));
         return;
     }
-    int id = map->curSheetID;  // 获取当前sheetID
-    if(id == map->sheetList.length()-1){
+    int id = proSheetInfo->curSheetID;  // 获取当前sheetID
+    if(id == proSheetInfo->sheetList.length()-1){
         QMessageBox::warning(this, tr("通知"), tr("目前已经是最后一张材料"));
         return;
     }
     nestScene = proSceneListMap[pName][id+1];
-    map->curSheetID = id + 1;
+    proSheetInfo->curSheetID = id + 1;
 
     // 按材料更新nest Scene的背景
     nestView->setScene(nestScene);
@@ -1579,19 +1595,19 @@ void Nest::onActionSheetSheetNumber()
         QMessageBox::warning(this, tr("错误"), tr("不存在该名称的项目！"));
         return;
     }
-    ProSheetInfo *map = proSheetInfoMap[pName];
-    if(map->sheetList.length() < 1){  // 如果材料列表为空，返回
-        QMessageBox::warning(this, tr("错误"), tr("材料列表为空"));
+    ProSheetInfo *proSheetInfo = proSheetInfoMap[pName];
+    if(proSheetInfo->sheetList.length() < 1){  // 如果材料列表为空，返回
+        QMessageBox::warning(this, tr("错误"), tr("材料列表为空！"));
         return;
     }
-    int maxId = map->sheetList.length();  // 获取当前最大的ID
+    int maxId = proSheetInfo->sheetList.length();  // 获取当前最大的ID
     bool ok;
     int id = QInputDialog::getInt(this, tr("跳转至"),
                                   tr("请输入材料序号:"), 1, 1, maxId, 1,
                                   &ok);
     if(ok){
         nestScene = proSceneListMap[pName][id-1];
-        map->curSheetID = id - 1;
+        proSheetInfo->curSheetID = id - 1;
 
         // 按材料更新nest Scene的背景
         nestView->setScene(nestScene);
@@ -1613,9 +1629,9 @@ void Nest::onActionSheetUseLastSheet()
         QMessageBox::warning(this, tr("错误"), tr("不存在该名称的项目！"));
         return;
     }
-    ProSheetInfo *map = proSheetInfoMap[pName];
-    if(map->sheetList.length() < 1){  // 如果材料列表为空，返回
-        QMessageBox::warning(this, tr("错误"), tr("材料列表为空"));
+    ProSheetInfo *proSheetInfo = proSheetInfoMap[pName];
+    if(proSheetInfo->sheetList.length() < 1){  // 如果材料列表为空，返回
+        QMessageBox::warning(this, tr("错误"), tr("材料列表为空！"));
         return;
     }
 
@@ -1770,10 +1786,31 @@ void Nest::onTreeProjectItemDoubleClicked(QTreeWidgetItem *item)
 
 void Nest::onActionTreeProjectNestScene()
 {
-    if(!curSheet){
-        QMessageBox::warning(this, tr("警告"), tr("未设置切割件所用材料!"));
+    if(!projectActive){ // 如果活动项目为空，则返回
+        QMessageBox::warning(this, tr("错误"), tr("未选择任何项目！"));
         return;
     }
+
+    QString pName = projectActive->getName();
+    if(!proSheetInfoMap.contains(pName)
+            || !proSceneListMap.contains(pName)
+            || !proPieceInfoMap.contains(pName)){  // 如果map中不包含该项目名称，返回
+        QMessageBox::warning(this, tr("错误"), tr("不存在该名称的项目！"));
+        return;
+    }
+
+    ProPieceInfo *proPieceInfo = proPieceInfoMap[pName];
+    if(proPieceInfo->pieceList.length() < 1){  // 如果零件信息为空，返回
+        QMessageBox::warning(this, tr("错误"), tr("零件列表为空！"));
+        return;
+    }
+
+    ProSheetInfo *proSheetInfo = proSheetInfoMap[pName];
+    if(proSheetInfo->sheetList.length() < 1){  // 如果材料列表为空，返回
+        QMessageBox::warning(this, tr("错误"), tr("材料列表为空！"));
+        return;
+    }
+
     if(nestNum.count() == 0){
         QMessageBox::warning(this, tr("警告"), tr("未设置切割件排版个数!"));
         return;

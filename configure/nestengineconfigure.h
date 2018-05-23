@@ -2,6 +2,10 @@
 #define NESTENGINECONFIGURE_H
 
 #include <QObject>
+#include <QList>
+#include "nestengine.h"
+
+#define NEST_ENGINE_CONFIGURE_XML "nest_engine_configure.xml"
 
 /**
  * @brief The AutoNestConfigure class
@@ -16,19 +20,37 @@ class NestEngineConfigure
 public:
     // to do
     // 定义结构体
-    // strcut StripSheetNest
+    struct StripSheetNest{
+        StripSheetNest() :
+            strategy(NestEngine::NoStrategy)
+        {}
+        NestEngine::NestEngineStrategys strategy;
+    };
     // ...
 
     // strcut WholeSheetNest
     // ...
+    struct WholeSheetNest{
+        WholeSheetNest() :
+            mixtype(NestEngine::NoMixing)
+        {}
+        NestEngine::NestMixingTypes mixtype;
 
+    };
     // strcut PackageSheetNest
     // ...
-    NestEngineConfigure();
-
+    explicit NestEngineConfigure();
+    void LoadConfigureXml(int index);
+    void WriteConfigureXml(int index ,QList<int> configurelist);
+    WholeSheetNest getWholeSheetNest();
+    StripSheetNest getStripSheetNest();
 private:
     // to do
     // 声明上面结构体的变量
+    StripSheetNest stripSheetNest;
+    WholeSheetNest wholeSheetNest;
+
+    // List, 保存配置好的排版配置
 };
 
 #endif // NESTENGINECONFIGURE_H

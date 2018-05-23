@@ -13,13 +13,23 @@
 #include <QCheckBox>
 #include <QWidget>
 #include <QHBoxLayout>
+#include <QDialogButtonBox>
+#include <QList>
+
+#include "nestengineconfigure.h"
+
+
 
 //! [0]
 class WholeSheetConfigTab : public QWidget
 {
     Q_OBJECT
 public:
-    explicit WholeSheetConfigTab(QWidget *parent = 0);
+    explicit WholeSheetConfigTab(NestEngineConfigure::WholeSheetNest wholesheetnest,QWidget *parent = 0);
+    QCheckBox *TailPieceMixing;
+    QCheckBox *TailLineMixing;
+    QCheckBox *SameTypeSizeMixing;
+    QCheckBox *AllMixing;
 };
 //! [0]
 
@@ -30,6 +40,8 @@ class StripSheetConfigTab : public QWidget
     Q_OBJECT
 public:
     explicit StripSheetConfigTab(QWidget *parent = 0);
+    QCheckBox *leftRightTurnCBox;
+    QCheckBox *sizeDownCBox;
 };
 //! [1]
 
@@ -48,13 +60,31 @@ class NestEngineConfigureDialog : public QDialog
 {
     Q_OBJECT
 public:
-    NestEngineConfigureDialog();
+    enum TabType{
+        Default = -1,
+        Whole,
+        Strip,
+        Package
+    };
 
+    explicit NestEngineConfigureDialog(NestEngineConfigure *config);
+    explicit NestEngineConfigureDialog(NestEngineConfigure *config, TabType type);
+
+
+    NestEngineConfigure::StripSheetNest * getCurStripConfig();
+    NestEngineConfigure::WholeSheetNest * getCurWholeConfig();
 public slots:
-    void onNestEngingeConfig(int i);
-
+    void onTabChanged(int i);
+    void onDialogButtonClicked(QAbstractButton *button);  // 响应材料信息改变
 private:
-     QTabWidget *tabWidget;
+    TabType tabType;
+    QTabWidget *tabWidget;
+    StripSheetConfigTab *sSheetTab;
+    WholeSheetConfigTab *wSheetTab;
+    PackageSheetConfig *pSheetTab;
+    QDialogButtonBox *buttonBox;
+    NestEngineConfigure::StripSheetNest *curStripConfig;
+    NestEngineConfigure::WholeSheetNest *curWholeConfig;
 };
 
 #endif // AUTONESTCONFIGUREDIALOG_H
