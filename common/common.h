@@ -28,6 +28,7 @@ qreal qrealPrecision(const qreal &dVal, short iPlaces);  // 数的保留小数�
 QPointF pointPrecision(const QPointF &point, short iPlaces);  // 点的保留小数位数
 QRectF rectPrecision(const QRectF &rect, short iPlaces);  // 点的保留小数位数
 QVector<QPointF> pointsListPrecision(const QVector<QPointF> pointsList, short iPlaces);  // 点集保留小数位数
+QVector<QLineF> linesListPrecision(const QVector<QLineF> linesList, short iPlaces);  // 点集保留小数位数
 
 // 坐标转换
 QPointF transformY(QPointF p);  // 转变纵坐标轴

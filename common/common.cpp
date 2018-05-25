@@ -34,6 +34,9 @@ QColor intToColor(const int rgb, bool a)
     return QColor(red, green, blue, alpha);
 }
 
+//qrealPrecision(1.234,2) = 1.23
+//qrealPrecision(1.234,0) = 1.0
+//qrealPrecision(123.4,-1) = 120.0
 qreal qrealPrecision(const qreal &dVal, short iPlaces) {
     qreal dRetval;
     qreal dMod = 0.0000001;
@@ -55,6 +58,17 @@ QVector<QPointF> pointsListPrecision(const QVector<QPointF> pointsList, short iP
     QVector<QPointF> retList;
     for(int i=0; i<pointsList.length(); i++){
         retList.append(pointPrecision(pointsList[i], iPlaces));
+    }
+    return retList;
+}
+
+QVector<QLineF> linesListPrecision(const QVector<QLineF> linesList, short iPlaces){
+    QVector<QLineF> retList;
+    for(int i=0; i<linesList.length(); i++){
+        QLineF line;
+        line.setP1(pointPrecision(linesList[i].p1(), iPlaces));
+        line.setP2(pointPrecision(linesList[i].p2(), iPlaces));
+        retList.append(line);
     }
     return retList;
 }
@@ -164,8 +178,12 @@ bool boundingRectContain(const QRectF rect1, const QRectF rect2)
     getRectBoundValue(rect1, minX1, minY1, maxX1, maxY1);
     getRectBoundValue(rect2, minX2, minY2, maxX2, maxY2);
 
+    qDebug() << "";
+    qDebug() << minX1 << "  " << maxX1 << "  " << minY1 << "  " << maxY1;
+    qDebug() << minX2 << "  " << maxX2 << "  " << minY2 << "  " << maxY2;
     // 最终使用这种
     if(minX1 > minX2 || maxX1 < maxX2 || minY1 > minY2 || maxY1 < maxY2){
+        qDebug() << "false";
         return false;
     }
 

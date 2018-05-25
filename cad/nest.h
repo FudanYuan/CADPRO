@@ -16,8 +16,7 @@
 #include "scene.h"
 #include "shape.h"
 #include "binarytree.h"
-#include "tabdialog.h"
-#include "nestengineconfiguredialog.h"
+#include "nestengineconfigure.h"
 #include <QDebug>
 
 namespace Ui {
@@ -101,10 +100,10 @@ private:
     QList<Project *> projectList; // 项目列表
     Project *projectActive;  // 活动项目
     Scene *nestScene;  // 排版图层
-    NestEngineConfigureDialog nestEngineconfigDialog;
+    NestEngineConfigure *nestEngineConfig;
     QMap<QString, QList<Scene *>> outMap;  // 保存对象<项目名称，图层列表>
     QMap<QString, QList<PieceCenter>> pieceCenterMap; // 保存项目的零件中心图
-    QMap<QString, QList<PieceOffset>> pieceOffsetMap; // 保存项目的零件中心图
+    QMap<QString, QList<PieceOffset>> pieceOffsetMap; // 保存项目的零件偏移图
 
     QMap<QString, int> nestNum; // 每个图形的个数
     View *pieceView;  // 切割件视图
@@ -139,6 +138,17 @@ private:
     QAction *action_edit_copy;
     QAction *action_edit_paste;
 
+    QMenu *menu_nest;  // 排版
+    QAction *action_nest_config;
+    QMenu *menu_action_nest_side;  // 排版靠边
+    QAction *action_nest_side_left;
+    QAction *action_nest_side_right;
+    QAction *action_nest_side_top;
+    QAction *action_nest_side_bottom;
+    QMenu *menu_action_nest_direction;  // 排版方向
+    QAction *action_nest_direction_horizontal;
+    QAction *action_nest_direction_vertical;
+
     QMenu *menu_sheet;  // 表单，即材料
     QAction *action_sheet_manager;
     QAction *action_sheet_add;
@@ -151,7 +161,7 @@ private:
     QAction *action_sheet_use_last_sheet;
     QAction *action_sheet_sheet_property;
 
-    QMenu *menu_cam;  // 测量
+    QMenu *menu_cam;  // cam 配置
     QAction *action_cam_send_to_cut;
     QAction *action_cam_configure;
 
@@ -168,10 +178,21 @@ private:
     QAction *action_view_lock_layout;
     QMenu *menu_view_tool_bar;
     QActionGroup *action_view_tool_slide;
+    QAction *action_view_tool_projects;
     QAction *action_view_tool_pieces;
     QAction *action_view_tool_sheets;
     QAction *action_view_tool_customize;
     QAction *action_view_status_bar;
+
+    QMenu *menu_help;
+    QAction *action_help_help;
+    QAction *action_help_license;
+    QAction *action_help_about;
+
+    QToolBar *tool_standard;
+    QToolBar *tool_view;
+    QToolBar *tool_nest;
+    QToolBar *tool_sheet;
 
     QLabel *mousePositionLabel;  //  鼠标坐标
     QDockWidget *dock_piece;  // 浮动窗口1
@@ -243,6 +264,14 @@ private slots:
     void onActionEditCopy();            // 复制
     void onActionEditPaste();           // 粘贴
 
+    void onActionNestConfig();          // 自动排版配置
+    void onActionNestSideLeft();        // 左靠边
+    void onActionNestSideRight();       // 右靠边
+    void onActionNestSideTop();         // 顶靠边
+    void onActionNestSideBottom();      // 底靠边
+    void onActionNestDirectionHorizontal(); // 横向排版
+    void onActionNestSideDirectionVertical(); // 纵向排版
+
     void onActionSheetManager();        // 材料管理
     void onActionSheetAdd();            // 增加材料
     void onActionSheetRemove();         // 删除材料
@@ -253,6 +282,28 @@ private slots:
     void onActionSheetSheetNumber();    // 输入材料序号
     void onActionSheetUseLastSheet();   // 使用上一张材料
     void onActionSheetProperty();       // 材料属性
+
+    void onActionViewGrid(bool toggled);
+    void onActionViewZoomWindow();  // 选择区域放大
+    void onActionViewZoomAll();     // 全部图形居中最大
+    void onActionViewZoomIn();      // 放大
+    void onActionViewZoomOut();     // 缩小
+    void onActionViewZoomBack();    // 缩小
+    void onActionViewLockLayout(bool toggled);
+    void onActionViewToolProjectsToggled(bool toggled);
+    void onActionViewToolPiecesToggled(bool toggled);
+    void onActionViewToolSheetsToggled(bool toggled);
+    void onActionViewToolSlideToggled(bool toggled);
+    void onActionViewToolCustomizeToggled(bool toggled);
+    void onActionViewStatusBar(bool toggled);
+
+    void onActionUtilityMeasureDis();        	//测量距离
+
+    // HELP
+    void onActionHelpHelp();             //帮助
+    void onActionHelpLicense();          //许可
+    void onActionHelpAbout();            //关于
+    // HELP
 
     void onActionTreeExpandAll();
     void onActionTreeFoldAll();

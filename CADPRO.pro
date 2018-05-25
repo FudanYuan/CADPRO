@@ -47,7 +47,6 @@ SOURCES += \
     common/customwidget.cpp \
     common/GA.cpp \
     common/collisiondectect.cpp \
-    common/quadtree.cpp \
     dxf/dxflib/dl_writer_ascii.cpp \
     dxf/dxflib/dl_dxf.cpp \
     dxf/dxffilter.cpp \
@@ -80,8 +79,7 @@ SOURCES += \
     configure/nestconfigure.cpp \
     configure/nestconfiguredialog.cpp \
     configure/nestengineconfiguredialog.cpp \
-    configure/nestengineconfigure.cpp \
-    cad/tabdialog.cpp
+    configure/nestengineconfigure.cpp
 
 HEADERS += \
     cad/project.h \
@@ -101,7 +99,7 @@ HEADERS += \
     common/binarytree.h \
     common/ternarytree.h \
     common/collisiondectect.h \
-    common/quadtree.h \
+    common/quadtreenode.h \
     dxf/dxflib/dl_writer.h \
     dxf/dxflib/dl_writer_ascii.h \
     dxf/dxflib/dl_global.h \
@@ -146,8 +144,7 @@ HEADERS += \
     configure/nestconfigure.h \
     configure/nestconfiguredialog.h \
     configure/nestengineconfiguredialog.h \
-    configure/nestengineconfigure.h \
-    cad/tabdialog.h
+    configure/nestengineconfigure.h
 
 FORMS += \
     cad/sketch.ui \

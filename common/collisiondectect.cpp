@@ -599,7 +599,7 @@ bool ConcavePolygon::getSplitPointByVertexRegion(QVector<QPointF> pList, int con
         // qDebug() << "BC分区为空错误";
         return false;
     }
-    int mid = concaveIndex;
+    //int mid = concaveIndex;
     int left = B1[B1.length() - 1];
     int right = C1[0];
     // BC区域的首位点必在一条直线上

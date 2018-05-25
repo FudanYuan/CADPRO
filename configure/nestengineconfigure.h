@@ -2,6 +2,10 @@
 #define NESTENGINECONFIGURE_H
 
 #include <QObject>
+#include <QList>
+#include "nestengine.h"
+
+#define NESTENGINECONFIGURE_XML "nest_engine_configure.xml"
 
 /**
  * @brief The AutoNestConfigure class
@@ -14,22 +18,45 @@
 class NestEngineConfigure
 {
 public:
-    // to do
-    // 定义结构体
-    // strcut StripSheetNest
-    // ...
+    struct StripSheetNest{
+        StripSheetNest() :
+            strategy(NestEngine::NoStrategy),
+            stripmixing(NestEngine::NoMixing),
+            stripadaptive(NestEngine::NoAdaptiveSpacing)
+        {}
+        NestEngine::NestEngineStrategys strategy;
+        NestEngine::NestMixingTypes stripmixing;
+        NestEngine::NestAdaptiveSpacingTypes stripadaptive;
+    };
 
-    // strcut WholeSheetNest
-    // ...
+    struct WholeSheetNest{
+        WholeSheetNest() :
+            wholemixing(NestEngine::NoMixing),
+            wholeorientation(NestEngine::VerticalNest)
+            {}
+        NestEngine::NestMixingTypes wholemixing;
+        NestEngine::NestOrientations wholeorientation;
+        int wholedegree=0;
+    };
 
-    // strcut PackageSheetNest
-    // ...
-    NestEngineConfigure();
+    struct PackageSheetNest{
+        PackageSheetNest() :
+            packagemixing(NestEngine::NoMixing),
+            packageorientation(NestEngine::VerticalNest)
+            {}
+        NestEngine::NestMixingTypes packagemixing;
+        NestEngine::NestOrientations packageorientation;
+        int packagedegree=0;
+    };
 
-private:
-    // to do
-    // 声明上面结构体的变量
-
+    explicit NestEngineConfigure();
+    QMap<int,QList<QList<int>>> LoadConfigureXml();
+    void WriteConfigureXml(QMap<int,QList<QList<int>>>);
+    WholeSheetNest getWholeSheetNest();
+    StripSheetNest getStripSheetNest();
+    StripSheetNest stripSheetNest;
+    WholeSheetNest wholeSheetNest;
+    PackageSheetNest packageSheetNest;
 };
 
-#endif // NESTENGINECONFIGURE_H
+#endif

@@ -72,9 +72,10 @@ public:
     void initPackPointOneSheet(int sheetID, qreal PPD);  // 初始化一个材料的排样点
     void updatePackPointOneSheet(int sheetID, Piece piece);  // 更新排样点
 
-    void layoutAlg(QVector<int> indexList) Q_DECL_OVERRIDE;  // 排版算法
+    void packPieces(QVector<int> indexList) Q_DECL_OVERRIDE;  // 排版算法
     bool packOnePiece(Piece piece, NestEngine::NestPiece &nestPiece) Q_DECL_OVERRIDE;  // 排放单个零件
     bool packOnePieceOnSheet(Piece piece, int sheetID, NestEngine::NestPiece &nestPiece) Q_DECL_OVERRIDE;  // 在给定材料上排放单个零件
+    bool packOnePieceAttempt(Piece piece, int sheetID, NestEngine::NestPiece &nestPiece, QList<int> packPointList, int maxRotateAngle, int RN);  // 在给定材料上尝试排放单个零件
     bool compact(int sheetID, NestPiece &nestPiece) Q_DECL_OVERRIDE;  // 紧凑算法
     bool collidesWithOtherPieces(int sheetID, Piece piece) Q_DECL_OVERRIDE;  // 判断该零件是否与其他零件重叠
 
