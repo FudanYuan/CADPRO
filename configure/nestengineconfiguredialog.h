@@ -23,9 +23,10 @@ class WholeSheetConfigTab : public QWidget
 {
     Q_OBJECT
 public:
-    explicit WholeSheetConfigTab(QWidget *parent = 0);
+    explicit WholeSheetConfigTab(QWidget *parent = 0, QMap<int,QList<QList<int>>>* dataMap = new QMap<int,QList<QList<int>>>());
     QCheckBox *TailPieceMixing;
     QCheckBox *TailLineMixing;
+    QMap<int,QList<QList<int>>> * dataMap;
     QCheckBox *SameTypeSizeMixing;
     QCheckBox *AllMixing;
     QRadioButton *HorizontalNest;
@@ -40,6 +41,8 @@ public slots:
     void onQCheckBoxChanged1(bool checked);
     void onQCheckBoxChanged2(bool checked);
     void onQCheckBoxChanged3(bool checked);
+    void onButtonClicked();
+    void onItemChanged();
 };
 
 class StripSheetConfigTab : public QWidget
@@ -100,7 +103,7 @@ public:
     NestEngineConfigure::PackageSheetNest * getCurPackageConfig();
     QTableWidget * inittableWIdget();
 
-    QMap<int,QList<QList<int>>> dataMap;
+    QMap<int,QList<QList<int>>> * dataMap;
 
 public slots:
     void onTabChanged(int i);
