@@ -34,16 +34,6 @@ QColor intToColor(const int rgb, bool a)
     return QColor(red, green, blue, alpha);
 }
 
-QByteArray  intToByte(int number)
-{
-    QByteArray abyte0;
-    abyte0.resize(4);
-    abyte0[0] = (uchar)  (0x000000ff & number);
-    abyte0[1] = (uchar) ((0x0000ff00 & number) >> 8);
-    abyte0[2] = (uchar) ((0x00ff0000 & number) >> 16);
-    abyte0[3] = (uchar) ((0xff000000 & number) >> 24);
-    return abyte0;
-}
 //qrealPrecision(1.234,2) = 1.23
 //qrealPrecision(1.234,0) = 1.0
 //qrealPrecision(123.4,-1) = 120.0

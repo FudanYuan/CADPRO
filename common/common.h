@@ -9,7 +9,6 @@
 #include <QLineF>
 #include <QVector>
 #include <qmath.h>
-#include <QByteArray>
 
 #define PRECISION 6  // 保留6位小数
 
@@ -23,7 +22,7 @@ void str2int(int &int_temp,const std::string &string_temp);
 void str2float(float &float_temp,const std::string &string_temp);
 void str2double(double &double_temp,const std::string &string_temp);
 QColor intToColor(const int rgb, bool a=false); // 将int转华为color
-QByteArray  intToByte(int number);
+
 // 计算精度
 qreal qrealPrecision(const qreal &dVal, short iPlaces);  // 数的保留小数位数
 QPointF pointPrecision(const QPointF &point, short iPlaces);  // 点的保留小数位数

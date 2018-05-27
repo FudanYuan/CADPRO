@@ -117,7 +117,7 @@ public:
         NoMixing = 0x00,  // 不混合
         TailPieceMixing = 0x01,  // 行内尾只混合
         TailLineMixing = 0x02,  // 尾行优化，允许任意角度
-        SameTypeSizeMixing = 0x08,  // 同型体内尺码混合
+        SameTypeSizeMixing = 0x04,  // 同型体内尺码混合
         AllMixing = TailPieceMixing | TailLineMixing | SameTypeSizeMixing,  // 全混合
     };
 

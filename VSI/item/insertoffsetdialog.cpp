@@ -60,8 +60,7 @@ void InsertOffsetDialog::intidialog()
 
     mainLayout->addLayout(layout1);
     mainLayout->addLayout(layout4);
-    mainLayout->setStretch(0,10);
-    mainLayout->setStretch(1,17);
+    mainLayout->addStretch(10);
 
     //主对话框的大小、名称
     setMaximumSize(600,280);

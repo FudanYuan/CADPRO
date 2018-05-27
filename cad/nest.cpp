@@ -679,22 +679,34 @@ void Nest::initSheet()
 
 
     NestEngineConfigure *nestEngineConfig = new NestEngineConfigure;  // 实例化时要做都配置文件操作
-    nestEngineConfig->LoadConfigureXml(0);
     Sheet::SheetType type = curSheet->type;
     NestEngineConfigureDialog nestEngineconfigDialog(nestEngineConfig, (NestEngineConfigureDialog::TabType)(type));
     nestEngineconfigDialog.exec();
-
 
     // 获取通过这个对话框设置的排版配置
     if(type == Sheet::Strip){
         NestEngineConfigure::StripSheetNest *curStripConfig = nestEngineconfigDialog.getCurStripConfig();
         if(curStripConfig == NULL){return;}
-        qDebug() << curStripConfig->strategy;
+        qDebug() <<"strip";
+        qDebug() <<"排版方式"<<curStripConfig->strategy;
+        qDebug() <<"适应方式"<<curStripConfig->stripadaptive;
+        qDebug() <<"混合方式"<<curStripConfig->stripmixing;
     }
     if(type == Sheet::Whole){
         NestEngineConfigure::WholeSheetNest *curWholeConfig = nestEngineconfigDialog.getCurWholeConfig();
         if(curWholeConfig == NULL){return;}
-        qDebug() << curWholeConfig->mixtype;
+        qDebug() <<"whole";
+        qDebug() << "混合方式"<<curWholeConfig->wholemixing;
+        qDebug() <<"排版"<<curWholeConfig->wholeorientation;
+        qDebug() <<"旋转角度"<<curWholeConfig->wholedegree;
+    }
+    if(type == Sheet::Package){
+        NestEngineConfigure::PackageSheetNest *curPackageConfig = nestEngineconfigDialog.getCurPackageConfig();
+        if(curPackageConfig == NULL){return;}
+        qDebug() <<"package";
+        qDebug() << "混合方式"<<curPackageConfig->packagemixing;
+        qDebug() <<"排版"<<curPackageConfig->packageorientation;
+        qDebug() <<"旋转角度"<<curPackageConfig->packagedegree;
     }
     return;
 
@@ -1313,6 +1325,21 @@ void Nest::onActionEditPaste()
 void Nest::onActionNestConfig()
 {
     qDebug() << "自动排版配置";
+    NestEngineConfigure *nestEngineConfig = new NestEngineConfigure;  // 实例化时要做都配置文件操作
+    NestEngineConfigureDialog nestEngineconfigDialog(nestEngineConfig);
+    nestEngineconfigDialog.exec();
+    return;
+
+//    QMap<int, QList<QList<int>>> dataMap;
+//    QList<int> config;
+//    config << 0 << 1  << 0 << 1 << 0 << 1 << 1;
+//    QList<int> config1;
+//    config1 << 0 << 1  << 0 << 1 << 0 << 1 << 1;
+//    QList<QList<int>> configList;
+//    configList.append(config);
+//    configList.append(config1);
+//    dataMap.insert(0, configList);
+//    nestEngineConfig->WriteConfigureXml(dataMap);
 }
 
 void Nest::onActionNestSideLeft()

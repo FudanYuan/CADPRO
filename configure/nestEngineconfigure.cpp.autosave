@@ -28,7 +28,6 @@ QMap<int,QList<QList<int>>> NestEngineConfigure::LoadConfigureXml()
 
     while(!r.atEnd() && !r.hasError()){
         r.readNext();
-        qDebug() << r.name() <<  "name 1 " <<  r.isStartElement();
         if(r.isStartElement()){
             if(r.name() == "Whole"){
                 QList<int> configureList;
