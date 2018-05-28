@@ -37,6 +37,7 @@ public:
     QPushButton *button1;
     QPushButton *button2;
     QPushButton *button3;
+    QPushButton *button4;
 public slots:
     void onQCheckBoxChanged(bool checked);
     void onQCheckBoxChanged1(bool checked);
@@ -45,6 +46,7 @@ public slots:
     void onConfigureButtonClicked();
     void onEditButtonClicked();
     void onDeleteButtonClicked();
+    void onNewButtonClicked();
     void onItemChanged();
 signals:
     void wDataChanged(int index,QList<QList<int>> wData);
@@ -65,9 +67,11 @@ public:
     QPushButton *button1;
     QPushButton *button2;
     QPushButton *button3;
+    QPushButton *button4;
     void onConfigureButtonClicked();
     void onEditButtonClicked();
     void onDeleteButtonClicked();
+    void onNewButtonClicked();
     void onItemChanged();
 signals:
     void sDataChanged(int index,QList<QList<int>> sData);
@@ -91,9 +95,11 @@ public:
     QPushButton *button1;
     QPushButton *button2;
     QPushButton *button3;
+    QPushButton *button4;
     void onConfigureButtonClicked();
     void onEditButtonClicked();
     void onDeleteButtonClicked();
+    void onNewButtonClicked();
     void onItemChanged();
 signals:
     void pDataChanged(int index,QList<QList<int>> pData);
@@ -129,16 +135,19 @@ public:
 
 public slots:
     void onTabChanged(int i);
-    void onDialogButtonClicked(QAbstractButton *button);  // 响应材料信息改变
+    void onDialogButtonCancelClicked();
+    void onDialogButtonOkClicked(QAbstractButton *button);  // 响应材料信息改变
     void onDataChanged(int index,QList<QList<int>> changedData);            //响应配置数据被编辑改变
-
+protected:
+     void closeEvent(QCloseEvent *event);
 private:
     TabType tabType;
     QTabWidget *tabWidget;
     StripSheetConfigTab *sSheetTab;
     WholeSheetConfigTab *wSheetTab;
     PackageSheetConfig *pSheetTab;
-    QDialogButtonBox *buttonBox;
+    QDialogButtonBox * okButton;
+    QDialogButtonBox * cancelButton;
     NestEngineConfigure::StripSheetNest *curStripConfig;
     NestEngineConfigure::WholeSheetNest *curWholeConfig;
     NestEngineConfigure::PackageSheetNest *curPackageConfig;

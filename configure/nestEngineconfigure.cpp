@@ -193,6 +193,7 @@ void NestEngineConfigure::WriteConfigureXml(QMap<int,QList<QList<int>>> & writed
             w.writeTextElement("TailLineMixing", QString("%1").arg(writedata[index][i][4]));
             w.writeTextElement("SameTypeSizeMixing", QString("%1").arg(writedata[index][i][5]));
             w.writeTextElement("AllMixing", QString("%1").arg(writedata[index][i][6]));
+            w.writeEndElement();
         }
         break;
 }
