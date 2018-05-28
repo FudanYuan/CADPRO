@@ -296,6 +296,9 @@ WholeSheetConfigTab::WholeSheetConfigTab(QWidget *parent,QList<QList<int>> dataL
     button1->setEnabled(false);
     button2->setEnabled(false);
     button3->setEnabled(false);
+    degree->setEnabled(false);
+    HorizontalNest->setEnabled(false);
+    VerticalNest->setEnabled(false);
     TailPieceMixing->setEnabled(false);
     TailLineMixing->setEnabled(false);
     SameTypeSizeMixing->setEnabled(false);
@@ -359,6 +362,23 @@ void WholeSheetConfigTab::setTableWidget()
 }
 void WholeSheetConfigTab::onConfigureButtonClicked()
 {
+
+    emit wDataChanged(0,this->dataList);
+
+    this->button1->setEnabled(false);
+
+    //这部分代码用来处理 edit
+    this->degree->setEnabled(false);
+    this->HorizontalNest->setEnabled(false);
+    this->VerticalNest->setEnabled(false);
+    this->TailPieceMixing->setEnabled(false);
+    this->TailLineMixing->setEnabled(false);
+    this->SameTypeSizeMixing->setEnabled(false);
+    this->AllMixing->setEnabled(false);
+
+
+    if(!this->tableWidget->currentItem())
+        return;
     int index = this->tableWidget->currentItem()->row();
 
     this->dataList[index][0] = this->degree->text().toInt();
@@ -423,25 +443,10 @@ void WholeSheetConfigTab::onConfigureButtonClicked()
         this->dataList[index][5] = 1;
         this->dataList[index][6] = 0;
     }
-
     emit wDataChanged(0,this->dataList);
 
 
-    //所有选项不可编辑
-    this->degree->setEnabled(false);
-    this->HorizontalNest->setEnabled(false);
-    this->VerticalNest->setEnabled(false);
 
-    this->TailPieceMixing->setEnabled(false);
-    this->TailLineMixing->setEnabled(false);
-    this->SameTypeSizeMixing->setEnabled(false);
-    this->AllMixing->setEnabled(false);
-
-
-
-    this->button1->setEnabled(false);
-    //删除按钮设置为可选
-    this->button3->setEnabled(true);
 }
 
 void WholeSheetConfigTab::onEditButtonClicked()
@@ -477,12 +482,52 @@ void WholeSheetConfigTab::onDeleteButtonClicked()
         //bug是不能一开始就删除第一个！！！
         this->tableWidget->removeRow(row);
     }
+
+    this->button1->setEnabled(true);
+    this->button2->setEnabled(false);
+    this->button3->setEnabled(false);
+    //所有选项不可编辑
+    this->degree->setText(QString("%1").arg(0));
+
+    this->degree->setEnabled(false);
+    this->HorizontalNest->setChecked(false);
+    this->HorizontalNest->setEnabled(false);
+    this->VerticalNest->setChecked(false);
+    this->VerticalNest->setEnabled(false);
+
+    this->TailPieceMixing->setChecked(false);
+    this->TailPieceMixing->setEnabled(false);
+    this->TailLineMixing->setChecked(false);
+    this->TailLineMixing->setEnabled(false);
+    this->SameTypeSizeMixing->setChecked(false);
+    this->SameTypeSizeMixing->setEnabled(false);
+    this->AllMixing->setChecked(false);
+    this->AllMixing->setEnabled(false);
 }
 
 void WholeSheetConfigTab::onItemChanged()
 {
     if(this->dataList.length() == 0)
         return;
+
+//    bool flag = false;
+//    if(this->tableWidget!=NULL){
+//        for(int i = 0; i<this->tableWidget->rowCount(); i++){
+//            QTableWidgetItem * item = tableWidget->item(i,0);
+//            if(item->isSelected()){
+//                flag = true;
+//                break;
+//            }
+//        }
+//    }
+//    if(!flag){
+//        this->TailPieceMixing->setChecked(false);
+//        this->TailLineMixing->setChecked(false);
+//        this->SameTypeSizeMixing->setChecked(false);
+//        this->AllMixing->setChecked(false);
+//        return;
+//    }
+
     int row = this->tableWidget->currentItem()->row();
     qDebug()<<"row::"<<row;
     //this->button1->setEnabled(true);
@@ -586,7 +631,10 @@ StripSheetConfigTab::StripSheetConfigTab(QWidget *parent,QList<QList<int>> dataL
      button1->setEnabled(false);
      button2->setEnabled(false);
      button3->setEnabled(false);
-
+     leftRightTurnCBox->setEnabled(false);
+     sizeDownCBox->setEnabled(false);
+     HorizontalAdaptiveSpacing->setEnabled(false);
+     TailPieceMixing->setEnabled(false);
 
      hLayout1->addWidget(button1);
      hLayout1->addWidget(button2);
@@ -622,27 +670,46 @@ void StripSheetConfigTab::setTabWidget()
 
 void StripSheetConfigTab::onConfigureButtonClicked()
 {
+
+    emit sDataChanged(1,this->dataList);
+
+    this->button1->setEnabled(false);
+
+
+    if(!this->tableWidget->currentItem()){
+        qDebug()<<"here";
+        return;
+    }
+
     int index = this->tableWidget->currentItem()->row();
     if(this->leftRightTurnCBox->isChecked()){
         this->dataList[index][0] = 1;
     }
+    else{
+        this->dataList[index][0] = 0;
+    }
     if(this->sizeDownCBox->isChecked()){
         this->dataList[index][1] = 1;
+    }
+    else{
+        this->dataList[index][1] = 0;
     }
     if(this->HorizontalAdaptiveSpacing->isChecked()){
         this->dataList[index][2] = 1;
     }
+    else{
+        this->dataList[index][2] = 0;
+    }
     if(this->TailPieceMixing->isChecked()){
         this->dataList[index][3] = 1;
     }
+    else{
+        this->dataList[index][3] = 0;
+    }
+
     emit sDataChanged(1,this->dataList);
 
-    this->leftRightTurnCBox->setEnabled(false);
-    this->sizeDownCBox->setEnabled(false);
-    this->HorizontalAdaptiveSpacing->setEnabled(false);
-    this->TailPieceMixing->setEnabled(false);
 
-    this->button1->setEnabled(false);
 }
 
 void StripSheetConfigTab::onEditButtonClicked()
@@ -652,7 +719,7 @@ void StripSheetConfigTab::onEditButtonClicked()
     this->HorizontalAdaptiveSpacing->setEnabled(true);
     this->TailPieceMixing->setEnabled(true);
 
-    this->button1->setEnabled(false);
+    this->button1->setEnabled(true);
     this->button3->setEnabled(false);
 }
 
@@ -674,6 +741,19 @@ void StripSheetConfigTab::onDeleteButtonClicked()
         //bug是不能一开始就删除第一个！！！
         this->tableWidget->removeRow(row);
     }
+
+    this->button1->setEnabled(true);
+    this->button2->setEnabled(false);
+    this->button3->setEnabled(false);
+
+    this->leftRightTurnCBox->setChecked(false);
+    this->leftRightTurnCBox->setEnabled(false);
+    this->sizeDownCBox->setChecked(false);
+    this->sizeDownCBox->setEnabled(false);
+    this->HorizontalAdaptiveSpacing->setChecked(false);
+    this->HorizontalAdaptiveSpacing->setEnabled(false);
+    this->TailPieceMixing->setChecked(false);
+    this->TailPieceMixing->setEnabled(false);
 }
 
 void StripSheetConfigTab::onItemChanged()
@@ -690,14 +770,26 @@ void StripSheetConfigTab::onItemChanged()
     if(configurelist[0] == 1){
         this->leftRightTurnCBox->setChecked(true);
     }
+    else{
+        this->leftRightTurnCBox->setChecked(false);
+    }
     if(configurelist[1] == 1){
         this->sizeDownCBox->setChecked(true);
+    }
+    else{
+        this->sizeDownCBox->setChecked(false);
     }
     if(configurelist[2] == 1){
         this->HorizontalAdaptiveSpacing->setChecked(true);
     }
+    else{
+        this->HorizontalAdaptiveSpacing->setChecked(false);
+    }
     if(configurelist[3] == 1){
         this->TailPieceMixing->setChecked(true);
+    }
+    else{
+        this->TailPieceMixing->setChecked(false);
     }
 }
 
@@ -750,6 +842,9 @@ PackageSheetConfig::PackageSheetConfig(QWidget *parent,QList<QList<int>> dataLis
     button1->setEnabled(false);
     button2->setEnabled(false);
     button3->setEnabled(false);
+    degree->setEnabled(false);
+    HorizontalNest->setEnabled(false);
+    VerticalNest->setEnabled(false);
     TailPieceMixing->setEnabled(false);
     TailLineMixing->setEnabled(false);
     SameTypeSizeMixing->setEnabled(false);
@@ -835,6 +930,31 @@ void PackageSheetConfig::setTableWidget()
 
 void PackageSheetConfig::onConfigureButtonClicked()
 {
+
+    emit pDataChanged(2,this->dataList);
+
+
+    //这部分代码用来处理 edit
+    this->degree->setEnabled(false);
+    this->HorizontalNest->setEnabled(false);
+    this->VerticalNest->setEnabled(false);
+    this->TailPieceMixing->setEnabled(false);
+    this->TailLineMixing->setEnabled(false);
+    this->SameTypeSizeMixing->setEnabled(false);
+    this->AllMixing->setEnabled(false);
+
+
+
+    this->button1->setEnabled(false);
+
+    //删除按钮设置为可选
+    this->button3->setEnabled(false);
+
+
+    if(!this->tableWidget->currentItem()){
+        return;
+    }
+
     int index = this->tableWidget->currentItem()->row();
 
     this->dataList[index][0] = this->degree->text().toInt();
@@ -903,21 +1023,6 @@ void PackageSheetConfig::onConfigureButtonClicked()
     emit pDataChanged(2,this->dataList);
 
 
-    //所有选项不可编辑
-    this->degree->setEnabled(false);
-    this->HorizontalNest->setEnabled(false);
-    this->VerticalNest->setEnabled(false);
-
-    this->TailPieceMixing->setEnabled(false);
-    this->TailLineMixing->setEnabled(false);
-    this->SameTypeSizeMixing->setEnabled(false);
-    this->AllMixing->setEnabled(false);
-
-
-    this->button1->setEnabled(false);
-
-    //删除按钮设置为可选
-    this->button3->setEnabled(true);
 }
 
 void PackageSheetConfig::onEditButtonClicked()
@@ -953,6 +1058,27 @@ void PackageSheetConfig::onDeleteButtonClicked()
         //bug是不能一开始就删除第一个！！！
         this->tableWidget->removeRow(row);
     }
+
+    this->button1->setEnabled(true);
+    this->button2->setEnabled(false);
+    this->button3->setEnabled(false);
+    //所有选项不可编辑
+    this->degree->setText(QString("%1").arg(0));
+
+    this->degree->setEnabled(false);
+    this->HorizontalNest->setChecked(false);
+    this->HorizontalNest->setEnabled(false);
+    this->VerticalNest->setChecked(false);
+    this->VerticalNest->setEnabled(false);
+
+    this->TailPieceMixing->setChecked(false);
+    this->TailPieceMixing->setEnabled(false);
+    this->TailLineMixing->setChecked(false);
+    this->TailLineMixing->setEnabled(false);
+    this->SameTypeSizeMixing->setChecked(false);
+    this->SameTypeSizeMixing->setEnabled(false);
+    this->AllMixing->setChecked(false);
+    this->AllMixing->setEnabled(false);
 }
 
 void PackageSheetConfig::onItemChanged()
