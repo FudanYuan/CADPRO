@@ -54,33 +54,49 @@ class StripSheetConfigTab : public QWidget
 {
     Q_OBJECT
 public:
-    explicit StripSheetConfigTab(QWidget *parent = 0);
+    explicit StripSheetConfigTab(QWidget *parent = 0,QList<QList<int>> dataList = QList<QList<int>>());
+    void setTabWidget();
+    QList<QList<int>> dataList;
     QCheckBox *leftRightTurnCBox;
     QCheckBox *sizeDownCBox;
-    QRadioButton *HorizontalAdaptiveSpacing;
-    QRadioButton *VerticalAdaptiveSpacing;
+    QCheckBox *HorizontalAdaptiveSpacing;
+    QCheckBox *TailPieceMixing;
     QTableWidget *tableWidget;
     QPushButton *button1;
     QPushButton *button2;
     QPushButton *button3;
+    void onConfigureButtonClicked();
+    void onEditButtonClicked();
+    void onDeleteButtonClicked();
+    void onItemChanged();
+signals:
+    void sDataChanged(int index,QList<QList<int>> sData);
 };
 
 class PackageSheetConfig : public QWidget
 {
     Q_OBJECT
 public:
-    explicit PackageSheetConfig(QWidget *parent = 0);
-    QCheckBox *TailPieceMixing1;
-    QCheckBox *TailLineMixing1;
-    QCheckBox *SameTypeSizeMixing1;
-    QCheckBox *AllMixing1;
-    QRadioButton *HorizontalNest1;
-    QRadioButton *VerticalNest1;
-    QLineEdit *degree1;
-    QTableWidget *tableWidget1;
+    explicit PackageSheetConfig(QWidget *parent = 0,QList<QList<int>> dataList = QList<QList<int>>());
+    void setTableWidget();
+    QList<QList<int>> dataList = QList<QList<int>>();
+    QCheckBox *TailPieceMixing;
+    QCheckBox *TailLineMixing;
+    QCheckBox *SameTypeSizeMixing;
+    QCheckBox *AllMixing;
+    QRadioButton *HorizontalNest;
+    QRadioButton *VerticalNest;
+    QLineEdit *degree;
+    QTableWidget *tableWidget;
     QPushButton *button1;
     QPushButton *button2;
     QPushButton *button3;
+    void onConfigureButtonClicked();
+    void onEditButtonClicked();
+    void onDeleteButtonClicked();
+    void onItemChanged();
+signals:
+    void pDataChanged(int index,QList<QList<int>> pData);
 public slots:
     void onQCheckBoxChanged11(bool checked);
     void onQCheckBoxChanged12(bool checked);
