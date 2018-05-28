@@ -23,10 +23,11 @@ class WholeSheetConfigTab : public QWidget
 {
     Q_OBJECT
 public:
-    explicit WholeSheetConfigTab(QWidget *parent = 0, QMap<int,QList<QList<int>>>* dataMap = new QMap<int,QList<QList<int>>>());
+    explicit WholeSheetConfigTab(QWidget *parent = 0,QList<QList<int>> dataList = QList<QList<int>>());
+    void setTableWidget();
     QCheckBox *TailPieceMixing;
     QCheckBox *TailLineMixing;
-    QMap<int,QList<QList<int>>> * dataMap;
+    QList<QList<int>> dataList;
     QCheckBox *SameTypeSizeMixing;
     QCheckBox *AllMixing;
     QRadioButton *HorizontalNest;
@@ -41,8 +42,12 @@ public slots:
     void onQCheckBoxChanged1(bool checked);
     void onQCheckBoxChanged2(bool checked);
     void onQCheckBoxChanged3(bool checked);
-    void onButtonClicked();
+    void onConfigureButtonClicked();
+    void onEditButtonClicked();
+    void onDeleteButtonClicked();
     void onItemChanged();
+signals:
+    void wDataChanged(int index,QList<QList<int>> wData);
 };
 
 class StripSheetConfigTab : public QWidget
@@ -101,13 +106,15 @@ public:
     NestEngineConfigure::StripSheetNest * getCurStripConfig();
     NestEngineConfigure::WholeSheetNest * getCurWholeConfig();
     NestEngineConfigure::PackageSheetNest * getCurPackageConfig();
+
     QTableWidget * inittableWIdget();
 
-    QMap<int,QList<QList<int>>> * dataMap;
+    QMap<int,QList<QList<int>>> dataMap;
 
 public slots:
     void onTabChanged(int i);
     void onDialogButtonClicked(QAbstractButton *button);  // 响应材料信息改变
+    void onDataChanged(int index,QList<QList<int>> changedData);            //响应配置数据被编辑改变
 
 private:
     TabType tabType;

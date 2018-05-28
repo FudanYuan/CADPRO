@@ -50,8 +50,8 @@ public:
     };
 
     explicit NestEngineConfigure();
-    QMap<int,QList<QList<int>>> * LoadConfigureXml();
-    void WriteConfigureXml(QMap<int,QList<QList<int>>> * writedata);
+    QMap<int,QList<QList<int>>>  LoadConfigureXml();
+    void WriteConfigureXml(QMap<int,QList<QList<int>>> & writedata);
     WholeSheetNest getWholeSheetNest();
     StripSheetNest getStripSheetNest();
     StripSheetNest stripSheetNest;

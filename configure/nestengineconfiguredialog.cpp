@@ -22,8 +22,10 @@ NestEngineConfigureDialog::NestEngineConfigureDialog(NestEngineConfigure *config
     tabWidget = new QTabWidget(this);
     connect(tabWidget, &QTabWidget::currentChanged, this, &NestEngineConfigureDialog::onTabChanged);
 
-    wSheetTab = new WholeSheetConfigTab(this,this->dataMap);
+    wSheetTab = new WholeSheetConfigTab(this,this->dataMap[0]);
     tabWidget->addTab(wSheetTab, tr("整体材料"));
+    connect(wSheetTab,&WholeSheetConfigTab::wDataChanged,this,&NestEngineConfigureDialog::onDataChanged);
+
     sSheetTab = new StripSheetConfigTab(this);
     tabWidget->addTab(sSheetTab, tr("条板材料"));
 
@@ -225,16 +227,22 @@ void NestEngineConfigureDialog::onDialogButtonClicked(QAbstractButton *button)
         break;
     }
     NestEngineConfigure * configure = new NestEngineConfigure();
+
     configure->WriteConfigureXml(this->dataMap);
     QDialog::accept();
 }
 
-WholeSheetConfigTab::WholeSheetConfigTab(QWidget *parent, QMap<int,QList<QList<int>>> * dataMap) :
+void NestEngineConfigureDialog::onDataChanged(int index, QList<QList<int> > changedData)
+{
+    //qDebug()<<"i receive"<<index;
+    this->dataMap[index] = changedData;
+}
+
+WholeSheetConfigTab::WholeSheetConfigTab(QWidget *parent,QList<QList<int>> dataList) :
     QWidget(parent)
 {
     setWindowTitle(tr("排版设置"));
-    qDebug()<<"here in wst";
-    this->dataMap = dataMap;
+    this->dataList = dataList;
     QGridLayout *mainlayout1=new QGridLayout();
     QHBoxLayout *mainlayout=new QHBoxLayout();
     QVBoxLayout *vLayout1 = new QVBoxLayout();
@@ -270,6 +278,7 @@ WholeSheetConfigTab::WholeSheetConfigTab(QWidget *parent, QMap<int,QList<QList<i
     tableWidget->setShowGrid(true);
     QStringList m_Header;
     m_Header<<tr("类型")<<tr("名称");
+
     tableWidget->setHorizontalHeaderLabels(m_Header);
 
     tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
@@ -280,31 +289,14 @@ WholeSheetConfigTab::WholeSheetConfigTab(QWidget *parent, QMap<int,QList<QList<i
     button1 =new QPushButton(tr("确定"));
     button2 =new QPushButton(tr("编辑"));
     button3 =new QPushButton(tr("删除"));
+    button1->setEnabled(false);
+    button2->setEnabled(false);
+    button3->setEnabled(false);
 
 
-    QList<QList<int>> data = dataMap->value(0);
-    for(int row = 0; row<data.length(); row++){
-
-        tableWidget->insertRow(row);
-        tableWidget->setItem(row,0,new QTableWidgetItem(tr("Whole")));
-        tableWidget->setItem(row,1,new QTableWidgetItem(QString("%1").arg(row+1)));
-
-    }
+    this->setTableWidget();
 
 
-
-
-//    foreach(int index,mapData.keys()){
-//        switch (index) {
-//        case 0:
-//            for(int i = 0; i<mapData[0].length(); i++){
-//                tableWidget->setItem(i,0,new QTableWidgetItem("Whole"));
-//                tableWidget->setItem(i,1,new QTableWidgetItem(i));
-//            }
-//            break;
-//        default:
-//            break;
-//        }
 //    }
     //tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);//默认不可编辑
     tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);  //整行选中的方式
@@ -322,19 +314,40 @@ WholeSheetConfigTab::WholeSheetConfigTab(QWidget *parent, QMap<int,QList<QList<i
     vLayout1->addStretch(0.6);
     vLayout1->addWidget(AllMixing);
     vLayout1->addStretch(2.5);
+
     mainlayout->addLayout(vLayout1);
     mainlayout->addLayout(vLayout2);
     mainlayout->setStretch(0,8);
     mainlayout->setStretch(1,25);
     setLayout(mainlayout);
+
     connect(AllMixing, &QCheckBox::toggled, this, &WholeSheetConfigTab::onQCheckBoxChanged);
     connect(TailPieceMixing, &QCheckBox::toggled, this, &WholeSheetConfigTab::onQCheckBoxChanged1);
     connect(TailLineMixing, &QCheckBox::toggled, this, &WholeSheetConfigTab::onQCheckBoxChanged2);
     connect(SameTypeSizeMixing, &QCheckBox::toggled, this, &WholeSheetConfigTab::onQCheckBoxChanged3);
 
-    connect(button2,&QPushButton::clicked,this,&WholeSheetConfigTab::onButtonClicked);
+    connect(button1,&QPushButton::clicked,this,&WholeSheetConfigTab::onConfigureButtonClicked);
+    connect(button2,&QPushButton::clicked,this,&WholeSheetConfigTab::onEditButtonClicked);
+    connect(button3,&QPushButton::clicked,this,&WholeSheetConfigTab::onDeleteButtonClicked);
     connect(tableWidget,&QTableWidget::currentItemChanged,this,&WholeSheetConfigTab::onItemChanged);
 
+}
+
+void WholeSheetConfigTab::setTableWidget()
+{
+    //tableWidget->clear();
+    for(int row = 0; row<this->dataList.length(); row++){
+
+
+        tableWidget->insertRow(row);
+        QTableWidgetItem * type = new QTableWidgetItem(tr("Whole"));
+        type->setFlags(type->flags()&(~Qt::ItemIsEditable));
+        tableWidget->setItem(row,0,type);
+        QString  name = QString("%1").arg(row+1);
+        name = "材料"+name;
+        tableWidget->setItem(row,1,new QTableWidgetItem(name));
+
+    }
 }
 
 StripSheetConfigTab::StripSheetConfigTab(QWidget *parent) :
@@ -478,17 +491,126 @@ void WholeSheetConfigTab::onQCheckBoxChanged3(bool checked)
     }
 }
 
-void WholeSheetConfigTab::onButtonClicked()
+void WholeSheetConfigTab::onConfigureButtonClicked()
 {
-    this->tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);//不可编辑
+    int index = this->tableWidget->currentItem()->row();
+
+    this->dataList[index][0] = this->degree->text().toInt();
+
+    if(this->VerticalNest->isChecked()){
+        this->dataList[index][1] = 1;
+    }
+    else{
+        this->dataList[index][2] = 1;
+    }
+
+    if(this->AllMixing->isChecked()){
+        this->dataList[index][3] = 1;
+        this->dataList[index][4] = 1;
+        this->dataList[index][5] = 1;
+        this->dataList[index][6] = 1;
+    }
+    else if(this->TailPieceMixing->isChecked()&&!this->TailLineMixing->isChecked()&&
+            !this->SameTypeSizeMixing->isChecked()){
+        this->dataList[index][3] = 1;
+        this->dataList[index][4] = 0;
+        this->dataList[index][5] = 0;
+        this->dataList[index][6] = 0;
+    }
+
+    else if(!this->TailPieceMixing->isChecked()&&this->TailLineMixing->isChecked()&&
+            !this->SameTypeSizeMixing->isChecked()){
+        this->dataList[index][3] = 0;
+        this->dataList[index][4] = 1;
+        this->dataList[index][5] = 0;
+        this->dataList[index][6] = 0;
+    }
+
+    else if(!this->TailPieceMixing->isChecked()&&!this->TailLineMixing->isChecked()&&
+            this->SameTypeSizeMixing->isChecked()){
+        this->dataList[index][3] = 0;
+        this->dataList[index][4] = 0;
+        this->dataList[index][5] = 1;
+        this->dataList[index][6] = 0;
+    }
+
+    else if(this->TailPieceMixing->isChecked()&&this->TailLineMixing->isChecked()&&
+            !this->SameTypeSizeMixing->isChecked()){
+        this->dataList[index][3] = 1;
+        this->dataList[index][4] = 1;
+        this->dataList[index][5] = 0;
+        this->dataList[index][6] = 0;
+    }
+
+    else if(!this->TailPieceMixing->isChecked()&&this->TailLineMixing->isChecked()&&
+            !this->SameTypeSizeMixing->isChecked()){
+        this->dataList[index][3] = 0;
+        this->dataList[index][4] = 1;
+        this->dataList[index][5] = 1;
+        this->dataList[index][6] = 0;
+    }
+
+    else if(this->TailPieceMixing->isChecked()&&!this->TailLineMixing->isChecked()&&
+            this->SameTypeSizeMixing->isChecked()){
+        this->dataList[index][3] = 1;
+        this->dataList[index][4] = 0;
+        this->dataList[index][5] = 1;
+        this->dataList[index][6] = 0;
+    }
+
+    emit wDataChanged(0,this->dataList);
+
+
+    //所有选项不可编辑
+    this->degree->setEnabled(false);
+    this->HorizontalNest->setEnabled(false);
+    this->VerticalNest->setEnabled(false);
+
+    this->TailPieceMixing->setEnabled(false);
+    this->TailLineMixing->setEnabled(false);
+    this->SameTypeSizeMixing->setEnabled(false);
+    this->AllMixing->setEnabled(false);
+
+
+
+    //删除可选
+    this->button3->setEnabled(true);
+}
+
+void WholeSheetConfigTab::onEditButtonClicked()
+{
+    //this->tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);//不可编辑
+    this->degree->setEnabled(true);
+    this->HorizontalNest->setEnabled(true);
+    this->VerticalNest->setEnabled(true);
+    this->TailPieceMixing->setEnabled(true);
+    this->TailLineMixing->setEnabled(true);
+    this->SameTypeSizeMixing->setEnabled(true);
+    this->AllMixing->setEnabled(true);
+
+    this->button3->setEnabled(false);
+}
+
+void WholeSheetConfigTab::onDeleteButtonClicked()
+{
+    if(this->tableWidget->currentItem()!=NULL)
+    {
+        int row = this->tableWidget->currentItem()->row();
+        //this->dataMap->value(0).removeAt(row);
+        //this->setTableWidget();
+
+        this->tableWidget->removeRow(row);
+    }
 }
 
 void WholeSheetConfigTab::onItemChanged()
 {
-    int row = this->tableWidget->selectedRanges().count();
-    tableWidget->clearSelection();
+    int row = this->tableWidget->currentItem()->row();
     qDebug()<<"row::"<<row;
-    QList<int> configurelist = this->dataMap->value(0)[row];
+    this->button1->setEnabled(true);
+    this->button2->setEnabled(true);
+    this->button3->setEnabled(true);
+    QList<int> configurelist = this->dataList[row];
     this->degree->setText(QString("%1").arg(configurelist[0]));
     if(configurelist[1] == 1)
         this->VerticalNest->setChecked(true);
