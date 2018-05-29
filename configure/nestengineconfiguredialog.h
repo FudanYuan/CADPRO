@@ -116,6 +116,11 @@ class NestEngineConfigureDialog : public QDialog
 {
     Q_OBJECT
 public:
+    enum RoleType{
+        Manager,  // 进行材料的管理
+        Nest  // 排版时进行材料的增加
+    };
+
     enum TabType{
         Default = -1,
         Whole,
@@ -124,6 +129,9 @@ public:
     };
     explicit NestEngineConfigureDialog(NestEngineConfigure *config);
     explicit NestEngineConfigureDialog(NestEngineConfigure *config, TabType type);
+
+    void setDialogRole(NestEngineConfigureDialog::RoleType role);  // 设置对话框角色
+    NestEngineConfigureDialog::RoleType getDialogRole();  // 获取对话框角色
 
     NestEngineConfigure::StripSheetNest * getCurStripConfig();
     NestEngineConfigure::WholeSheetNest * getCurWholeConfig();
@@ -141,6 +149,7 @@ public slots:
 protected:
      void closeEvent(QCloseEvent *event);
 private:
+    RoleType role;
     TabType tabType;
     QTabWidget *tabWidget;
     StripSheetConfigTab *sSheetTab;

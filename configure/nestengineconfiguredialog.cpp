@@ -7,6 +7,7 @@
 
 #include <QDebug>
 NestEngineConfigureDialog::NestEngineConfigureDialog(NestEngineConfigure *config) :
+    role(Manager),
     tabType(Default)
 {
     setWindowTitle(tr("排版引擎配置"));
@@ -57,6 +58,16 @@ NestEngineConfigureDialog::NestEngineConfigureDialog(NestEngineConfigure *config
     onTabChanged(type);
 }
 
+void NestEngineConfigureDialog::setDialogRole(NestEngineConfigureDialog::RoleType role)
+{
+    this->role = role;
+}
+
+NestEngineConfigureDialog::RoleType NestEngineConfigureDialog::getDialogRole()
+{
+    return role;
+}
+
 NestEngineConfigure::StripSheetNest *NestEngineConfigureDialog::getCurStripConfig()
 {
     return curStripConfig;
@@ -81,16 +92,25 @@ void NestEngineConfigureDialog::onTabChanged(int i)
     switch (i) {
     case 0:
         tabWidget->setCurrentIndex(0);
+        if(role == Manager){
+            return;
+        }
         tabWidget->setTabEnabled(1, false);
         tabWidget->setTabEnabled(2, false);
         break;
     case 1:
         tabWidget->setCurrentIndex(1);
+        if(role == Manager){
+            return;
+        }
         tabWidget->setTabEnabled(0, false);
         tabWidget->setTabEnabled(2, false);
         break;
     case 2:
         tabWidget->setCurrentIndex(2);
+        if(role == Manager){
+            return;
+        }
         tabWidget->setTabEnabled(0, false);
         tabWidget->setTabEnabled(1, false);
         break;
@@ -102,6 +122,10 @@ void NestEngineConfigureDialog::onTabChanged(int i)
 void NestEngineConfigureDialog::onDialogButtonCancelClicked()
 {
     switch (tabType) {
+    if(role == Manager){
+        QDialog::accept();
+        return;
+    }
     case Whole:
         curWholeConfig = new NestEngineConfigure::WholeSheetNest();
         //方向排版
@@ -391,6 +415,10 @@ void NestEngineConfigureDialog::onDataChanged(int index, QList<QList<int> > chan
 void NestEngineConfigureDialog::closeEvent(QCloseEvent *event)
 {
         QMessageBox::StandardButton button;
+        if(role == Manager){
+            event->accept();  //接受退出信号，程序退出
+            return;
+        }
         button = QMessageBox::question(this, tr("警告"),
                                        QString(tr("确认关闭配置窗口?")),
                                        QMessageBox::Yes | QMessageBox::No);
@@ -616,7 +644,7 @@ void WholeSheetConfigTab::onConfigureButtonClicked()
     }
     emit wDataChanged(0,this->dataList);
 
-
+    this->tableWidget->clearSelection();
 
 }
 

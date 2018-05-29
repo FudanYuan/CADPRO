@@ -681,6 +681,7 @@ void Nest::initSheet()
     NestEngineConfigure *nestEngineConfig = new NestEngineConfigure;  // 实例化时要做都配置文件操作
     Sheet::SheetType type = curSheet->type;
     NestEngineConfigureDialog nestEngineconfigDialog(nestEngineConfig, (NestEngineConfigureDialog::TabType)(type));
+    nestEngineconfigDialog.setDialogRole(NestEngineConfigureDialog::Nest);
     nestEngineconfigDialog.exec();
 
     // 获取通过这个对话框设置的排版配置
