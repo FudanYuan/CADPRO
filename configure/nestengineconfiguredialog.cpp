@@ -560,6 +560,15 @@ void WholeSheetConfigTab::onConfigureButtonClicked()
 
     this->tableWidget->clearSelection();
 
+    //确认之后，所有组建回归初始化状态
+    this->degree->setText(QString("%1").arg(0));
+    this->HorizontalNest->setChecked(true);
+    this->VerticalNest->setChecked(false);
+    this->TailPieceMixing->setChecked(false);
+    this->TailLineMixing->setChecked(false);
+    this->SameTypeSizeMixing->setChecked(false);
+    this->AllMixing->setChecked(false);
+
     //这部分代码用来处理 edit
     this->button1->setEnabled(false);
     this->button2->setEnabled(false);
@@ -689,20 +698,19 @@ void WholeSheetConfigTab::onDeleteButtonClicked()
     //所有选项不可编辑
     this->degree->setText(QString("%1").arg(0));
 
-    this->degree->setEnabled(false);
+
     this->HorizontalNest->setChecked(false);
-    this->HorizontalNest->setEnabled(false);
+
     this->VerticalNest->setChecked(false);
-    this->VerticalNest->setEnabled(false);
+
 
     this->TailPieceMixing->setChecked(false);
-    this->TailPieceMixing->setEnabled(false);
+
     this->TailLineMixing->setChecked(false);
-    this->TailLineMixing->setEnabled(false);
+
     this->SameTypeSizeMixing->setChecked(false);
-    this->SameTypeSizeMixing->setEnabled(false);
+
     this->AllMixing->setChecked(false);
-    this->AllMixing->setEnabled(false);
 }
 
 void WholeSheetConfigTab::onNewButtonClicked()
@@ -738,8 +746,8 @@ void WholeSheetConfigTab::onNewButtonClicked()
         newConfigureList.append(0);
 
     }
-    else if(this->TailPieceMixing->isChecked()&&!this->TailLineMixing->isChecked()
-            &&!this->SameTypeSizeMixing->isChecked()){
+    else if(!this->TailPieceMixing->isChecked()&&!this->TailLineMixing->isChecked()
+            &&this->SameTypeSizeMixing->isChecked()){
         newConfigureList.append(0);
         newConfigureList.append(0);
         newConfigureList.append(1);
@@ -764,11 +772,17 @@ void WholeSheetConfigTab::onNewButtonClicked()
     }
     else if(!this->TailPieceMixing->isChecked()&&this->TailLineMixing->isChecked()
             &&this->SameTypeSizeMixing->isChecked()){
-        newConfigureList.append(1);
         newConfigureList.append(0);
+        newConfigureList.append(1);
         newConfigureList.append(1);
         newConfigureList.append(0);
 
+    }
+    else{
+        newConfigureList.append(0);
+        newConfigureList.append(0);
+        newConfigureList.append(0);
+        newConfigureList.append(0);
     }
     this->dataList.append(newConfigureList);
 
@@ -812,17 +826,18 @@ void WholeSheetConfigTab::onItemChanged()
 //    }
 
     int row = this->tableWidget->currentItem()->row();
-    qDebug()<<"row::"<<row;
+    //qDebug()<<"row::222"<<row;
     //this->button1->setEnabled(true);
     this->button4->setEnabled(false);
     this->button2->setEnabled(true);
     this->button3->setEnabled(true);
     QList<int> configurelist = this->dataList[row];
+   // qDebug()<<"row::233"<<configurelist.length();
     this->degree->setText(QString("%1").arg(configurelist[0]));
     if(configurelist[1] == 1)
-        this->VerticalNest->setChecked(true);
-    else
         this->HorizontalNest->setChecked(true);
+    else
+        this->VerticalNest->setChecked(true);
     if(configurelist[6] == 1){
         this->TailPieceMixing->setChecked(true);
         this->TailLineMixing->setChecked(true);
@@ -966,6 +981,12 @@ void StripSheetConfigTab::onConfigureButtonClicked()
     this->button3->setEnabled(false);
     this->button4->setEnabled(true);
 
+    //所有组件回归初始化状态
+    this->leftRightTurnCBox->setChecked(false);
+    this->sizeDownCBox->setChecked(false);
+    this->HorizontalAdaptiveSpacing->setChecked(false);
+    this->TailPieceMixing->setChecked(false);
+
 
     if(!this->tableWidget->currentItem()){
         qDebug()<<"here";
@@ -1038,13 +1059,9 @@ void StripSheetConfigTab::onDeleteButtonClicked()
     this->button3->setEnabled(false);
 
     this->leftRightTurnCBox->setChecked(false);
-    this->leftRightTurnCBox->setEnabled(false);
     this->sizeDownCBox->setChecked(false);
-    this->sizeDownCBox->setEnabled(false);
     this->HorizontalAdaptiveSpacing->setChecked(false);
-    this->HorizontalAdaptiveSpacing->setEnabled(false);
     this->TailPieceMixing->setChecked(false);
-    this->TailPieceMixing->setEnabled(false);
 }
 
 void StripSheetConfigTab::onNewButtonClicked()
@@ -1276,6 +1293,14 @@ void PackageSheetConfig::onConfigureButtonClicked()
 
     this->tableWidget->clearSelection();
 
+    this->degree->setText(QString("%1").arg(0));
+    this->HorizontalNest->setChecked(true);
+    this->VerticalNest->setChecked(false);
+    this->TailPieceMixing->setChecked(false);
+    this->TailLineMixing->setChecked(false);
+    this->SameTypeSizeMixing->setChecked(false);
+    this->AllMixing->setChecked(false);
+
     //这部分代码用来处理 edit
     this->button1->setEnabled(false);
     this->button2->setEnabled(false);
@@ -1403,20 +1428,13 @@ void PackageSheetConfig::onDeleteButtonClicked()
     //所有选项不可编辑
     this->degree->setText(QString("%1").arg(0));
 
-    this->degree->setEnabled(false);
     this->HorizontalNest->setChecked(false);
-    this->HorizontalNest->setEnabled(false);
     this->VerticalNest->setChecked(false);
-    this->VerticalNest->setEnabled(false);
 
     this->TailPieceMixing->setChecked(false);
-    this->TailPieceMixing->setEnabled(false);
     this->TailLineMixing->setChecked(false);
-    this->TailLineMixing->setEnabled(false);
     this->SameTypeSizeMixing->setChecked(false);
-    this->SameTypeSizeMixing->setEnabled(false);
     this->AllMixing->setChecked(false);
-    this->AllMixing->setEnabled(false);
 }
 
 void PackageSheetConfig::onNewButtonClicked()
@@ -1452,8 +1470,8 @@ void PackageSheetConfig::onNewButtonClicked()
         newConfigureList.append(0);
 
     }
-    else if(this->TailPieceMixing->isChecked()&&!this->TailLineMixing->isChecked()
-            &&!this->SameTypeSizeMixing->isChecked()){
+    else if(!this->TailPieceMixing->isChecked()&&!this->TailLineMixing->isChecked()
+            &&this->SameTypeSizeMixing->isChecked()){
         newConfigureList.append(0);
         newConfigureList.append(0);
         newConfigureList.append(1);
@@ -1478,11 +1496,17 @@ void PackageSheetConfig::onNewButtonClicked()
     }
     else if(!this->TailPieceMixing->isChecked()&&this->TailLineMixing->isChecked()
             &&this->SameTypeSizeMixing->isChecked()){
-        newConfigureList.append(1);
         newConfigureList.append(0);
+        newConfigureList.append(1);
         newConfigureList.append(1);
         newConfigureList.append(0);
 
+    }
+    else{
+        newConfigureList.append(0);
+        newConfigureList.append(0);
+        newConfigureList.append(0);
+        newConfigureList.append(0);
     }
     this->dataList.append(newConfigureList);
 
@@ -1534,9 +1558,9 @@ void PackageSheetConfig::onItemChanged()
     QList<int> configurelist = this->dataList[row];
     this->degree->setText(QString("%1").arg(configurelist[0]));
     if(configurelist[1] == 1)
-        this->VerticalNest->setChecked(true);
-    else
         this->HorizontalNest->setChecked(true);
+    else
+        this->VerticalNest->setChecked(true);
     if(configurelist[6] == 1){
         this->TailPieceMixing->setChecked(true);
         this->TailLineMixing->setChecked(true);
