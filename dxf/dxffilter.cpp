@@ -3,9 +3,10 @@
 #include "stdio.h"
 #include "iostream"
 
-DxfFilter::DxfFilter()
+DxfFilter::DxfFilter():
+    polylineIndex(0)
 {
-    polylineIndex = 0;
+
 }
 
 void DxfFilter::addLayer(const DL_LayerData &data)
@@ -181,6 +182,28 @@ void DxfFilter::endSequence()
     }
     qDebug() << "----------------";
 #endif
+}
+
+void DxfFilter::reset()
+{
+    layers.clear();
+    points.clear();
+    lines.clear();
+    rays.clear();
+    arcs.clear();
+    circles.clear();
+    ellipses.clear();
+    texts.clear();
+    dimangulars.clear();
+    dimlines.clear();
+    radias.clear();
+    vertexs.clear();
+    polylines.clear();
+    mtexts.clear();
+    hatches.clear();
+    hatchedges.clear();
+    hatchcolors.clear();
+    polylineIndex = 0;
 }
 
 void DxfFilter::getEntityAttributy()

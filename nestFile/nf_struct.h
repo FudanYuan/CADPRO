@@ -66,12 +66,18 @@ struct PieceOffsetHeader
     }
 };
 
-struct PiecePointsList
+struct PiecePoint
 {
     double x;
     double y;
     double z;
-    PiecePointsList(double px, double py, double pz) {
+    PiecePoint() :
+        x(0.000),
+        y(0.000),
+        z(0.000)
+    {}
+
+    PiecePoint(double px, double py, double pz) {
         x = px;
         y = py;
         z = pz;
@@ -88,7 +94,7 @@ struct PieceOffset
     double reserve5;
     int reserve6;
     int count;
-    QList<PiecePointsList> pointsList;
+    QVector<PiecePoint> pointsList;
 
     PieceOffset() :
         typeId(0),
@@ -100,13 +106,12 @@ struct PieceOffset
         reserve6(0),
         count(0)
     {
-        pointsList.clear();
     }
 
-    PieceOffset(int i, int res1, int res2,
-                int  res3, std::string res4,
+    PieceOffset(int i, double res1, double res2,
+                double  res3, std::string res4,
                 double res5, int res6,
-                int c, QList<PiecePointsList> list) {
+                int c, QVector<PiecePoint> list) {
         typeId = i;
         reserve1 = res1;
         reserve2 = res2;
@@ -115,7 +120,7 @@ struct PieceOffset
         reserve5 = res5;
         reserve6 = res6;
         count = c;
-        pointsList.append(list);
+        pointsList = list;
     }
 };
 

@@ -5,9 +5,11 @@
 #include <QActionGroup>
 #include <QTreeWidget>
 #include <QLabel>
+#include <QProgressBar>
 #include <QRectF>
 #include <QVector>
 #include <QMap>
+#include <QThread>
 #include "sheet.h"
 #include "GA.h"
 #include "sketchconfigure.h"
@@ -59,8 +61,9 @@ public:
     // 项目-材料信息
     struct ProSheetInfo
     {
-        ProSheetInfo(QString name) :
+        ProSheetInfo(QString name, Sheet::SheetType type) :
             projectName(name),
+            sheetType(type),
             curSheetID(-1)
         {
 
@@ -76,6 +79,7 @@ public:
         }
 
         QString projectName; // 项目名称
+        Sheet::SheetType sheetType;  // 材料类型
         QList<Sheet*> sheetList;  // 材料列表
         QList<qreal> pieceNumList;  // 切割件数量
         QList<qreal> usageList;  // 材料使用率列表
@@ -89,10 +93,28 @@ public:
             curPieceID(-1)
         {}
 
+        ProPieceInfo(QString name, int curId) :
+            projectName(name),
+            curPieceID(curId)
+        {}
+
+        ~ProPieceInfo(){
+            qDebug() << "delete ProPieceInfo";
+            projectName = "";
+            qDeleteAll(pieceList);
+            pieceList.clear();
+            curPieceID = -1;
+        }
+
+        void insertPiece(Piece *piece){
+            pieceList.append(piece);
+        }
+
         QString projectName;  // 项目名称
         QList<Piece*> pieceList;  // 零件列表
         int curPieceID;  // 当前零件的ID
     };
+
     explicit Nest(QWidget *parent = 0);
     ~Nest();
 
@@ -101,26 +123,32 @@ public:
     void initToolBar();  // 初始化工具栏
     void initStatusBar();  // 初始化状态栏
     void initDockWidget();  // 初始化dock widget
-    void initConfiguration();  // 初始化配置
+    void initProjectView();  // 初始化项目视图
+    void updateProjectView();  // 更新项目视图
+    void initPieceView();  // 初始化切割件视图
+    void updatePieceView();  // 更新切割件视图
+    void initSheetView();  // 初始化材料视图
+    void updateSheetView();  // 更新材料视图
     void initNestView();  // 初始化排版视图
     void updateNestView();  // 更新排版视图
-    void initProjectView();  // 初始化项目视图
-    void initPieceView();  // 初始化切割件视图
+    void updateAll();  // 更新所有组件
+
+    void initConfiguration();  // 初始化配置
     void initConnect();  // 初始化信号和槽的链接
 
     void addProject();  // 添加项目
     void initSheet();  // 初始化材料
-    void updateSheetTree();  // 更新材料树
+
+    void initNestEngine();  // 初始化排版引擎
     void initRectNestEngine();  // 初始化矩形排版引擎
     void showNestResult();  // 显示排版结果
+
     QString getNewProjectName();  // 获取新项目名称
     Project *getProjectByName(QString project_name);  // 根据项目获取对象
     void removeProjectByName(QString project_name);  // 根据项目名称删除对象
     void showTreeMenu(QPoint pos);  // 显示项目栏菜单
-    void updateAll();  // 更新整个软件
     bool maybeSave();  // 是否保存项目
     bool saveFile(QString fileName);  // 实现文件的存储
-
     void setNestActionDisabled(bool flag);  // 使除能与Nest相关的action
 
 private:
@@ -129,24 +157,29 @@ private:
     QList<Project *> projectList; // 项目列表
     Project *projectActive;  // 活动项目
     Scene *nestScene;  // 排版图层
-    QMap<QString, QList<Scene *>> proSceneListMap;  // 保存对象<项目名称，图层列表>
-    QMap<QString, QList<PieceCenter>> pieceCenterMap; // 保存项目的零件中心图
-    QMap<QString, QList<PieceOffset>> pieceOffsetMap; // 保存项目的零件偏移图
 
-    QMap<QString, int> nestNum; // 每个图形的个数
     View *pieceView;  // 切割件视图
     Scene *pieceScene;   // 切割件图层
-
-    QMap<QString, ProPieceInfo*> proPieceInfoMap;  // 零件列表<项目名称，零件列表>
-
-    QMap<QString, ProSheetInfo*> proSheetInfoMap;  // 使用材料列表
     Sheet* curSheet;  // 当前使用材料
+
+    QMap<QString, int> nestNum; // 每个图形的个数
+    QMap<QString, ProPieceInfo*> proPieceInfoMap;  // 零件列表<项目名称，零件列表>
+    QMap<QString, ProSheetInfo*> proSheetInfoMap;  // 使用材料列表
+    QMap<QString, QList<Scene *>> proSceneListMap;  // 保存对象<项目名称，图层列表>
+    QMap<QString, QList<PieceCenter>> proPieceCenterMap; // 保存项目的零件中心图
+    QMap<QString, QList<PieceOffset>> proPieceOffsetMap; // 保存项目的零件偏移图
+    QMap<QString, NestEngineConfigure*> proNestEngineConfigMap;  // 排版引擎
+
+    QThread *nestThread;  // 排版线程
+    NestEngine *nestEngine;  // 排版引擎
 
     QWidget *widget;
     QLabel *label;
     QLineEdit *lineEdit;
-    QPushButton *lastButton;
-    QPushButton *nestButton;
+    QPushButton *firstPieceButton;
+    QPushButton *previousPieceButton;
+    QPushButton *nextPieceButton;
+    QPushButton *lastPieceButton;
 
     QMenu *menu_file;  // 文件
     QAction *action_file_new;
@@ -170,6 +203,7 @@ private:
     QAction *action_edit_paste;
 
     QMenu *menu_nest;  // 排版
+    QAction *action_nest_start;  // 排版
     QAction *action_nest_config;
     QMenu *menu_action_nest_side;  // 排版靠边
     QAction *action_nest_side_left;
@@ -225,6 +259,8 @@ private:
     QToolBar *tool_nest;
     QToolBar *tool_sheet;
 
+    QProgressBar *nestProgressBar;  // 排版进度条
+    QLabel *nestProgressLabel;  // 排版进度
     QLabel *mousePositionLabel;  //  鼠标坐标
     QDockWidget *dock_piece;  // 浮动窗口1
     QDockWidget *dock_project;  // 浮动窗口2
@@ -266,12 +302,17 @@ private:
 
 signals:
     void nestEngineConfigChange(int i);
+    void nestStart();  // 开始排版
     void nestProjectChange(Project *curProject);  // 排版项目改变信号
 
 public slots:
-    void onProjectNameChanged(QString lastName, QString presentName);  // 响应项目名称改变
     void onMousePositionChanged(QPointF pos);  // 鼠标位置更新
     void onNestProjectChanged(Project *curProject);  // 响应排版项目改变
+    void onProjectNameChanged(QString lastName, QString presentName);  // 响应项目名称改变
+    void onNestProgressChanged(int i);  // 响应排版进度变化
+    void onNestFinished(QVector<NestEngine::NestPiece> nestPieceList);  // 响应排版结束
+    void onNestThreadFinished();
+
 protected:
     void closeEvent(QCloseEvent *event);
 
@@ -296,6 +337,7 @@ private slots:
     void onActionEditCopy();            // 复制
     void onActionEditPaste();           // 粘贴
 
+    void onActionNestStart();           // 开始排版
     void onActionNestEngineConfig();          // 自动排版配置
     void onActionNestSideLeft();        // 左靠边
     void onActionNestSideRight();       // 右靠边
@@ -337,9 +379,15 @@ private slots:
     void onActionHelpAbout();            //关于
     // HELP
 
+    void onActionFirstPiece();  // 第一张切割件
+    void onActionPreviousPiece();  // 上一张切割件
+    void onActionNextPiece();  // 下一张切割件
+    void onActionLastPiece();  // 最后一张切割件
+
     void onActionTreeExpandAll();
     void onActionTreeFoldAll();
 
+    void onProjectTreeItemClicked(QTreeWidgetItem *item, int column);  // 响应项目树选中
     void onTreeProjectItemDoubleClicked(QTreeWidgetItem *item);
     void onActionTreeProjectNestScene();  // 排版
     void onActionTreeProjectAddScene(); // 项目添加图层
@@ -349,10 +397,6 @@ private slots:
     void onActionTreeProjectClose();
 
     void onActionTreeProjectSceneChangeTo();
-    void onActionTreeProjectSceneMoveUpOne();
-    void onActionTreeProjectSceneMoveUpTop();
-    void onActionTreeProjectSceneMoveDownOne();
-    void onActionTreeProjectSceneMoveDownBottom();
     void onActionTreeProjectSceneRename();
     void onActionTreeProjectSceneDelete();
 

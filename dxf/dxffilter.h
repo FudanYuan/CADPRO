@@ -26,6 +26,7 @@ public:
     virtual void endEntity();
     virtual void endSequence();
 
+    void reset();  // 重置
     void getEntityAttributy();
     QString transformText(const std::string text) const;
     QColor transformColor(const int color) const;

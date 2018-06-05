@@ -403,7 +403,7 @@ bool NF_Reader::readPieceOffsetList(FILE *fp)
                 tokenPtr=strtok(NULL,",");
                 temp++;
             }
-            PiecePointsList points(px, py, pz);
+            PiecePoint points(px, py, pz);
             pieceOffset.pointsList.append(points);
             lineTmp++;
         }

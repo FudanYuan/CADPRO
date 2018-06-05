@@ -5,7 +5,7 @@
 #include <vector>
 #include <QLineF>
 #include <QRectF>
-#include <qDebug>
+#include <QDebug>
 
 /*
 //被管理的对象类

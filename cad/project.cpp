@@ -1,5 +1,6 @@
 #include "project.h"
 #include <QMessageBox>
+#include <QMutableListIterator>
 #include <QDebug>
 
 Project::Project(QObject *parent) :
@@ -16,7 +17,9 @@ Project::Project(QObject *parent) :
 Project::~Project()
 {
     qDebug() << "project has been deleted!";
+    qDeleteAll(sceneList);
     sceneList.clear();
+    resetDxfFilter();
 }
 
 void Project::setType(Project::Type type)
@@ -53,15 +56,16 @@ void Project::addScene(Scene *scene)
         scene->setName(name);
     }
     this->sceneList.append(scene);
+    sceneActive = scene;
 }
 
 Scene *Project::addScene()
 {
-    sceneActive = new Scene(this);
+    Scene *s = new Scene(this);
     QString name = getNewSceneName();
-    sceneActive->setName(name);
-    this->addScene(sceneActive);
-    return sceneActive;
+    s->setName(name);
+    this->addScene(s);
+    return s;
 }
 
 void Project::setActiveScene(Scene *scene)
@@ -77,10 +81,10 @@ QList<Scene *> Project::getSceneList()
 Scene *Project::getScene(const int index)
 {
     int length = this->sceneList.length();
-    if(index >= length){
+    if(index >= length || index < 0){
         return NULL;
     }
-    return this->sceneList.at(index);
+    return this->sceneList[index];
 }
 
 Scene *Project::getSceneByName(const QString name)
@@ -103,23 +107,59 @@ int Project::getSceneIdByName(const QString name)
     return -1;
 }
 
+void Project::insertScene(const QList<Scene *> sList)
+{
+    int length = sList.length();
+    //qDebug() << "sList length: " << sList.length();
+    //for(int i=0; i<length; i++){
+        //qDebug() << "sList polyline Length: " << sList[i]->getPolylineListLength();
+    //}
+    this->sceneList.append(sList);
+    length = sceneList.length();  // 更新长度
+    sceneActive = sceneList[length - 1];
+}
+
 bool Project::removeScene(const int index)
 {
     int length = this->sceneList.length();
     if(index > length){
         return false;
     }
+    Scene *scene = sceneList[index];
     sceneList.removeAt(index);
+    delete scene;
+    scene = NULL;
+    if(sceneList.length() < 1){
+        sceneActive = NULL;
+    } else{
+        sceneActive = sceneList[0];
+    }
     return true;
 }
 
 bool Project::removeSceneByName(const QString name)
 {
-    for(int i=0;i<sceneList.length();i++){
-        if(sceneList.at(i)->getName() == name){
-            sceneList.removeAt(i);
-            return true;
+    int length = this->sceneList.length();
+    for (int i=0; i<length; i++) {
+        if(sceneList[i]->getName() == name){
+            if(sceneList.length() < 1){
+                sceneActive = NULL;
+            } else{
+                sceneActive = sceneList[0];
+            }
+            return removeScene(i);
         }
+    }
+    return false;
+}
+
+bool Project::clearScene()
+{
+    if(sceneList.length() > 0){
+        qDeleteAll(sceneList);
+        sceneList.clear();
+        sceneActive = NULL;
+        return true;
     }
     return false;
 }
@@ -134,6 +174,7 @@ bool Project::changeScene(int i, int j)
     Scene *currentScene = sceneList[i];
     sceneList[i] = sceneList[j];
     sceneList[j] = currentScene;
+    return true;
 }
 
 void Project::setSaved(const bool saved)
@@ -184,26 +225,28 @@ QString Project::getSceneName(const int i)
     return sceneList.at(i)->getName();
 }
 
+void Project::resetDxfFilter()
+{
+    dxfFilter.reset();
+}
+
 Scene *Project::getDXFLayer(QString name)
 {
     if(type == Sketch){
         // 根据图层名获取图层
         sceneActive = getSceneByName(name);
         if(!sceneActive){
-            sceneActive = new Scene(this);
+            sceneActive = addScene();
             sceneActive->setName(name);
             SketchConfigure config;
             sceneActive->setEntityStyle(config.eStyle);
-            sceneList.append(sceneActive);
         }
     } else{
         // 当类型为排版时，一个图形就是一个图层
-        sceneActive = new Scene(this);
-        QString newLayer = getNewSceneName();
-        sceneActive->setName(newLayer);
+        sceneActive = addScene();
+        //qDebug() << "添加图层后："  << sceneList.length();
         SketchConfigure config;
         sceneActive->setEntityStyle(config.eStyle);
-        sceneList.append(sceneActive);
     }
     return sceneActive;
 }
@@ -214,6 +257,7 @@ void Project::dxfFileReader(const QString fileName)
     if (!dxf.in(fileName.toStdString(), &dxfFilter)) {
         throw(tr("无法读取DXF文件"));
     }else {
+        //qDebug() << "读取之前：" << sceneList.length();
         // 读取图层
         dxfLayerReader(dxfFilter);
         
@@ -246,12 +290,12 @@ void Project::dxfFileReader(const QString fileName)
         sceneActive->onNewItem();
         // 更新图层修改标识
         sceneActive->setModified(true);
+        //qDebug() << "读取之后：" << this->getSceneList().length();
     }
 }
 
 void Project::dxfLayerReader(const DxfFilter dxfFilter)
 {
-    sceneList.clear();  // 清空图层列表
     if(type == Sketch){
         Scene *scene = new Scene();
         scene->setName(getNewSceneName());
@@ -262,15 +306,17 @@ void Project::dxfLayerReader(const DxfFilter dxfFilter)
     for(int i=0; i<dxfFilter.layers.length();i++){
         QString layer = dxfFilter.transformText(dxfFilter.layers.at(i).layer.name);
         bool off = dxfFilter.layers.at(i).layer.off;
-        if(!off && type == Sketch){
-            QString name = layer;
-            Scene *scene = new Scene();
-            scene->setName(name);
-            SketchConfigure config;
-            scene->setEntityStyle(config.eStyle);
-            sceneList.append(scene);
-        } else{
-            offLayers.append(layer);
+        if(type == Sketch){
+            if(!off){
+                QString name = layer;
+                Scene *scene = new Scene();
+                scene->setName(name);
+                SketchConfigure config;
+                scene->setEntityStyle(config.eStyle);
+                sceneList.append(scene);
+            } else{
+                offLayers.append(layer);
+            }
         }
     }
 
@@ -401,6 +447,7 @@ void Project::dxfLineReader(const DxfFilter dxfFilter)
 
 void Project::dxfPolylineReader(const DxfFilter dxfFilter)
 {
+    //qDebug() << "多边形长度为：" << dxfFilter.polylines.length();
     for(int i=0; i<dxfFilter.polylines.length();i++){
         // 判断该元素是否在不可用图层上
         DL_Attributes attr = dxfFilter.polylines.at(i).attribute;
@@ -440,7 +487,7 @@ void Project::dxfPolylineReader(const DxfFilter dxfFilter)
         qDebug() << "width：" << width;
 #endif
 
-        // 添加点元素
+        // 添加多边形元素
         Polyline *polyline = new Polyline;
         polyline->setShapeType(Shape::Polyline);
         sceneActive->addCustomPolylineItem(polyline);

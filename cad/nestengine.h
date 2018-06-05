@@ -6,7 +6,8 @@
 #include <QVector>
 #include <piece.h>
 #include <sheet.h>
-//#include "quadtreenode.h"
+
+class NestEngineConfigure;
 
 class NestEngine : public QObject
 {
@@ -160,10 +161,22 @@ public:
     Q_DECLARE_FLAGS(NestEngineStrategys, NestEngineStrategy)
     Q_FLAG(NestEngineStrategys)
 
-    explicit NestEngine();
-    explicit NestEngine(const QVector<Piece> pieceList, QVector<Sheet> sheetList);
-    explicit NestEngine(const QVector<Piece> pieceList, QVector<Sheet> sheetList, QVector<SameTypePiece> sameTypePieceList);
-    ~NestEngine();
+    explicit NestEngine(QObject *parent);
+    explicit NestEngine(QObject *parent, const QVector<Piece> pieceList, QVector<Sheet> sheetList);
+    explicit NestEngine(QObject *parent, const QVector<Piece> pieceList, QVector<Sheet> sheetList, QVector<SameTypePiece> sameTypePieceList);
+    virtual ~NestEngine();
+
+    void setPieceList(const QVector<Piece> &pieceList);  // 设置切割件列表
+    QVector<Piece> getPieceList();  // 获取切割件列表
+
+    void setSheetList(QVector<Sheet> &sheetList);  // 设置材料列表
+    QVector<Sheet> getSheetList();  // 获取材料列表
+
+    void setSameTypePieceList(QVector<SameTypePiece> sameTypePieceList);  // 设置同型体
+    QVector<SameTypePiece> getSameTypePieceList();  // 获得同型体
+
+    QVector<NestPiece> getNestPieceList();  // 获取排样切割件列表
+    QVector<int> getNestedPieceIndexlist();  // 获取已排样的切割件序号列表
 
     void setAutoRepeatLastSheet(bool flag);  // 设置是否自动重复使用最后一张材料
     bool getAutoRepeatLastSheet();  // 获取是否自动重复使用最后一张材料
@@ -205,18 +218,26 @@ public:
     void initQuadTreeMap(int sheetID);  // 初始化四叉树Map
     void initNestPieceList();  // 初始化排版零件列表，默认按面积降序排序
     void initsameTypeNestPieceIndexListMap();  // 初始化同型体排版零件列表Map
-    void packAlg();  // 排版算法
-    virtual void packPieces(QVector<int> indexList) = 0;  //  排版算法
-    virtual bool packOnePiece(Piece piece, NestEngine::NestPiece &nestPiece) = 0;  // 排放单个零件
-    virtual bool packOnePieceOnSheet(Piece piece, int sheetID, NestEngine::NestPiece &nestPiece) = 0;  // 在给定材料上排放单个零件
-    virtual bool compact(int sheetID, NestPiece &nestPiece) = 0;  // 紧凑算法
-    virtual bool collidesWithOtherPieces(int sheetID, Piece piece) = 0;  // 判断该零件是否与其他零件重叠
+    void initNestEngineConfig(Sheet::SheetType sheetType, NestEngineConfigure *proConfig);  // 初始化排版引擎配置
 
-//protected:
+    void packAlg();  // 排版算法
+    virtual void packPieces(QVector<int> indexList);  //  排版算法
+    virtual bool packOnePiece(Piece piece, NestEngine::NestPiece &nestPiece);  // 排放单个零件
+    virtual bool packOnePieceOnSheet(Piece piece, int sheetID, NestEngine::NestPiece &nestPiece);  // 在给定材料上排放单个零件
+    virtual bool compact(int sheetID, NestPiece &nestPiece);  // 紧凑算法
+    virtual bool collidesWithOtherPieces(int sheetID, Piece piece);  // 判断该零件是否与其他零件重叠
+
+signals:
+    void nestFinished(QVector<NestEngine::NestPiece> nestPieceList);  // 排版完成信号
+    void progress(int count);  // 排版进程
+
+public slots:
+    void onNestStart();  // 开始排版
+
+protected:
     QVector<Piece> pieceList;  // 零件列表
     QVector<Sheet> sheetList;  // 材料列表
     QVector<SameTypePiece> sameTypePieceList;  // 同型体零件
-
     QVector<NestPiece> nestPieceList;  // 排版零件列表
     QMap<int, PieceIndexRange> nestPieceIndexRangeMap;  // 排版零件的index范围 Map<零件id，排样零件序号范围>
     QMap<int, QVector<int>> sameTypeNestPieceIndexListMap;  // 同型体排版零件index列表 Map<同型体id, 零件序号列表>

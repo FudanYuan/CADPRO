@@ -1,8 +1,9 @@
 #include "nestengine.h"
-
+#include "nestengineconfigure.h"
 #include <QDebug>
 
-NestEngine::NestEngine() :
+NestEngine::NestEngine(QObject *parent) :
+    QObject(parent),
     autoRepeatLastSheet(false),
     compactStep(1),
     compactAccuracy(0.1),
@@ -21,10 +22,11 @@ NestEngine::NestEngine() :
 
 }
 
-NestEngine::NestEngine(const QVector<Piece> pieceList, QVector<Sheet> sheetList) :
+NestEngine::NestEngine(QObject *parent, const QVector<Piece> pieceList, QVector<Sheet> sheetList) :
+    QObject(parent),
     autoRepeatLastSheet(false),
-    compactStep(1),
-    compactAccuracy(0.1),
+    compactStep(5),
+    compactAccuracy(1),
     nestType(SigleRow),
     mixingTyes(NoMixing),
     adaptiveSpacingTypes(NoAdaptiveSpacing),
@@ -46,8 +48,8 @@ NestEngine::NestEngine(const QVector<Piece> pieceList, QVector<Sheet> sheetList)
     }
 }
 
-NestEngine::NestEngine(const QVector<Piece> pieceList, QVector<Sheet> sheetList, QVector<NestEngine::SameTypePiece> sameTypePieceList) :
-    NestEngine(pieceList, sheetList)
+NestEngine::NestEngine(QObject *parent, const QVector<Piece> pieceList, QVector<Sheet> sheetList, QVector<NestEngine::SameTypePiece> sameTypePieceList) :
+    NestEngine(parent, pieceList, sheetList)
 {
     this->sameTypePieceList = sameTypePieceList;
 }
@@ -55,6 +57,56 @@ NestEngine::NestEngine(const QVector<Piece> pieceList, QVector<Sheet> sheetList,
 NestEngine::~NestEngine()
 {
     pieceList.clear();
+    sheetList.clear();
+    sameTypePieceList.clear();
+    nestPieceList.clear();
+    nestedPieceIndexlist.clear();
+    sameTypeNestPieceIndexListMap.clear();
+    nestedPieceIndexlist.clear();
+    unnestedPieceIndexlist.clear();
+    nestSheetPieceMap.clear();
+    pieceMaxPackPointMap.clear();
+    quadTreeMap.clear();
+}
+
+void NestEngine::setPieceList(const QVector<Piece> &pieceList)
+{
+    this->pieceList = pieceList;
+}
+
+QVector<Piece> NestEngine::getPieceList()
+{
+    return pieceList;
+}
+
+void NestEngine::setSheetList(QVector<Sheet> &sheetList)
+{
+    this->sheetList = sheetList;
+}
+
+QVector<Sheet> NestEngine::getSheetList()
+{
+    return sheetList;
+}
+
+void NestEngine::setSameTypePieceList(QVector<NestEngine::SameTypePiece> sameTypePieceList)
+{
+    this->sameTypePieceList = sameTypePieceList;
+}
+
+QVector<NestEngine::SameTypePiece> NestEngine::getSameTypePieceList()
+{
+    return this->sameTypePieceList;
+}
+
+QVector<NestEngine::NestPiece> NestEngine::getNestPieceList()
+{
+    return nestPieceList;
+}
+
+QVector<int> NestEngine::getNestedPieceIndexlist()
+{
+    return nestedPieceIndexlist;
 }
 
 void NestEngine::setAutoRepeatLastSheet(bool flag)
@@ -190,7 +242,7 @@ QVector<Piece> NestEngine::getSortedPieceListByArea(QVector<Piece> pieceList, QM
     for(int i=0; i<pieceList.length(); i++){
         Piece piece = pieceList[i];
         qreal area = piece.getArea();
-        if(!pieceAreaMap.contains(area)){
+        if(!pieceAreaMap.contains(-area)){
             QVector<int> list;
             pieceAreaMap.insert(-area, list);
         }
@@ -356,6 +408,49 @@ void NestEngine::initsameTypeNestPieceIndexListMap()
     }
 }
 
+void NestEngine::initNestEngineConfig(Sheet::SheetType sheetType, NestEngineConfigure *proConfig)
+{
+    switch (sheetType) {  // 根据材料类型，初始化排版引擎
+    case (Sheet::Whole):{
+        NestEngineConfigure::WholeSheetNest wholeSheetNest = proConfig->getWholeSheetNest();
+        setMaxRotateAngle(wholeSheetNest.wholedegree);  // 摆动最大角度
+        setNestEngineStrategys(NestEngine::SizeDown);  // 设置排版策略
+        setNestOrientations(wholeSheetNest.wholeorientation);  // 设置排版方向
+        setNestMixingTypes(wholeSheetNest.wholemixing);  // 排版混合方式
+        qDebug() <<"whole";
+        qDebug() << "混合方式"<<wholeSheetNest.wholemixing;
+        qDebug() <<"排版"<<wholeSheetNest.wholeorientation;
+        qDebug() <<"旋转角度"<<wholeSheetNest.wholedegree;
+        break;
+    }
+    case (Sheet::Strip):{
+        NestEngineConfigure::StripSheetNest stripSheetNest = proConfig->getStripSheetNest();
+        setNestEngineStrategys(stripSheetNest.strategy);  // 排版策略
+        setNestAdaptiveSpacingTypes(stripSheetNest.stripadaptive);  // 自适应间隔
+        setNestMixingTypes(stripSheetNest.stripmixing);  // 排版混合方式
+        qDebug() <<"strip";
+        qDebug() <<"排版方式"<<stripSheetNest.strategy;
+        qDebug() <<"适应方式"<<stripSheetNest.stripadaptive;
+        qDebug() <<"混合方式"<<stripSheetNest.stripmixing;
+        break;
+    }
+    case (Sheet::Package):{
+        NestEngineConfigure::PackageSheetNest packageSheetNest = proConfig->getPackageSheetNest();
+        setMaxRotateAngle(packageSheetNest.packagedegree);  // 摆动最大角度
+        setNestEngineStrategys(NestEngine::SizeDown);  // 设置排版策略
+        setNestOrientations(packageSheetNest.packageorientation);  // 设置排版方向
+        setNestMixingTypes(packageSheetNest.packagemixing);  // 排版混合方式
+        qDebug() <<"package";
+        qDebug() << "混合方式"<<packageSheetNest.packagemixing;
+        qDebug() <<"排版"<<packageSheetNest.packageorientation;
+        qDebug() <<"旋转角度"<<packageSheetNest.packagedegree;
+        break;
+    }
+    default:
+        break;
+    }
+}
+
 void NestEngine::packAlg()
 {
     // 如果没有设置同型体，则直接对排样零件列表排样
@@ -377,4 +472,37 @@ void NestEngine::packAlg()
         }
         packPieces(indexList);
     }
+}
+
+void NestEngine::packPieces(QVector<int> indexList)
+{
+
+}
+
+bool NestEngine::packOnePiece(Piece piece, NestEngine::NestPiece &nestPiece)
+{
+
+}
+
+bool NestEngine::packOnePieceOnSheet(Piece piece, int sheetID, NestEngine::NestPiece &nestPiece)
+{
+
+}
+
+bool NestEngine::compact(int sheetID, NestEngine::NestPiece &nestPiece)
+{
+
+}
+
+bool NestEngine::collidesWithOtherPieces(int sheetID, Piece piece)
+{
+
+}
+
+void NestEngine::onNestStart()
+{
+    initNestPieceList();  // 初始化排样零件
+    qDebug() << nestPieceList.length();
+    packAlg();  // 进行排版
+    emit nestFinished(nestPieceList);  // 发送排版结束信号
 }

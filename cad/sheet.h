@@ -15,7 +15,7 @@
 
 #define SHEET_XML "sheet.xml"
 #define WHOLE tr("整体")
-#define STRIP tr("样条")
+#define STRIP tr("条板")
 #define PACKAGE tr("卷装")
 
 struct StripPW
@@ -37,7 +37,8 @@ struct Sheet
     enum SheetType{
         Whole,
         Strip,
-        Package
+        Package,
+        None
     };
 
     Sheet() :
@@ -78,6 +79,28 @@ struct Sheet
     bool doubleStrip;  // 双上插条板
     qreal cutPaneSize;  // 切割平面尺寸
     QList<StripPW> stripPW;  // 上插板位置宽度
+
+    // 获取类型名称
+    QString typeName(){
+        QString name;
+        switch (type) {
+        case Whole:
+            name = "整体";
+            break;
+        case Strip:
+            name = "条板";
+            break;
+        case Package:
+            name = "卷装";
+            break;
+        case None:
+            name = "无";
+            break;
+        default:
+            break;
+        }
+        return name;
+    }
 
     // 材料的有效面积
     qreal area() const {
@@ -147,7 +170,9 @@ public:
         Manager,  // 进行材料的管理
         Nest  // 排版时进行材料的增加
     };
-    SheetDialog();
+    SheetDialog(Sheet::SheetType type = Sheet::None);
+    void setDialogType(Sheet::SheetType type);  // 设置显示材料类型
+    Sheet::SheetType getDialogType();  // 获取显示材料类型
     void setDialogRole(SheetDialog::RoleType role);  // 设置对话框角色
     SheetDialog::RoleType getDialogRole();  // 获取对话框角色
     void initDialog();  // 初始化对话框
@@ -158,7 +183,7 @@ public:
     void saveSheetInfo();  // 保存材料信息
     void updateSheetInfo(const Sheet *sheetActive);
     void updateSheetActive(Sheet *sheetActive);  // 更新
-    void updateSheetListTable(QList<Sheet*> sheetList);  // 更新表格
+    void updateSheetListTable(QList<Sheet*> filterList);  // 更新表格
     void updateStripConfigTable(QList<StripPW> stripPW);  // 更新strip配置表格
     void setSheetInfoDisable(bool flag);  // 使能材料属性框
     QList<Sheet*> xmlFileReader(QString fileName);  // 读取xml数据
@@ -169,6 +194,7 @@ protected:
      void closeEvent(QCloseEvent *) Q_DECL_OVERRIDE;
 private:
     RoleType role;  // 打开该对话框的角色类型
+    Sheet::SheetType sheetType;  // 材料类型
     QList<Sheet*> sheetList;  // 材料列表
     Sheet *sheetActive;  // 选中材料
     int currentIndex;  // 当前序号

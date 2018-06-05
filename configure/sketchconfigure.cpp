@@ -7,14 +7,14 @@
 SketchConfigure::SketchConfigure(QObject *parent) :
     QObject(parent)
 {
-    settings = new QSettings(CONFG_FILE_PATH, QSettings::IniFormat);
+    settings = new QSettings(SKETCH_CONFG_FILE_PATH, QSettings::IniFormat);
     readConfig(settings);
 }
 
 SketchConfigure::~SketchConfigure()
 {
 #ifdef DEBUG
-    qDebug() << "SketchConfigure has been deleted!";
+    //qDebug() << "SketchConfigure has been deleted!";
 #endif
     delete settings;
 }
@@ -28,7 +28,7 @@ void SketchConfigure::writeConfig(QSettings *settings)
 
 void SketchConfigure::readConfig(QSettings *settings)
 {
-    QFileInfo file(CONFG_FILE_PATH);
+    QFileInfo file(SKETCH_CONFG_FILE_PATH);
     // 若配置文件不存在，初始化系统配置
     if(!file.exists()){
 #ifdef DEBUG
@@ -39,7 +39,7 @@ void SketchConfigure::readConfig(QSettings *settings)
     }
     // 若配置文件存在，读入配置
 #ifdef DEBUG
-    qDebug() << "配置文件已存在";
+    //qDebug() << "配置文件已存在";
 #endif
     readConfigEntityStyle(settings);
     readConfigAxesGrid(settings);
@@ -279,7 +279,7 @@ QColor SketchConfigure::intToColor(int rgb, bool a)
 
 void SketchConfigure::updateConfig(QList<KeyValue> keyValue)
 {
-    QSettings *settings = new QSettings(CONFG_FILE_PATH, QSettings::IniFormat);
+    QSettings *settings = new QSettings(SKETCH_CONFG_FILE_PATH, QSettings::IniFormat);
     for(int i=0; i<keyValue.length();i++){
         settings->setValue(keyValue.at(i).key, keyValue.at(i).value);
     }

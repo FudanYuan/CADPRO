@@ -12,7 +12,7 @@
 #include <QList>
 #include <debug.h>
 
-#define CONFG_FILE_PATH "sketch_config.ini"
+#define SKETCH_CONFG_FILE_PATH "sketch_config.ini"
 
 // 配置类，此配置类用于整个软件的配置
 class SketchConfigure : public QObject

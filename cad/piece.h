@@ -35,7 +35,11 @@ public:
     qreal getAngle() const;
     qreal getSquareness() const;
     QPointF getCenterPoint() const;
+
+    void setCount(int c);
     int getCount() const;
+
+    QVector<QPointF> getOffset();  // 获取偏移量
 
     void setPrecision(short i);
     short getPrecision() const;
@@ -58,7 +62,7 @@ public:
     bool containsInSheet(const Sheet &sheet);  // 判断该零件是否在材料内部
     bool collidesWithPiece(Piece piece, const CollisionsMode mode = ShapeCollisionMode);  // 判断该零件是否与给定零件碰撞
 
-//private:
+private:
     QVector<QPointF> pointsList;  // 多边形点集
     QVector<QLineF> referenceLines;  // 参考线集合
     qreal area;  // 零件面积

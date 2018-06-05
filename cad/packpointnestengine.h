@@ -91,8 +91,7 @@ public:
     bool compact(int sheetID, NestPiece &nestPiece) Q_DECL_OVERRIDE;  // 紧凑算法
     bool collidesWithOtherPieces(int sheetID, Piece piece) Q_DECL_OVERRIDE;  // 判断该零件是否与其他零件重叠
 
-    bool packOnePieceReferenceLine(Piece piece, int sheetID, NestEngine::NestPiece &nestPiece, QList<int> packPointList, int maxRotateAngle, int RN);
-//private:
+private:
     qreal PPD; // pack point distance--排样点取样间隔
     int RN;  // rotate number--旋转个数
     QVector<PackPointInfo> packPointInfoList;  // 材料排样点信息

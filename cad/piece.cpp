@@ -115,9 +115,23 @@ QPointF Piece::getCenterPoint() const
     return pointPrecision(centerPoint, precision);
 }
 
+void Piece::setCount(int c)
+{
+    count = c;
+}
+
 int Piece::getCount() const
 {
     return count;
+}
+
+QVector<QPointF> Piece::getOffset()
+{
+    QVector<QPointF> offsetList;
+    for(int i=0; i<pointsList.length(); i++){
+        offsetList.append(pointsList[i] - minBoundingRect.center());
+    }
+    return offsetList;
 }
 
 void Piece::setPrecision(short i)

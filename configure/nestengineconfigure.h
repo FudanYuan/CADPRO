@@ -5,7 +5,7 @@
 #include <QList>
 #include "nestengine.h"
 
-#define NEST_ENGINE_CONFIGURE_XML "nest_engine_configure.xml"
+#define NESTENGINECONFIGURE_XML "nest_engine_configure.xml"
 
 /**
  * @brief The AutoNestConfigure class
@@ -18,39 +18,52 @@
 class NestEngineConfigure
 {
 public:
-    // to do
-    // 定义结构体
-    struct StripSheetNest{
-        StripSheetNest() :
-            strategy(NestEngine::NoStrategy)
-        {}
-        NestEngine::NestEngineStrategys strategy;
-    };
-    // ...
-
-    // strcut WholeSheetNest
-    // ...
     struct WholeSheetNest{
         WholeSheetNest() :
-            mixtype(NestEngine::NoMixing)
-        {}
-        NestEngine::NestMixingTypes mixtype;
-
+            wholemixing(NestEngine::NoMixing),
+            wholeorientation(NestEngine::VerticalNest)
+            {}
+        NestEngine::NestMixingTypes wholemixing;
+        NestEngine::NestOrientations wholeorientation;
+        int wholedegree=0;
     };
-    // strcut PackageSheetNest
-    // ...
+
+    struct StripSheetNest{
+        StripSheetNest() :
+            strategy(NestEngine::NoStrategy),
+            stripmixing(NestEngine::NoMixing),
+            stripadaptive(NestEngine::NoAdaptiveSpacing)
+        {}
+        NestEngine::NestEngineStrategys strategy;
+        NestEngine::NestMixingTypes stripmixing;
+        NestEngine::NestAdaptiveSpacingTypes stripadaptive;
+    };
+
+    struct PackageSheetNest{
+        PackageSheetNest() :
+            packagemixing(NestEngine::NoMixing),
+            packageorientation(NestEngine::VerticalNest)
+            {}
+        NestEngine::NestMixingTypes packagemixing;
+        NestEngine::NestOrientations packageorientation;
+        int packagedegree=0;
+    };
+
     explicit NestEngineConfigure();
-    void LoadConfigureXml(int index);
-    void WriteConfigureXml(int index ,QList<int> configurelist);
+    QMap<int,QList<QList<int>>>  LoadConfigureXml();
+    void WriteConfigureXml(QMap<int,QList<QList<int>>> & writedata);
+
+    void setWholeSheetNest(WholeSheetNest wholeNest);
     WholeSheetNest getWholeSheetNest();
+    void setStripSheetNest(StripSheetNest stripNest);
     StripSheetNest getStripSheetNest();
+    void setPackageSheetNest(PackageSheetNest packageNest);
+    PackageSheetNest getPackageSheetNest();
+
 private:
-    // to do
-    // 声明上面结构体的变量
     StripSheetNest stripSheetNest;
     WholeSheetNest wholeSheetNest;
-
-    // List, 保存配置好的排版配置
+    PackageSheetNest packageSheetNest;
 };
 
 #endif // NESTENGINECONFIGURE_H

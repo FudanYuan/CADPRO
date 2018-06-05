@@ -1,7 +1,7 @@
 #include "packpointnestengine.h"
 
 PackPointNestEngine::PackPointNestEngine() :
-    NestEngine(),
+    NestEngine(NULL),
     PPD(5),
     RN(4),
     minHeight(LONG_MAX)
@@ -10,7 +10,7 @@ PackPointNestEngine::PackPointNestEngine() :
 }
 
 PackPointNestEngine::PackPointNestEngine(const QVector<Piece> pieceList, const QVector<Sheet> sheetList, qreal PPD, int RN) :
-    NestEngine(pieceList, sheetList),
+    NestEngine(NULL, pieceList, sheetList),
     minHeight(LONG_MAX)
 {
     setNestEngineType(NestEngine::PackPointNest);
@@ -197,7 +197,9 @@ void PackPointNestEngine::packPieces(QVector<int> indexList)
     // 清空未排零件列表
     unnestedPieceIndexlist.clear();
     // 可进行多材料排版
-    for(int i=0; i<indexList.length(); i++){
+    int process = 0;
+    int count = indexList.length();
+    for(int i=0; i<count; i++){
         int index = indexList[i];  // 获取该排样零件的序号
         int typeID = nestPieceList[index].typeID;  // 获取该排样零件的类型
         //qDebug() << "index: #" << index << ", typeID: $" << typeID << "   " << nestPieceList[index].alpha;
@@ -205,6 +207,12 @@ void PackPointNestEngine::packPieces(QVector<int> indexList)
         bool res = packOnePiece(piece, nestPieceList[index]); // 排放该零件
         if(res) {  // 如果该零件成功排放，则可以排放下一个零件
             nestedPieceIndexlist.append(index);
+            int pro = (int)(((float)(i+1) / count) * 100);
+            if(pro != process)
+            {
+                process = pro;
+                emit progress(pro);
+            }
         } else {  // 如果该零件未成功排放，则记录该零件的ID
             unnestedPieceIndexlist.append(index);
             qDebug() << "#" << index << "未排放成功";
@@ -277,7 +285,7 @@ bool PackPointNestEngine::packOnePieceOnSheet(Piece piece, int sheetID, NestEngi
     if(nestRet && compact(sheetID, nestPiece)){
         piece.moveTo(nestPiece.position);
         piece.rotate(nestPiece.position, nestPiece.alpha);  // 确定此零件的位置
-        qDebug() << "参考线" << piece.referenceLines[0];
+        //qDebug() << "参考线" << piece.referenceLines[0];
         updatePackPointOneSheet(sheetID, piece);  // 更新排样点状态
         if(!nestSheetPieceMap.contains(sheetID)){  // 更新材料-零件索引
             QVector<int> pieceIDList;
@@ -365,7 +373,7 @@ bool PackPointNestEngine::packOnePieceAttempt(Piece piece, int sheetID, NestEngi
                 int column = (j - row * columns) % columns;
                 pieceTmp.moveToByReferenceLine(pos);
                 pieceTmp.rotateByReferenceLine(pos, (column % 2==0));
-                qDebug() << pieceTmp.referenceLines[0];
+                qDebug() << pieceTmp.getReferenceLinesList()[0];
             } else{
                 pieceTmp.moveTo(pos);  // 将零件最小包络矩形中心移至该位置
                 pieceTmp.rotate(pos, alpha);  // 绕参考点旋转alpha度

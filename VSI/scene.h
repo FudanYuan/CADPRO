@@ -24,8 +24,15 @@ class Scene : public QGraphicsScene
 {
     Q_OBJECT
 public:
+    enum Type{
+        Sketch,
+        Nest
+    };
     Scene(QObject *parent = 0);
     ~Scene();
+
+    void setType(Type type);  // 设置类型
+    Type getType();  // 获取类型
 
     void setName(QString name);  // 设置图层名称
     QString getName();  // 获取图层名称
@@ -106,6 +113,7 @@ public:
     Text *getTextdialog() const;
     void setTextdialog(Text *value);
 
+    Scene *copy();  // 获取该对象
 protected:
     int polygonType;  //绘制正多边形传递的线类型
     int polygonLineNum;//绘制正多边形传递的边数
@@ -128,6 +136,7 @@ protected:
     void drawBackground(QPainter *painter, const QRectF &rect) Q_DECL_OVERRIDE;
 
 private:
+    Type type;  // 角色类型：SKetch, Nest
     QString name;  // 图层名称
     Shape::ShapeType preShape;  // 上一个图形
     Shape::ShapeType curShape;  // 当前图形

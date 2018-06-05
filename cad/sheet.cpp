@@ -12,8 +12,9 @@
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 
-SheetDialog::SheetDialog() :
+SheetDialog::SheetDialog(Sheet::SheetType type) :
     role(Manager),
+    sheetType(type),
     sheetActive(NULL),
     currentIndex(0),
     insertFlag(false),
@@ -24,6 +25,16 @@ SheetDialog::SheetDialog() :
 {
     initDialog();
     loadSheetInfo();
+}
+
+void SheetDialog::setDialogType(Sheet::SheetType type)
+{
+    sheetType = type;
+}
+
+Sheet::SheetType SheetDialog::getDialogType()
+{
+    return sheetType;
 }
 
 void SheetDialog::setDialogRole(SheetDialog::RoleType role)
@@ -121,7 +132,6 @@ void SheetDialog::initSheetListPanel()
     listLayout->addWidget(sheetInsertBtn, 20, 0, 1, 2);
     listLayout->addWidget(sheetRemoveBtn, 20, 2, 1, 2);
     listLayout->addWidget(sheetEditBtn, 20, 4, 1, 2);
-//    sheetListGroupBox->setLayout(listLayout);
 }
 
 void SheetDialog::initSheetInfoPanel()
@@ -248,7 +258,6 @@ void SheetDialog::initSheetInfoPanel()
                                         QSizePolicy::Expanding),
                              0, 2, 10, 1);
     infoLayout->addWidget(sheetView, 0, 6, 10, 1);
-//    sheetInfoGroupBox->setLayout(infoLayout);
     sheetInfoGroupBox->setHidden(true);
     setSheetInfoDisable(true);
 }
@@ -268,7 +277,16 @@ void SheetDialog::loadSheetInfo()
 {
     // 读取xml文件
     sheetList.clear();
-    sheetList.append(xmlFileReader(SHEET_XML));
+    QList<Sheet *> retList = xmlFileReader(SHEET_XML);  // 返回文件中的材料列表
+    if(sheetType != Sheet::None){
+        foreach (Sheet *sheet, retList) {
+            if(sheet->type == sheetType){
+                sheetList.append(sheet);
+            }
+        }
+    } else{
+        sheetList.append(retList);
+    }
     if(sheetList.length() == 0){
         QMessageBox::warning(this, tr("警告"), tr("材料列表为空!"));
         return;
@@ -374,27 +392,27 @@ void SheetDialog::updateSheetActive(Sheet *sheetActive)
     }
 }
 
-void SheetDialog::updateSheetListTable(QList<Sheet *> sheetList)
+void SheetDialog::updateSheetListTable(QList<Sheet *> filterList)
 {
     sheetListTable->clearContents();
     sheetListTable->setRowCount(0);
-    // 将该列表显示在表格中
-    for(int row=0; row<sheetList.length(); row++){
+    for(int row=0; row<filterList.length(); row++){
         // 添加新的一行
         sheetListTable->insertRow(row);
-        sheetListTable->setItem(row,0,new QTableWidgetItem(QString("%1").arg(sheetList[row]->type)));
-        sheetListTable->setItem(row,1,new QTableWidgetItem(sheetList[row]->name));
-        sheetListTable->setItem(row,2,new QTableWidgetItem(sheetList[row]->material));
+        sheetListTable->setItem(row,0,new QTableWidgetItem(filterList[row]->typeName()));
+        sheetListTable->setItem(row,1,new QTableWidgetItem(filterList[row]->name));
+        sheetListTable->setItem(row,2,new QTableWidgetItem(filterList[row]->material));
         sheetListTable->setItem(row,3,new QTableWidgetItem(
                                     QString("%1 X %2")
-                                    .arg(sheetList[row]->width)
-                                    .arg(sheetList[row]->height)));
-        sheetListTable->setItem(row,4,new QTableWidgetItem(QString("%1").arg(sheetList[row]->componentGap)));
-        if(sheetList[row]->type == Sheet::Strip){
-            sheetListTable->setItem(row,5,new QTableWidgetItem(QString("%1").arg(sheetList[row]->stripPW[0].width)));
+                                    .arg(filterList[row]->width)
+                                    .arg(filterList[row]->height)));
+        sheetListTable->setItem(row,4,new QTableWidgetItem(QString("%1").arg(filterList[row]->componentGap)));
+        if(filterList[row]->type == Sheet::Strip){
+            sheetListTable->setItem(row,5,new QTableWidgetItem(QString("%1").arg(filterList[row]->stripPW[0].width)));
         }
     }
     sheetListTable->show();
+    filterList.clear();
 }
 
 void SheetDialog::updateStripConfigTable(QList<StripPW> stripPW)

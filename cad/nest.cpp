@@ -10,29 +10,34 @@
 #include <QLineEdit>
 #include <QRegExp>
 #include <QValidator>
+#include <QMetaType>
 #include <QDebug>
 
+#include "nest.h"
 #include "packpointnestengine.h"
 #include "quadtreenode.h"
 #include <sys/time.h>
 
+#include "nestengineconfiguredialog.h"
+
 #define COUNT 20
 
 // 初始化矩形排版引擎
-QList<Nest::Component> RectNestEngine::components;  // 零件
-QList<RectNestEngine::MinRect> RectNestEngine::compMinRects;  // 零件的最小矩形
+QList<Nest::Component> RectNestEngine::components;  // 切割件
+QList<RectNestEngine::MinRect> RectNestEngine::compMinRects;  // 切割件的最小矩形
 QList<RectNestEngine::EmptyRectArea> RectNestEngine::emptyRectArea;  // 空白矩形
 double RectNestEngine::mWidth = 0;  // 材料宽度
 double RectNestEngine::mHeight = 0;  // 材料高度
 double RectNestEngine::maxHight = 0;  // 最大高度值
-long RectNestEngine::allRectsArea = 0; // 矩形零件面积
-long RectNestEngine::minRectsArea = LONG_MAX; // 矩形零件面积
+long RectNestEngine::allRectsArea = 0; // 矩形切割件面积
+long RectNestEngine::minRectsArea = LONG_MAX; // 矩形切割件面积
 
 Nest::Nest(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::Nest)
 {
     ui->setupUi(this);
+    qRegisterMetaType<QVector<NestEngine::NestPiece>>("QVector<NestEngine::NestPiece>");
     setWindowTitle("CADPRO");
     setWindowState(Qt::WindowMaximized);
     setMouseTracking(true);     // 开启鼠标追踪
@@ -41,17 +46,24 @@ Nest::Nest(QWidget *parent) :
     initActions();      // 初始化动作
     initMenuBar();      // 初始化菜单栏
     initToolBar();      // 初始化工具栏
-    initDockWidget();   // 初始化窗口
-    initConfiguration();// 初始化配置
-    initProjectView();  // 初始化项目视图
-    initPieceView();  // 初始化切割件视图
-    initNestView();  // 初始化排版视图
     initStatusBar();    // 初始化状态栏
-    initConnect();  // 初始化信号和槽函数
+    initDockWidget();   // 初始化窗口
+    initProjectView();  // 初始化项目视图
+    initPieceView();    // 初始化切割件视图
+    initSheetView();    // 初始化材料视图
+    initNestView();     // 初始化排版视图
+    initConfiguration();// 初始化配置
+    initConnect();      // 初始化信号和槽函数
 }
 
 Nest::~Nest()
 {
+    if(nestThread)
+    {
+        nestThread->quit();
+        nestThread->wait();
+    }
+    qDebug() << "end destroy nest";
     delete ui;
 }
 
@@ -151,27 +163,32 @@ void Nest::initActions()
 // ![2] 编辑
 
 // ![3] 排版
+    action_nest_start = new QAction(tr("排版"));
+    action_nest_start->setStatusTip(tr("开始排版"));
+    action_nest_start->setDisabled(true);
+    connect(action_nest_start, &QAction::triggered, this, &Nest::onActionNestStart);
+
     action_nest_config = new QAction(tr("自动排版配置"));
     action_nest_config->setStatusTip(tr("自动排版配置"));
     connect(action_nest_config, &QAction::triggered, this, &Nest::onActionNestEngineConfig);
 
     action_nest_side_left = new QAction(tr("左靠边"));
-    action_nest_side_left->setStatusTip(tr("零件紧靠材料左边"));
+    action_nest_side_left->setStatusTip(tr("切割件紧靠材料左边"));
     action_nest_side_left->setDisabled(true);
     connect(action_nest_side_left, &QAction::triggered, this, &Nest::onActionNestSideLeft);
 
     action_nest_side_right = new QAction(tr("右靠边"));
-    action_nest_side_right->setStatusTip(tr("零件紧靠材料右边"));
+    action_nest_side_right->setStatusTip(tr("切割件紧靠材料右边"));
     action_nest_side_right->setDisabled(true);
     connect(action_nest_side_right, &QAction::triggered, this, &Nest::onActionNestSideRight);
 
     action_nest_side_top = new QAction(tr("顶靠边"));
-    action_nest_side_top->setStatusTip(tr("零件紧靠材料顶部"));
+    action_nest_side_top->setStatusTip(tr("切割件紧靠材料顶部"));
     action_nest_side_top->setDisabled(true);
     connect(action_nest_side_top, &QAction::triggered, this, &Nest::onActionNestSideTop);
 
     action_nest_side_bottom = new QAction(tr("底靠边"));
-    action_nest_side_bottom->setStatusTip(tr("零件紧靠材料底部"));
+    action_nest_side_bottom->setStatusTip(tr("切割件紧靠材料底部"));
     action_nest_side_bottom->setDisabled(true);
     connect(action_nest_side_bottom, &QAction::triggered, this, &Nest::onActionNestSideBottom);
 
@@ -184,6 +201,7 @@ void Nest::initActions()
     action_nest_direction_vertical->setStatusTip(tr("纵向排版，即自上而下"));
     action_nest_direction_vertical->setDisabled(true);
     connect(action_nest_direction_vertical, &QAction::triggered, this, &Nest::onActionNestSideDirectionVertical);
+
 // ![3] 排版
 
 // ![4] 材料
@@ -273,7 +291,7 @@ void Nest::initActions()
     action_view_tool_projects->setCheckable(true);
     connect(action_view_tool_projects, &QAction::toggled, this, &Nest::onActionViewToolProjectsToggled);
 
-    action_view_tool_pieces = new QAction(tr("&零件列表"), this);
+    action_view_tool_pieces = new QAction(tr("&切割件列表"), this);
     action_view_tool_pieces->setCheckable(true);
     connect(action_view_tool_pieces, &QAction::toggled, this, &Nest::onActionViewToolPiecesToggled);
 
@@ -348,6 +366,7 @@ void Nest::initMenuBar()
 
 // ![3] 排版栏
     menu_nest = ui->menuBar->addMenu(tr("排版"));
+    menu_nest->addAction(action_nest_start);
     menu_nest->addAction(action_nest_config);
     menu_nest->addSeparator();
     menu_action_nest_side = menu_nest->addMenu(tr("靠边"));
@@ -466,7 +485,7 @@ void Nest::initToolBar()
     tool_nest = new QToolBar(tr("排版"), this);
     tool_nest->setOrientation(Qt::Horizontal);
     tool_nest->setAllowedAreas(Qt::AllToolBarAreas);
-
+    tool_nest->addAction(action_nest_start);
     tool_nest->addAction(action_nest_config);
     tool_nest->addSeparator();
     tool_nest->addAction(action_nest_side_left);
@@ -503,8 +522,16 @@ void Nest::initStatusBar()
 {
     if(ui->statusBar) delete ui->statusBar;
     statusBar();
+
+    nestProgressBar = new QProgressBar();
+    nestProgressBar->setRange(0,100);
+    nestProgressBar->setValue(0);
+    nestProgressLabel= new QLabel(tr(""), this);
+    nestProgressLabel->setMargin(1);
     mousePositionLabel = new QLabel(tr(""), this);
     mousePositionLabel->setMargin(1);
+    statusBar()->addPermanentWidget(nestProgressBar);//添加到状态栏的右边
+    statusBar()->addPermanentWidget(nestProgressLabel);
     statusBar()->addPermanentWidget(mousePositionLabel);
 }
 
@@ -514,9 +541,9 @@ void Nest::initDockWidget()
     setDockNestingEnabled(true);
 
     // 新建dock窗口
-    dock_project = new QDockWidget(tr("项目"), this);  // 添加project浮动窗口
-    dock_piece = new QDockWidget(tr("切割件"), this);  // 添加pieces浮动窗口
-    dock_sheet = new QDockWidget(tr("材料"), this);  // 添加sheets浮动窗口
+    dock_project = new QDockWidget(tr("项目-<空项目>"), this);  // 添加project浮动窗口
+    dock_piece = new QDockWidget(tr("切割件-<空项目>"), this);  // 添加pieces浮动窗口
+    dock_sheet = new QDockWidget(tr("材料-<空项目>"), this);  // 添加sheets浮动窗口
     dock_nest = new QDockWidget(tr("排版区"), this);  // 添加排版区
 
     // 绘图区隐藏标题栏
@@ -534,56 +561,6 @@ void Nest::initDockWidget()
     splitDockWidget(dock_nest, dock_sheet, Qt::Vertical);
 }
 
-void Nest::initConfiguration()
-{
-
-}
-
-void Nest::initNestView()
-{
-    //删除中央窗体
-    QWidget *p = takeCentralWidget();
-    if(p) {
-        delete p;
-        p = NULL;
-    }
-
-    nestView = new View(dock_nest);  // 初始化nest view
-    dock_nest->setWidget(nestView);  // 将该视图加入到dock_nest
-    connect(nestView, &View::mousePositionChanged, this, &Nest::onMousePositionChanged);
-
-    // 初始化排版图层，无项目情况下的默认图层
-    nestScene = new Scene(nestView);
-    nestView->setScene(nestScene);
-}
-
-void Nest::updateNestView()
-{
-    // 如果活动项目为空，则返回
-    if(!projectActive){
-        QMessageBox::warning(this, tr("错误"), tr(""));
-        return;
-    }
-    // 更新活动项目Map
-    QString pName = projectActive->getName();
-    if(proSceneListMap.contains(pName)){
-        qDeleteAll(proSceneListMap[pName]);
-        proSceneListMap[pName].clear();
-    }
-
-    // 按材料更新nest Scene的背景
-    if(curSheet){
-        Rect *rect = new Rect;
-        SketchConfigure::PenStyle pen;
-        pen.setPenStyle(Qt::black, Qt::SolidLine, 2);
-        rect->setPenStyle(pen);
-        rect->setRect(curSheet->layoutRect());
-        nestScene->addCustomRectItem(rect);
-    }
-    nestView->setScene(nestScene);
-    nestView->centerOn(nestView->mapFromScene(0,0));
-}
-
 void Nest::initProjectView()
 {
     // 初始化project窗口
@@ -592,9 +569,49 @@ void Nest::initProjectView()
     tree_project->setHeaderLabel(tr("切割件列表")); //设置头的标题
     tree_project->setContextMenuPolicy(Qt::CustomContextMenu);//右键 不可少否则右键无反应
     connect(tree_project, &QTreeWidget::customContextMenuRequested, this, &Nest::showTreeMenu);
+    connect(tree_project, &QTreeWidget::itemClicked, this, &Nest::onProjectTreeItemClicked);
     connect(tree_project, &QTreeWidget::itemDoubleClicked, this, &Nest::onTreeProjectItemDoubleClicked);
 
     dock_project->setWidget(tree_project);
+}
+
+void Nest::updateProjectView()
+{
+    if(!projectActive){  // 活动项目为空，返回
+        tree_project_active_item = NULL;
+        tree_project_scene_active_item = NULL;
+        setWindowTitle("CADPRO-<空项目>");
+        dock_project->setWindowTitle("项目-<空项目>");
+        return;
+    }
+    QString pName = projectActive->getName();  // 获取活动项目名称
+    // 如果活动项目的图层列表为空，即没有添加切割件，则初始化为空。
+    if(projectActive->getSceneList().length() < 1){
+        // 初始化图层名称
+        QString name_scene_new = tr("切割件列表-空");
+        pieceScene = projectActive->addScene();
+        pieceScene->setName(name_scene_new);
+
+        bool flag = false;  // 是否含有此项目树枝
+        foreach (QTreeWidgetItem *proItem, tree_project_item_list) {
+            if(proItem->text(0) == pName){
+                flag = true;
+            }
+        }
+        if(!flag){  // 如果不含此项目树，则添加该项目树
+            QTreeWidgetItem *item_project = new QTreeWidgetItem(tree_project, QStringList(pName));
+            tree_project_item_list.append(item_project);
+            tree_project_active_item = item_project;
+        }
+        // 添加图层节点
+        QTreeWidgetItem *item_scene = new QTreeWidgetItem(tree_project_active_item,QStringList(name_scene_new)); //子节点1
+        item_scene->setCheckState(0, Qt::Checked);
+        tree_project_active_item->addChild(item_scene); //添加子节点
+        tree_project->expandAll(); //结点全部展开
+    }
+    // 更新窗口名称
+    setWindowTitle("CADPRO-<" + pName + ">");
+    dock_project->setWindowTitle("项目-<" + pName + ">");
 }
 
 void Nest::initPieceView()
@@ -611,15 +628,27 @@ void Nest::initPieceView()
     lineEdit->setValidator(new QIntValidator(1, 100, lineEdit));
     connect(lineEdit, &QLineEdit::textChanged, this, &Nest::onPieceNumChanged);
 
-    lastButton = new QPushButton(tr("上一个"), widget);
-    lastButton->setStatusTip(tr("上一个切割件"));
+    firstPieceButton = new QPushButton(tr("第一个"), widget);
+    firstPieceButton->setStatusTip(tr("第一个切割件"));
+    connect(firstPieceButton, &QPushButton::clicked, this, &Nest::onActionFirstPiece);
 
-    nestButton = new QPushButton(tr("下一个"), widget);
-    nestButton->setStatusTip(tr("下一个切割件"));
+    previousPieceButton = new QPushButton(tr("上一个"), widget);
+    previousPieceButton->setStatusTip(tr("上一个切割件"));
+    connect(previousPieceButton, &QPushButton::clicked, this, &Nest::onActionPreviousPiece);
+
+    nextPieceButton = new QPushButton(tr("下一个"), widget);
+    nextPieceButton->setStatusTip(tr("下一个切割件"));
+    connect(nextPieceButton, &QPushButton::clicked, this, &Nest::onActionNextPiece);
+
+    lastPieceButton = new QPushButton(tr("最后一个"), widget);
+    lastPieceButton->setStatusTip(tr("最后一个切割件"));
+    connect(lastPieceButton, &QPushButton::clicked, this, &Nest::onActionLastPiece);
 
     QHBoxLayout *subLayout = new QHBoxLayout();
-    subLayout->addWidget(lastButton);
-    subLayout->addWidget(nestButton);
+    subLayout->addWidget(firstPieceButton);
+    subLayout->addWidget(previousPieceButton);
+    subLayout->addWidget(nextPieceButton);
+    subLayout->addWidget(lastPieceButton);
     widget->setDisabled(true);
 
     // 设置布局
@@ -634,121 +663,76 @@ void Nest::initPieceView()
     dock_piece->setWidget(widget);  // 将该视图加入到dock_pieces
 }
 
-void Nest::initConnect()
+void Nest::updatePieceView()
 {
-    connect(this, &Nest::nestProjectChange, this, &Nest::onNestProjectChanged);
-}
-
-void Nest::addProject()
-{
-    // 初始化项目名称
-    QString name_project_new = getNewProjectName();
-    projectActive = new Project(this);
-    projectActive->setType(Project::Nest);
-    projectActive->setName(name_project_new);
-    // 在项目列表中加入该项目
-    projectList.append(projectActive);
-
+    if(!projectActive){  // 活动项目为空，返回
+        dock_piece->setWindowTitle("切割件-<空项目>");
+        widget->setDisabled(true);
+        lineEdit->setText("1");
+        pieceView->setScene(NULL);
+        return;
+    }
+    // 更新piece图层
+    pieceScene = projectActive->getActiveScene();
+    if(!pieceScene){  // 如果活动图层为空，返回
+        QMessageBox::warning(this, tr("错误"), tr("当前项目切割件列表为空！"));
+        return;
+    }
     // 更新piece视图
-    pieceScene = new Scene(pieceView);
-    pieceScene->setSceneRect(0, 0, dock_piece->width(), dock_piece->height());
+    widget->setDisabled(false);
     pieceView->setScene(pieceScene);
-    pieceView->centerOn(pieceView->mapFromScene(0,0));
+    // pieceView->centerOn();  //优化方案：以切割件的中心为视图中心
 
-    // 初始化图层名称
-    QString name_scene_new = tr("切割件列表-空");
-    pieceScene->setName(name_scene_new);
-    projectActive->addScene(pieceScene);
-    projectActive->setActiveScene(pieceScene);
-
-    QTreeWidgetItem *item_project = new QTreeWidgetItem(tree_project,QStringList(name_project_new));
-    QTreeWidgetItem *item_scene = new QTreeWidgetItem(item_project,QStringList(name_scene_new)); //子节点1
-    tree_project_item_list.append(item_project);
-
-    connect(projectActive, &Project::projectNameChanged, this, &Nest::onProjectNameChanged);
-
-    item_scene->setCheckState(0, Qt::Checked);
-    item_project->addChild(item_scene); //添加子节点
-    tree_project->expandAll(); //结点全部展开
-
-    // 选择材料
-    initSheet();
-
-    // 发送排版项目改变信号
-    emit nestProjectChange(projectActive);
-}
-
-void Nest::initSheet()
-{
-    if(!projectActive){  // 如果活动项目指针为空，返回
-        QMessageBox::warning(this, tr("错误"), tr("未选择任何项目！"));
-        return;
-    }
-
-    SheetDialog mDialog;
-    mDialog.setDialogRole(SheetDialog::Nest);
-    mDialog.exec();
-    curSheet = mDialog.getSheetActive();
-
-    if(!curSheet){  // 如果选择的材料为空，则返回
-        QMessageBox::warning(this, tr("错误"), tr("未选择材料！"));
-        return;
-    }
-
+    // 更新项目-切割件
     QString pName = projectActive->getName();
-    // 添加proSheetInfoMap
-    if(proSheetInfoMap.contains(pName)){
-        ProSheetInfo *proSheetInfo = proSheetInfoMap[pName];
-        proSheetInfo->sheetList.append(curSheet);
-        proSheetInfo->usageList.append(0.0);
-        proSheetInfo->pieceNumList.append(0);
-        proSheetInfo->curSheetID = proSheetInfo->sheetList.length() - 1;  // 当前材料为最后一张
-    } else{
-        ProSheetInfo *proSheetInfo = new ProSheetInfo(pName);
-        proSheetInfo->sheetList.append(curSheet);
-        proSheetInfo->usageList.append(0.0);
-        proSheetInfo->pieceNumList.append(0);
-        proSheetInfo->curSheetID = 0;    // 当前材料为第一张
-        proSheetInfoMap.insert(pName, proSheetInfo);
+    if(!proPieceInfoMap.contains(pName)){  // 项目-切割件信息为空，返回
+        QMessageBox::warning(this, tr("错误"), tr("当前项目切割件列表为空！"));
+        return;
     }
-
-    Scene *scene = new Scene;
-    Line *line = new Line();
-    line->setLine(0, 0 , 100, 100);
-    scene->addCustomLineItem(line);
-    // 将该图层加入proSceneListMap
-    if(proSceneListMap.contains(pName)){
-        proSceneListMap[pName].append(scene);
+    int index = proPieceInfoMap[pName]->curPieceID;
+    if(index != -1){  // 如果切割件列表为空时，文本框中默认为1
+        int count = proPieceInfoMap[pName]->pieceList[index]->getCount();
+        qDebug() << "保存个数为: " << count;
+        lineEdit->setText(QString::number(count));
     } else{
-        QList<Scene *> sList;
-        sList.append(scene);
-        proSceneListMap.insert(pName, sList);
+        lineEdit->setText("1");
     }
+    // 更新窗口名称
+    QString sName = pieceScene->getName();
+    dock_piece->setWindowTitle("切割件-<" + pName + "-" + sName + ">");
 }
 
-void Nest::updateSheetTree()
+void Nest::initSheetView()
 {
-    // 首先，获取当前项目的材料信息
+    tree_sheet = new QTreeWidget(dock_project);
+    tree_sheet->setColumnCount(1); //设置列数
+    tree_sheet->setHeaderLabel(tr("材料信息")); //设置头的标题
+    dock_sheet->setWidget(tree_sheet);
+}
+
+void Nest::updateSheetView()
+{
+    tree_sheet->clear();  // 清空材料树
+
+    if(!projectActive){  // 如果活动项目为空
+        tree_sheet->setHeaderLabel(tr("材料信息")); //设置头的标题
+        dock_sheet->setWindowTitle("材料-<空项目>");
+        return;
+    }
+
+    // 获取当前项目的材料信息
     QString pName = projectActive->getName();
     if(!proSheetInfoMap.contains(pName)){
-        qDebug() << "当前项目的材料信息为空！";
+        QMessageBox::warning(this, tr("错误"), tr("当前项目的材料信息为空！"));
         return;
     }
-
     QList<Sheet *> sheetList = proSheetInfoMap[pName]->sheetList;
     QList<qreal> pieceNumList = proSheetInfoMap[pName]->pieceNumList;
     QList<qreal> usageList = proSheetInfoMap[pName]->usageList;
     int sheetNum = sheetList.length();
     qreal rateTotal = 0.0;
 
-    // 更新sheet窗口
-    if(!tree_sheet){
-        tree_sheet = new QTreeWidget(dock_project);
-    } else{
-        tree_sheet->clear();
-    }
-    tree_sheet->setColumnCount(1); //设置列数
-
+    // 更新材料树
     for(int i=0;i<sheetNum;i++){
         QString sheetName = sheetList[i]->name;
         qreal width = sheetList[i]->width;
@@ -776,14 +760,218 @@ void Nest::updateSheetTree()
         item_sheet->addChild(item_sheet_rate);
     }
 
-    const char *ch1 = "排版信息（共";
+    const char *ch1 = "材料信息（共";
     const char *ch2 = "张板材料，总产能（利用率）：";
     const char *ch3 = "%）";
     char *buf = new char[strlen(ch1) + strlen(ch2) + strlen(ch3) + sizeof(sheetNum) + sizeof(rateTotal)];
     sprintf(buf, "%s%d%s%.2f%s", ch1, sheetNum, ch2, rateTotal, ch3);
     tree_sheet->setHeaderLabel(tr(buf)); //设置头的标题
 
-    dock_sheet->setWidget(tree_sheet);
+    // 更新标题
+    dock_sheet->setWindowTitle("材料-<" + pName + ">");
+}
+
+void Nest::initNestView()
+{
+    //删除中央窗体
+    QWidget *p = takeCentralWidget();
+    if(p) {
+        delete p;
+        p = NULL;
+    }
+
+    nestView = new View(dock_nest);  // 初始化nest view
+    dock_nest->setWidget(nestView);  // 将该视图加入到dock_nest
+    connect(nestView, &View::mousePositionChanged, this, &Nest::onMousePositionChanged);
+
+    // 初始化排版图层，无项目情况下的默认图层
+    nestScene = new Scene(nestView);
+    nestView->setScene(nestScene);
+}
+
+void Nest::updateNestView()
+{
+    if(!projectActive){  // 如果活动项目为空，则返回
+        nestView->setScene(NULL);
+        return;
+    }
+
+    QString pName = projectActive->getName();
+    if(!proSceneListMap.contains(pName)){
+        QMessageBox::warning(this, tr("错误"), tr("当前项目为初始化排版视图"));
+        return;
+    }
+    if(proSceneListMap[pName].length() != 0){
+        nestScene = proSceneListMap[pName][0];
+        nestView->setScene(nestScene);
+        nestView->centerOn(nestView->mapFromScene(0,0));
+    }
+}
+
+void Nest::updateAll()
+{
+    updateProjectView();  // 更新项目视图
+    updatePieceView();  // 更新切割件视图
+    updateSheetView();  // 更新材料视图
+    updateNestView();  // 更新排版视图
+}
+
+void Nest::initConfiguration()
+{
+
+}
+
+void Nest::initConnect()
+{
+    connect(this, &Nest::nestProjectChange, this, &Nest::onNestProjectChanged);
+}
+
+void Nest::addProject()
+{
+    // 初始化项目名称
+    QString pName = getNewProjectName();
+    // 判断该名称是否存在
+    foreach(Project *project, projectList){
+        if(pName == project->getName()){
+            pName += "-2";
+        }
+    }
+    projectActive = new Project(this);
+    projectActive->setType(Project::Nest);
+    projectActive->setName(pName);
+    connect(projectActive, &Project::projectNameChanged, this, &Nest::onProjectNameChanged);
+    projectList.append(projectActive);  // 在项目列表中加入该项目
+
+    // 更新piece视图
+    pieceScene = new Scene(pieceView);
+    pieceScene->setSceneRect(0, 0, dock_piece->width(), dock_piece->height());
+    pieceView->setScene(pieceScene);
+    pieceView->centerOn(pieceView->mapFromScene(0,0));
+
+    // 初始化材料
+    initSheet();
+
+    // 初始化排版引擎
+    initNestEngine();
+
+    // 初始化项目-切割件信息
+    if(!proPieceInfoMap.contains(pName)){  // 如果不存在该名称，则添加
+        ProPieceInfo *proPieceInfo = new ProPieceInfo(pName, -1);
+        proPieceInfoMap.insert(pName, proPieceInfo);
+    }
+
+    // 发送排版项目改变信号
+    emit nestProjectChange(projectActive);
+}
+
+void Nest::initSheet()
+{
+    if(!projectActive){  // 如果活动项目指针为空，返回
+        QMessageBox::warning(this, tr("错误"), tr("未选择任何项目！"));
+        return;
+    }
+
+    // 判断该项目是否为新建项目，
+    // 如果是，则自由选择材料类型；
+    // 如果否，则只能选择该项目的材料类型
+    Sheet::SheetType sheetType = Sheet::None;
+    QString pName = projectActive->getName();
+    if(proSheetInfoMap.contains(pName)){
+        sheetType = proSheetInfoMap[pName]->sheetType;
+        qDebug() << "项目已选择材料，材料类型为：" << sheetType;
+    }
+    SheetDialog mDialog(sheetType);
+    mDialog.setDialogRole(SheetDialog::Nest);
+    mDialog.exec();
+    curSheet = mDialog.getSheetActive();
+
+    if(!curSheet){  // 如果选择的材料为空，则返回
+        QMessageBox::warning(this, tr("错误"), tr("未选择材料！"));
+        return;
+    }
+
+    // 添加项目-材料信息
+    if(proSheetInfoMap.contains(pName)){
+        ProSheetInfo *proSheetInfo = proSheetInfoMap[pName];
+        if(proSheetInfo->sheetType != curSheet->type){  // 如果选择材料类型不一样，返回
+             QMessageBox::warning(this, tr("错误"), tr("材料类型不一致！"));
+             return;
+        }
+        proSheetInfo->sheetList.append(curSheet);
+        proSheetInfo->usageList.append(0.0);
+        proSheetInfo->pieceNumList.append(0);
+        proSheetInfo->curSheetID = proSheetInfo->sheetList.length() - 1;  // 当前材料为最后一张
+    } else{
+        ProSheetInfo *proSheetInfo = new ProSheetInfo(pName, curSheet->type);
+        proSheetInfo->sheetList.append(curSheet);
+        proSheetInfo->usageList.append(0.0);
+        proSheetInfo->pieceNumList.append(0);
+        proSheetInfo->curSheetID = 0;    // 当前材料为第一张
+        proSheetInfoMap.insert(pName, proSheetInfo);
+    }
+
+    // 添加项目-排版图层信息
+    if(!proSceneListMap.contains(pName)){  // 如果没有，则初始化
+        QList<Scene *> sList;
+        proSceneListMap.insert(pName, sList);
+    }
+
+    // 构建一个新的图层
+    Scene *scene = new Scene(nestView);
+    scene->setType(Scene::Nest);  // 设置图层类型
+    // scene->setBackground();
+    proSceneListMap[pName].append(scene);
+}
+
+void Nest::initNestEngine()
+{
+    qDebug() << "初始化排版引擎";
+    // 获取该项目的材料类型
+    QString pName = projectActive->getName();
+    if(!proSheetInfoMap.contains(pName)){
+        QMessageBox::warning(this, tr("警告"), tr("材料初始化出现错误！"));
+        return;
+    }
+
+    NestEngineConfigure *nestEngineConfig = new NestEngineConfigure;  // 实例化时都要做配置文件操作
+    Sheet::SheetType type = proSheetInfoMap[pName]->sheetType;
+    NestEngineConfigureDialog nestEngineconfigDialog(nestEngineConfig, (NestEngineConfigureDialog::TabType)(type));
+    nestEngineconfigDialog.setDialogRole(NestEngineConfigureDialog::Nest);
+    nestEngineconfigDialog.exec();
+
+    if(!proNestEngineConfigMap.contains(pName)){  // 保存项目配置
+        NestEngineConfigure *config = new NestEngineConfigure();
+        proNestEngineConfigMap.insert(pName, config);
+    }
+    NestEngineConfigure *config = proNestEngineConfigMap[pName];  // 获取项目排版引擎配置指针
+    // 获取通过这个对话框设置的排版配置
+    if(type == Sheet::Whole){
+        NestEngineConfigure::WholeSheetNest *curWholeConfig = nestEngineconfigDialog.getCurWholeConfig();
+        if(curWholeConfig == NULL){return;}
+        config->setWholeSheetNest(*curWholeConfig);
+        qDebug() <<"whole";
+        qDebug() << "混合方式"<<curWholeConfig->wholemixing;
+        qDebug() <<"排版"<<curWholeConfig->wholeorientation;
+        qDebug() <<"旋转角度"<<curWholeConfig->wholedegree;
+    }
+    if(type == Sheet::Strip){
+        NestEngineConfigure::StripSheetNest *curStripConfig = nestEngineconfigDialog.getCurStripConfig();
+        if(curStripConfig == NULL){return;}
+        config->setStripSheetNest(*curStripConfig);
+        qDebug() <<"strip";
+        qDebug() <<"排版方式"<<curStripConfig->strategy;
+        qDebug() <<"适应方式"<<curStripConfig->stripadaptive;
+        qDebug() <<"混合方式"<<curStripConfig->stripmixing;
+    }
+    if(type == Sheet::Package){
+        NestEngineConfigure::PackageSheetNest *curPackageConfig = nestEngineconfigDialog.getCurPackageConfig();
+        if(curPackageConfig == NULL){return;}
+        config->setPackageSheetNest(*curPackageConfig);
+        qDebug() <<"package";
+        qDebug() << "混合方式"<<curPackageConfig->packagemixing;
+        qDebug() <<"排版"<<curPackageConfig->packageorientation;
+        qDebug() <<"旋转角度"<<curPackageConfig->packagedegree;
+    }
 }
 
 void Nest::initRectNestEngine()
@@ -794,7 +982,7 @@ void Nest::initRectNestEngine()
         return;
     }
 
-    // 将零件列表转化为最小矩形列表
+    // 将切割件列表转化为最小矩形列表
     int index = 0;
     for(int i=0; i<len; i++){
         Component com = RectNestEngine::components[i];
@@ -849,13 +1037,12 @@ void Nest::initRectNestEngine()
                                        polyline->boundingRect().height()/2);
 
         QPointF offset = currentCenter - originCenter;
-        QList<PiecePointsList> pList;
+        QVector<PiecePoint> pList;
         for(int j=0;j<polyline->getPoints().length();j++){
             QPointF oldPoint = polyline->getPoints()[j];
             QPointF newPoint = oldPoint-offset;
-            pList.append(PiecePointsList(newPoint.rx(),
-                                                    newPoint.ry(),
-                                                    RESERVE_DOUBLE));
+            PiecePoint piecePoint(newPoint.rx(), newPoint.ry(), RESERVE_DOUBLE);
+            pList.append(piecePoint);
         }
 
         PieceOffset pieceOffset(i, RESERVE_DOUBLE,
@@ -866,10 +1053,10 @@ void Nest::initRectNestEngine()
     }
 
     QString pName = projectActive->getName();
-    if(!pieceOffsetMap.contains(pName)){
-        pieceOffsetMap.insert(pName, pieceOffsetList);
+    if(!proPieceOffsetMap.contains(pName)){
+        proPieceOffsetMap.insert(pName, pieceOffsetList);
     } else{
-        pieceOffsetMap[pName] = pieceOffsetList;
+        proPieceOffsetMap[pName] = pieceOffsetList;
     }
 
     int unLay = 0;
@@ -923,10 +1110,10 @@ void Nest::initRectNestEngine()
         pieceCenterList.append(pieceCenter);
     }
 
-    if(!pieceCenterMap.contains(pName)){
-        pieceCenterMap.insert(pName, pieceCenterList);
+    if(!proPieceCenterMap.contains(pName)){
+        proPieceCenterMap.insert(pName, pieceCenterList);
     } else{
-        pieceCenterMap[pName] = pieceCenterList;
+        proPieceCenterMap[pName] = pieceCenterList;
     }
 
     if(unLay != 0){
@@ -943,13 +1130,25 @@ void Nest::initRectNestEngine()
     if(proSheetInfoMap.contains(name)){
         proSheetInfoMap[name]->usageList[0] = g.getFittestGenome().getFitness() * 100.0;
         proSheetInfoMap[name]->pieceNumList[0] = totalNum;
-        updateSheetTree();
+        updateSheetView();
     }
     qDebug() << "材料使用率： " << g.getFittestGenome().getFitness();
 }
 
 void Nest::showNestResult()
 {
+    QString pName = projectActive->getName();  // 获取项目名称
+    if(proSceneListMap.contains(pName)){
+        if(proSceneListMap[pName].length() > 0){
+            nestScene = proSceneListMap[pName][0];  // 默认图层为第一个图层
+        }
+    }
+    if(proSheetInfoMap.contains(pName)){
+        if(proSheetInfoMap[pName]->sheetList.length() > 0){
+            proSheetInfoMap[pName]->curSheetID = 0;  // 转到第一张材料
+        }
+    }
+    nestView->setScene(nestScene);  // 更新排版视图
 }
 
 QString Nest::getNewProjectName()
@@ -1003,7 +1202,11 @@ void Nest::showTreeMenu(QPoint pos)
     tree_project_active_item = tree_project_scene_active_item->parent();
     if(tree_project_active_item == NULL){     // 项目栏
         tree_project_active_item = tree_project_scene_active_item;
-        tree_project_scene_active_item = NULL;
+        if(tree_project_active_item->childCount() > 0){
+            tree_project_scene_active_item = tree_project_active_item->child(0);
+        } else{
+            tree_project_scene_active_item = NULL;
+        }
         menu_tree_project = new QMenu(tree_project);        
         action_tree_project_nest_scene = new QAction(tr("排版"), tree_project);
         action_tree_project_add_scene = new QAction(tr("添加切割件"), tree_project);
@@ -1027,101 +1230,24 @@ void Nest::showTreeMenu(QPoint pos)
         menu_tree_project->addAction(action_tree_project_close);
         menu_tree_project->exec(QCursor::pos());  //在当前鼠标位置显示
     } else{  // 图层栏
+        QString sName = tree_project_scene_active_item->text(0);  // 获取图层名称
+        if(sName == tr("切割件列表-空")){  // 如果是默认分支，则不显示菜单
+            return;
+        }
         menu_tree_project_scene = new QMenu(tree_project);
         action_tree_project_scene_change_to = new QAction(tr("切换至该切割件"), tree_project);
-
-        menu_tree_project_scene_move_up = new QMenu(tr("上移"), tree_project);
-
-        action_tree_project_scene_move_up_one = new QAction(tr("上移一层"), tree_project);
-        action_tree_project_scene_move_up_top = new QAction(tr("移至顶部"), tree_project);
-        menu_tree_project_scene_move_up->addAction(action_tree_project_scene_move_up_one);
-        menu_tree_project_scene_move_up->addAction(action_tree_project_scene_move_up_top);
-
-        menu_tree_project_scene_move_down = new QMenu(tr("下移"));
-        action_tree_project_scene_move_down_one = new QAction(tr("下移一层"), tree_project);
-        action_tree_project_scene_move_down_bottom = new QAction(tr("移至底层"), tree_project);
-        menu_tree_project_scene_move_down->addAction(action_tree_project_scene_move_down_one);
-        menu_tree_project_scene_move_down->addAction(action_tree_project_scene_move_down_bottom);
-
-        int scene_length = tree_project_scene_active_item->parent()->childCount();
-        if(scene_length <= 1){
-            action_tree_project_scene_move_up_one->setEnabled(false);
-            action_tree_project_scene_move_up_top->setEnabled(false);
-            action_tree_project_scene_move_down_one->setEnabled(false);
-            action_tree_project_scene_move_down_bottom->setEnabled(false);
-        }
-
         action_tree_project_scene_rename = new QAction(tr("重命名"), tree_project);
         action_tree_project_scene_delete = new QAction(tr("删除"), tree_project);
 
         connect(action_tree_project_scene_change_to, &QAction::triggered, this, &Nest::onActionTreeProjectSceneChangeTo);
-        connect(action_tree_project_scene_move_up_one, &QAction::triggered, this, &Nest::onActionTreeProjectSceneMoveUpOne);
-        connect(action_tree_project_scene_move_up_top, &QAction::triggered, this, &Nest::onActionTreeProjectSceneMoveUpTop);
-        connect(action_tree_project_scene_move_down_one, &QAction::triggered, this, &Nest::onActionTreeProjectSceneMoveDownOne);
-        connect(action_tree_project_scene_move_down_bottom, &QAction::triggered, this, &Nest::onActionTreeProjectSceneMoveDownBottom);
         connect(action_tree_project_scene_rename, &QAction::triggered, this, &Nest::onActionTreeProjectSceneRename);
         connect(action_tree_project_scene_delete, &QAction::triggered, this, &Nest::onActionTreeProjectSceneDelete);
 
         menu_tree_project_scene->addAction(action_tree_project_scene_change_to);
-        menu_tree_project_scene->addMenu(menu_tree_project_scene_move_up);
-        menu_tree_project_scene->addMenu(menu_tree_project_scene_move_down);
         menu_tree_project_scene->addAction(action_tree_project_scene_rename);
         menu_tree_project_scene->addAction(action_tree_project_scene_delete);
         menu_tree_project_scene->exec(QCursor::pos());  //在当前鼠标位置显示
     }
-}
-
-void Nest::updateAll()
-{
-    // 如果活动项目指针为空，
-    if(!projectActive){
-        setWindowTitle("CADPRO-<空项目>");
-        dock_piece->setWindowTitle("<空项目>");
-        widget->setDisabled(true);
-        lineEdit->setText("1");
-
-        tree_project_active_item = NULL;
-        tree_project_scene_active_item = NULL;
-        pieceView->setScene(NULL);
-
-        updateNestView();
-        return;
-    }
-
-    // 更新piece图层
-    pieceScene = projectActive->getActiveScene();
-    QString pName = projectActive->getName();
-    QString sName = pieceScene->getName();
-
-    // 更新piece视图
-    widget->setDisabled(false);
-    QString name = pName + "_" + sName;
-    if(nestNum.contains(name)){
-        lineEdit->setText(QString::number(nestNum[name], 10));
-    } else{
-        lineEdit->setText("1");
-    }
-    pieceView->setScene(pieceScene);
-
-    // 更新nest图层
-    if(proSceneListMap.contains(pName)){
-        if(proSceneListMap[pName].length() != 0){
-            nestScene = proSceneListMap[pName][0];
-            nestView->setScene(nestScene);
-        } else{
-            updateNestView();
-        }
-    } else{
-        updateNestView();
-    }
-
-    // 更新材料部分
-    updateSheetTree();
-
-    // 更新窗口名称
-    setWindowTitle("CADPRO-<" + pName + ">");
-    dock_piece->setWindowTitle("<" + pName + "-" + sName + ">");
-    dock_sheet->setWindowTitle("<" + pName + ">");
 }
 
 bool Nest::maybeSave()
@@ -1155,19 +1281,17 @@ bool Nest::saveFile(QString fileName)
         return false;
     }
 
+    if(!projectActive){
+        QMessageBox::warning(this, tr("错误"), tr("未选择任何项目！"));
+        return false;
+    }
+
     try{
         QString pName = projectActive->getName();
-        if(!proSceneListMap.contains(pName)
-                || !proSheetInfoMap.contains(pName)
-                || !pieceCenterMap.contains(pName)
-                || !pieceOffsetMap.contains(pName)){
-            QMessageBox::warning(this, tr("错误"), tr("该项目还未进行排版!"));
+        if(!proPieceCenterMap.contains(pName)
+                || !proPieceOffsetMap.contains(pName)){
+            QMessageBox::warning(this, tr("错误"), tr("该项目还未排版!"));
             return false;
-        }
-        Project *pro = new Project(this);
-        QList<Scene *> sList = proSceneListMap[pName];
-        for(int i=0; i<sList.length(); i++){
-            pro->addScene(sList[i]);
         }
 
         int centerCount = 0;
@@ -1175,12 +1299,10 @@ bool Nest::saveFile(QString fileName)
             centerCount += proSheetInfoMap[pName]->pieceNumList[i];
         }
 
-        pro->tnfFileWriter(fileName,
+        projectActive->tnfFileWriter(fileName,
                            proSheetInfoMap[pName]->sheetList,
-                           pieceCenterMap[pName],
-                           pieceOffsetMap[pName]);
-        delete pro;
-        pro = NULL;
+                           proPieceCenterMap[pName],
+                           proPieceOffsetMap[pName]);
     } catch(QString exception){
         QMessageBox::warning(this, tr("错误"), exception);
         return false;
@@ -1191,6 +1313,7 @@ bool Nest::saveFile(QString fileName)
 
 void Nest::setNestActionDisabled(bool flag)
 {
+    action_nest_start->setDisabled(flag);
     action_nest_side_left->setDisabled(flag);
     action_nest_side_right->setDisabled(flag);
     action_nest_side_top->setDisabled(flag);
@@ -1209,13 +1332,24 @@ void Nest::setNestActionDisabled(bool flag)
     action_sheet_sheet_property->setDisabled(flag);
 }
 
+void Nest::onMousePositionChanged(QPointF pos)
+{
+    mousePositionLabel->setText(tr("X=") + QString::number(pos.rx()) + " Y=" + QString::number(-pos.ry()));
+}
+
+void Nest::onNestProjectChanged(Project *curProject)
+{
+    setNestActionDisabled(!curProject);  // 去能排版相关的action
+    updateAll();  // 更新全部组件
+}
+
 void Nest::onProjectNameChanged(QString lastName, QString presentName)
 {
     for(int i=0; i<tree_project_item_list.length(); i++){
         if(tree_project_item_list.at(i)->text(0) == lastName){
             // 改变项目名称
             tree_project_item_list.at(i)->setText(0, presentName);
-            // 改变项目对应的零件信息
+            // 改变项目对应的切割件信息
             if(proPieceInfoMap.contains(lastName)){
                 proPieceInfoMap[lastName]->projectName = presentName;
                 proPieceInfoMap.insert(presentName, proPieceInfoMap[lastName]);
@@ -1234,40 +1368,133 @@ void Nest::onProjectNameChanged(QString lastName, QString presentName)
                 proSceneListMap.insert(presentName, proSceneListMap[lastName]);
                 proSceneListMap.remove(lastName);
             }
+
+            // 改变项目对应的排版引擎配置
+            if(proNestEngineConfigMap.contains(lastName)){
+                proNestEngineConfigMap.insert(presentName, proNestEngineConfigMap[lastName]);
+                proNestEngineConfigMap.remove(lastName);
+            }
             break;
         }
     }
     // 改变树枝结构的名称
     tree_project_active_item->setText(0, presentName);
-}
 
-void Nest::onMousePositionChanged(QPointF pos)
-{
-    mousePositionLabel->setText(tr("X=") + QString::number(pos.rx()) + " Y=" + QString::number(-pos.ry()));
-}
-
-void Nest::onNestProjectChanged(Project *curProject)
-{
-    // 首先判断当前项目是否为空
-    if(!curProject){
-        setNestActionDisabled(true);
-        return;
+    /*
+     *
+    // 更新活动项目Map
+    QString pName = projectActive->getName();
+    if(proSceneListMap.contains(pName)){
+        qDeleteAll(proSceneListMap[pName]);
+        proSceneListMap[pName].clear();
     }
-    qDebug() << "当前项目为：" << curProject->getName();
-    // 使能排版相关的action
-    setNestActionDisabled(false);
-    // 更新全部组件
-    updateAll();
+     */
+}
+
+void Nest::onNestProgressChanged(int i)
+{
+    qDebug() << "已处理" << i << "%";
+    nestProgressBar->setValue(i);
+    nestProgressLabel->setText(QString("%1%").arg(i));
+    if(i == 100){
+        nestProgressLabel->setText("排版结束");
+        QMessageBox::information(this, tr("通知"), tr("排版结束"));
+    }
+}
+
+void Nest::onNestFinished(QVector<NestEngine::NestPiece> nestPieceList)
+{
+    qDebug() << "排版结束";
+    if(nestThread){
+        // 退出排版线程
+        nestThread->quit();
+        nestThread->wait();
+    }
+    if(!nestThread){
+        qDebug() << "真正结束";
+    }
+    // 保存排版结果
+    QString pName = projectActive->getName();
+    if(!proPieceCenterMap.contains(pName)){  // 如果项目-零件中心信息不存在，代表该项目未排版
+        QList<PieceCenter> pieceCenterList;  // 零件中心列表，用来保存排版后的零件中心
+        proPieceCenterMap.insert(pName, pieceCenterList);
+    } else{
+        proPieceCenterMap[pName].clear();  // 如果已排，则清空旧的排版信息
+    }
+    if(!proPieceOffsetMap.contains(pName)){  // 如果项目-零件中心信息不存在，代表该项目未排版
+        QList<PieceOffset> pieceOffsetList;  // 零件中心列表，用来保存排版后的零件中心
+        proPieceOffsetMap.insert(pName, pieceOffsetList);
+    } else{
+        proPieceOffsetMap[pName].clear();  // 如果已排，则清空旧的排版信息
+    }
+
+    if(proSceneListMap.contains(pName) && proPieceInfoMap.contains(pName)){
+        QList<Scene*> sceneList = proSceneListMap[pName];
+        QVector<Piece*> pieceList = proPieceInfoMap[pName]->pieceList.toVector();
+        for(int i=0; i<pieceList.length(); i++) {  // 遍历零件列表，保存偏移点
+            QVector<PiecePoint> pointsList;  // 用来保存零件点列表
+            QVector<QPointF> offsetList = pieceList[i]->getOffset();
+            for(int j=0;j<offsetList.length();j++){
+                PiecePoint piecePoint(offsetList[j].rx(), offsetList[j].ry(), RESERVE_DOUBLE);
+                pointsList.append(piecePoint);
+            }
+            PieceOffset pieceOffset(i, RESERVE_DOUBLE,
+                                    RESERVE_DOUBLE, RESERVE_DOUBLE,
+                                    RESERVE_STRING, RESERVE_DOUBLE,
+                                    RESERVE_INT, offsetList.length(), pointsList);
+            proPieceOffsetMap[pName].append(pieceOffset);
+        }
+        for(int i=0; i<nestPieceList.length(); i++){  // 保存
+            Polyline *p = new Polyline;
+            int typeID = nestPieceList[i].typeID;  // 切割件ID
+            int sheetID = nestPieceList[i].sheetID;
+            QPointF pos = nestPieceList[i].position;
+            qreal angle = nestPieceList[i].alpha;
+            Piece piece = *pieceList[typeID];
+            piece.moveTo(pos); // 移动
+            piece.rotate(piece.getMinBoundingRect().center(), angle);  // 旋转
+            p->setPolyline(piece.getPointsList(), Polyline::line);
+            sceneList[sheetID]->addCustomPolylineItem(p);  // 将多边形加入该图层
+
+            // 保存零件中心点
+            PieceCenter pieceCenter(i, sheetID, typeID, angle, RESERVE_INT, pos.rx(), pos.ry());
+            proPieceCenterMap[pName].append(pieceCenter);
+        }
+    }
+
+    // 显示排版结果
+    showNestResult();
+//    for(int i=0; i<nestEngine->getSheetList().length(); i++){
+//        for(int j=0; j<nestEngine->sheetPackPointPositionMap[i].size(); j++){
+//            PackPointNestEngine::PackPoint packPoint = nestEngine->sheetPackPointPositionMap[i].value(j);
+//            if(!packPoint.coverd){
+//                Point *p = new Point;
+//                QPointF point = packPoint.position + i * QPointF(1005, 0);
+//                p->setPoint(point);
+//                nestScene->addCustomPointItem(p);
+//            }
+//        }
+    //    }
+}
+
+void Nest::onNestThreadFinished()
+{
+    qDebug() << "线程结束";
+    delete nestThread;
+    nestThread = NULL;
 }
 
 void Nest::closeEvent(QCloseEvent *event)
 {
-    if(maybeSave()) {
-        qApp->quit();
+    if(nestThread){
+        qDebug() << "线程还未结束";
+        return;
     }
-    else {
+    if(!maybeSave()) {
         event->ignore();
+        return;
     }
+    qApp->quit();
 }
 
 void Nest::onActionFileNew()
@@ -1388,17 +1615,86 @@ void Nest::onActionEditPaste()
     qDebug() << "粘贴";
 }
 
+void Nest::onActionNestStart()
+{
+    // 这里需要开一个次线程来开始排版任务，否则会造成GUI假死
+    if(nestThread)
+    {
+        QMessageBox::warning(this, tr("警告"), tr("正在排版，请稍候或结束该进程！"));
+        return;
+    }
+    qDebug() << "开始排版";
+    if(!projectActive){  // 如果活动项目为空，则返回
+        QMessageBox::warning(this, tr("错误"), tr("未选择任何项目！"));
+        return;
+    }
+
+    QString pName = projectActive->getName();
+    qDebug() << "1: " << proPieceInfoMap.contains(pName);
+    qDebug() << "2: " << proSheetInfoMap.contains(pName);
+    qDebug() << "3: " << proSceneListMap.contains(pName);
+    qDebug() << "4: " << proNestEngineConfigMap.contains(pName);
+    if(!proPieceInfoMap.contains(pName)
+            || !proSheetInfoMap.contains(pName)
+            || !proSceneListMap.contains(pName)
+            || !proNestEngineConfigMap.contains(pName)){  // 如果map中不包含该项目名称，返回
+        QMessageBox::warning(this, tr("错误"), tr("不存在该名称的项目！"));
+        return;
+    }
+
+    ProPieceInfo *proPieceInfo = proPieceInfoMap[pName];
+    if(proPieceInfo->pieceList.length() < 1){  // 如果切割件信息为空，返回
+        QMessageBox::warning(this, tr("错误"), tr("切割件列表为空！"));
+        return;
+    }
+
+    ProSheetInfo *proSheetInfo = proSheetInfoMap[pName];
+    if(proSheetInfo->sheetList.length() < 1){  // 如果材料列表为空，返回
+        QMessageBox::warning(this, tr("错误"), tr("材料列表为空！"));
+        return;
+    }
+
+    // 按照配置初始化排版引擎
+    QVector<Piece> pieceList;  // 初始化排样切割件
+    foreach (Piece *piece, proPieceInfoMap[pName]->pieceList) {
+        qDebug() << "hah: " << piece->getCount();
+        pieceList.append(*piece);
+    }
+
+    QVector<Sheet> sheetList;  // 初始化排样材料
+    foreach (Sheet *sheet, proSheetInfoMap[pName]->sheetList) {
+        sheetList.append(*sheet);
+    }
+    // 创建线程
+    nestThread = new QThread();
+    // 创建排版引擎
+    nestEngine = new PackPointNestEngine(pieceList, sheetList, 50, 1);
+    nestEngine->setCompactStep(5);
+    nestEngine->setCompactAccuracy(1);
+    nestEngine->setCutStep(300);
+    nestEngine->setAutoRepeatLastSheet(false);
+    NestEngineConfigure *proConfig = proNestEngineConfigMap[pName];
+    nestEngine->initNestEngineConfig(proSheetInfo->sheetType, proConfig);  // 初始化排版配置
+    // 将排版引擎移至线程
+    nestEngine->moveToThread(nestThread);
+    connect(nestThread, &QThread::finished, nestThread, &QObject::deleteLater);
+    connect(nestThread, &QThread::finished, nestEngine, &QObject::deleteLater);
+    connect(nestThread, &QThread::finished, this, &Nest::onNestThreadFinished);
+    connect(this, &Nest::nestStart, nestEngine, &NestEngine::onNestStart);
+    connect(nestEngine, &NestEngine::progress, this, &Nest::onNestProgressChanged);
+    connect(nestEngine, &NestEngine::nestFinished, this, &Nest::onNestFinished);
+    emit nestStart();  // 发送排版信号
+    nestThread->start();
+}
+
 void Nest::onActionNestEngineConfig()
 {
     qDebug() << "自动排版配置";
-    // 实例化排版引擎配置
-    NestEngineConfigure *engineConfig = new NestEngineConfigure();
-    QList<int> list;
-    list << 0 << 0 << 1 << 1<< 1<< 0 << 1;
-    engineConfig->WriteConfigureXml(0, list);
-    //engineConfig->LoadConfigureXml(0);
-    //NestEngineConfigureDialog nestEngineDialog(engineConfig);
-    //nestEngineDialog.exec();
+    NestEngineConfigure *nestEngineConfig = new NestEngineConfigure;  // 实例化时要做都配置文件操作
+    NestEngineConfigureDialog nestEngineconfigDialog(nestEngineConfig);
+    nestEngineconfigDialog.setDialogRole(NestEngineConfigureDialog::Manager);
+    nestEngineconfigDialog.exec();
+    return;
 }
 
 void Nest::onActionNestSideLeft()
@@ -1446,7 +1742,7 @@ void Nest::onActionSheetAdd()
     // Step3: 选择材料
     // Step4: 将选中的材料加入排版引擎列表
     initSheet();  // 添加材料
-    updateSheetTree();  // 更新材料树
+    updateSheetView();  // 更新视图
 }
 
 void Nest::onActionSheetRemove()
@@ -1475,7 +1771,7 @@ void Nest::onActionSheetRemove()
         proSheetInfo->curSheetID = proSheetInfo->sheetList.length() - 1;  // 更新当前材料id
     }
     qDebug() << "删除之后：" << proSheetInfo->curSheetID;
-    updateSheetTree();  // 更新材料列表
+    updateSheetView();  // 更新材料视图
 }
 
 void Nest::onActionSheetDuplicate()
@@ -1515,7 +1811,7 @@ void Nest::onActionSheetDuplicate()
         sList.append(scene);
         proSceneListMap.insert(pName, sList);
     }
-    updateSheetTree();  // 更新材料列表
+    updateSheetView();  // 更新材料视图
 }
 
 void Nest::onActionSheetAutoDuplicate()
@@ -1544,7 +1840,7 @@ void Nest::onActionSheetPrevious()
     }
     int id = proSheetInfo->curSheetID;  // 获取当前sheetID
     if(id == 0){
-        QMessageBox::warning(this, tr("通知"), tr("目前已经是第一张材料"));
+        QMessageBox::warning(this, tr("警告"), tr("目前已经是第一张材料！"));
         return;
     }
     nestScene = proSceneListMap[pName][id-1];
@@ -1576,7 +1872,7 @@ void Nest::onActionSheetNext()
     }
     int id = proSheetInfo->curSheetID;  // 获取当前sheetID
     if(id == proSheetInfo->sheetList.length()-1){
-        QMessageBox::warning(this, tr("通知"), tr("目前已经是最后一张材料"));
+        QMessageBox::warning(this, tr("警告"), tr("目前已经是最后一张材料！"));
         return;
     }
     nestScene = proSceneListMap[pName][id+1];
@@ -1698,7 +1994,7 @@ void Nest::onActionViewToolProjectsToggled(bool toggled)
 
 void Nest::onActionViewToolPiecesToggled(bool toggled)
 {
-    qDebug() << "零件视图" << toggled;
+    qDebug() << "切割件视图" << toggled;
 }
 
 void Nest::onActionViewToolSheetsToggled(bool toggled)
@@ -1763,22 +2059,41 @@ void Nest::onActionTreeFoldAll()
     tree_project->collapseAll();
 }
 
+void Nest::onProjectTreeItemClicked(QTreeWidgetItem *item, int column)
+{
+    qDebug() << "点击： " << item->text(0) << "  " << column;
+}
+
 void Nest::onTreeProjectItemDoubleClicked(QTreeWidgetItem *item)
 {
-    QTreeWidgetItem *parent = item->parent();//获得父节点
-    if(NULL == parent) {
+    QTreeWidgetItem *parent = item->parent();  //获得父节点
+    if(NULL == parent) {  // 项目树
         tree_project_active_item = item;
+        tree_project_scene_active_item = tree_project_active_item->child(0);
         // 根据项目名称获取项目指针
-        QString project_name = item->text(0);
-        projectActive = getProjectByName(project_name);
-        pieceScene = projectActive->getScene(0);
-    } else{
+        QString pName = item->text(0);
+        projectActive = getProjectByName(pName);  // 更新活动项目
+        // 如果活动项目的图层列表不为空，则设置该项目第一个图层为活动图层
+        if(projectActive->getSceneList().length() > 0){
+            projectActive->setActiveScene(projectActive->getScene(0));  // 设置该项目第一个图层为活动图层
+            QString sName = projectActive->getActiveScene()->getName();  // 获取图层名称
+            if(proPieceInfoMap.contains(pName) && sName != tr("切割件列表-空")){  // 更新当前切割件ID
+                proPieceInfoMap[pName]->curPieceID = 0;
+            } else{
+                proPieceInfoMap[pName]->curPieceID = -1;
+            }
+        }
+    } else{  // 图层树
         tree_project_active_item = parent;
         tree_project_scene_active_item = item;
-        QString project_name = parent->text(0);
-        projectActive = getProjectByName(project_name);
-        pieceScene = projectActive->getSceneByName(item->text(0));
-        projectActive->setActiveScene(pieceScene);
+        QString pName = parent->text(0);
+        QString sName = item->text(0);
+        projectActive = getProjectByName(pName);  // 更新活动项目
+        projectActive->setActiveScene(projectActive->getSceneByName(sName));  // 更新活动图层
+        if(proPieceInfoMap.contains(pName) && sName != tr("切割件列表-空")){  // 更新当前切割件ID
+            int index = tree_project_active_item->indexOfChild(tree_project_scene_active_item);
+            proPieceInfoMap[pName]->curPieceID = index;
+        }
     }
     // 发送排版项目改变信号
     emit nestProjectChange(projectActive);
@@ -1786,30 +2101,15 @@ void Nest::onTreeProjectItemDoubleClicked(QTreeWidgetItem *item)
 
 void Nest::onActionTreeProjectNestScene()
 {
-    if(!projectActive){ // 如果活动项目为空，则返回
-        QMessageBox::warning(this, tr("错误"), tr("未选择任何项目！"));
-        return;
+    QString pName = tree_project_active_item->text(0);  // 获取项目名称
+    projectActive = getProjectByName(pName);  // 更新活动的项目
+    if(projectActive->getSceneList().length() > 0){
+        projectActive->setActiveScene(projectActive->getScene(0));
     }
+    emit nestProjectChange(projectActive);   // 发送项目改变信号
+    onActionNestStart();  // 开始排版
 
-    QString pName = projectActive->getName();
-    if(!proSheetInfoMap.contains(pName)
-            || !proSceneListMap.contains(pName)
-            || !proPieceInfoMap.contains(pName)){  // 如果map中不包含该项目名称，返回
-        QMessageBox::warning(this, tr("错误"), tr("不存在该名称的项目！"));
-        return;
-    }
-
-    ProPieceInfo *proPieceInfo = proPieceInfoMap[pName];
-    if(proPieceInfo->pieceList.length() < 1){  // 如果零件信息为空，返回
-        QMessageBox::warning(this, tr("错误"), tr("零件列表为空！"));
-        return;
-    }
-
-    ProSheetInfo *proSheetInfo = proSheetInfoMap[pName];
-    if(proSheetInfo->sheetList.length() < 1){  // 如果材料列表为空，返回
-        QMessageBox::warning(this, tr("错误"), tr("材料列表为空！"));
-        return;
-    }
+    return;
 
     if(nestNum.count() == 0){
         QMessageBox::warning(this, tr("警告"), tr("未设置切割件排版个数!"));
@@ -1857,53 +2157,85 @@ void Nest::onActionTreeProjectAddScene()
     QString fileName;// = QFileDialog::getOpenFileName(this, tr("打开DXF文件"), QDir::currentPath());
     fileName = "/Users/Jeremy/Qt5.10.0/Projects/build-CADPRO-Desktop_Qt_5_10_0_clang_64bit-Debug/CADPRO.app/Contents/MacOS/toNest.dxf";
     if (!fileName.isEmpty()) {
-        if(!projectActive){
-            QString name_project_new = getNewProjectName();
-            projectActive = new Project(this);
-            projectActive->setType(Project::Nest);
-            projectActive->setName(name_project_new);
-            projectList.append(projectActive);
-
-            tree_project_active_item = new QTreeWidgetItem(tree_project, QStringList(name_project_new));
-            tree_project_item_list.append(tree_project_active_item);
+        QString pName = tree_project_active_item->text(0);  // 获取当前项目
+        Project *project = getProjectByName(pName);
+        if(!project){
+            QMessageBox::warning(this, tr("错误"), tr("无法获取当前项目"));
+            return;
+        }
+        if(project->getSceneList().length() < 1){  // 如果项目图层为空，则返回
+            emit nestProjectChange(project);
+            return;
         }
 
-        // 将空列表去掉
-        if(projectActive->getScene(0) && projectActive->getScene(0)->getName() == tr("切割件列表-空")){
-            projectActive->getSceneList().removeFirst();
+        QString firSceName = project->getScene(0)->getName();
+        if(firSceName == tr("切割件列表-空")){  // 如果第一个图层为默认图层，则删除该图层
+            project->removeSceneByName(firSceName);
             tree_project_active_item->removeChild(tree_project_active_item->child(0));
         }
 
         // 读取dxf文件
+        Project *projectTmp = new Project(this); // 局部变量，用来记录导入的dxf文件
         try{
-            projectActive->dxfFileReader(fileName);
+            projectTmp->setType(Project::Nest);
+            projectTmp->dxfFileReader(fileName);
         } catch (QString exception){
             QMessageBox::warning(this, tr("错误"), exception);
         }
 
-        QList<Scene*> sList = projectActive->getSceneList();
-        int count = sList.length();
+        ProPieceInfo *proPieceInfo = proPieceInfoMap[pName];  // 获取切割件信息
 
-        for(int i=0;i<count;i++){
-            QString name_scene_new = sList[i]->getName();
+        // 将读入的切割件保存到活动项目中
+        QList<Scene*> sList;
+        int oldLen = project->getSceneList().length();  // 获取活动图层列表长度
+        int count = 0;
+        foreach (Scene* s, projectTmp->getSceneList()) {// 获取读入的图层列表
+            Scene *scene = s->copy();
+            QString name = scene->getName();
+            int index = name.toInt();
+            scene->setName(QString::number(oldLen+index));
+            sList.append(scene);
+
+            // 更新项目-切割件信息
+            foreach (Polyline *polyline, scene->getPolylineList()) {
+                Piece *piece = new Piece(polyline);  // 切割件个数默认为1，默认精确到6位
+                proPieceInfo->insertPiece(piece);
+            }
+
+            count++;
+        }
+        project->insertScene(sList);  // 加入图层列表
+
+        // 更新项目树
+        for(int i=0; i<count; i++){
+            QString name_scene_new = project->getScene(oldLen+i)->getName();
             QTreeWidgetItem *item_scene = new QTreeWidgetItem(tree_project_active_item, QStringList(name_scene_new)); //子节点1
             tree_project_active_item->addChild(item_scene); //添加子节点
             item_scene->setCheckState(0, Qt::Checked);
         }
 
-        if(projectActive->getScene(0)){
-            if(tree_project_active_item->childCount() != 0){
+        // 设置活动图层
+        int lastIndex = oldLen + count - 1;
+        if(project->getScene(lastIndex) && tree_project_active_item->child(lastIndex)){  // 设置加入的后一个图层为活动图层
+            project->setActiveScene(project->getScene(lastIndex));
+            tree_project_scene_active_item = tree_project_active_item->child(lastIndex);
+            proPieceInfo->curPieceID = lastIndex;  // 更新项目-切割件信息的当前切割件ID
+        } else{  // 如果项目树子节点个数大于0，则为设置活动图层为第一个
+            if(project->getScene(0) && tree_project_active_item->child(0)){
+                project->setActiveScene(project->getScene(0));
                 tree_project_scene_active_item = tree_project_active_item->child(0);
+                proPieceInfo->curPieceID = 0;  // 更新项目-切割件信息的当前切割件ID
             }
-            projectActive->setActiveScene(projectActive->getScene(0));
-            emit nestProjectChange(projectActive);
         }
+
+        emit nestProjectChange(project);
     }
 }
 
 void Nest::onActionTreeProjectSave()
 {
     qDebug() << tree_project_active_item->text(0) << "保存项目";
+
 }
 
 void Nest::onActionTreeProjectSaveAs()
@@ -1923,15 +2255,11 @@ void Nest::onActionTreeProjectRename()
                                          tr("项目名称:"), QLineEdit::Normal,
                                          pName, &ok);
     if (ok && !text.isEmpty()){
-        // 优化此部分至槽函数
-        for(int i=0;i<project->getSceneList().length();i++){
-            QString sName = project->getScene(i)->getName();
-            QString key = pName + "_" + sName;
-            if(nestNum.contains(key)){
-                int num = nestNum[key];
-                nestNum.remove(key);
-                QString newKey = text + "_" + sName;
-                nestNum.insert(newKey, num);
+        // 判断名称是否重复
+        foreach(Project *project, projectList){
+            if(text == project->getName()){
+                QMessageBox::warning(this, tr("警告"), tr("该项目已存在！"));
+                return;
             }
         }
         project->changeName(text);
@@ -1942,49 +2270,21 @@ void Nest::onActionTreeProjectRename()
 void Nest::onActionTreeProjectClose()
 {
     qDebug() << tree_project_active_item->text(0) << "关闭项目";
-
-    // 获取项目名称
-    QString pName = tree_project_active_item->text(0);
-
-    // 关闭project
-    //projectList.removeOne(getProjectByName(pName));
+    QString pName = tree_project_active_item->text(0);  // 获取项目名称
+    // 删除项目
     removeProjectByName(pName);
 
-    // 先删除子树
-    for(int i=0;i<tree_project_active_item->childCount();i++){
-        QString sName = tree_project_active_item->child(i)->text(0);
-        QString key = pName + "_" + sName;
-        if(nestNum.contains(key)){
-            nestNum.remove(key);
-        }
-        QTreeWidgetItem *ch = tree_project_active_item->child(i);
-        tree_project_active_item->removeChild(ch);
-        // ****非常重要，不然会出现内存泄漏
-        delete ch;
-        ch = NULL;
-    }
-
-    // 删除树根
-    tree_project->takeTopLevelItem(tree_project_item_list.lastIndexOf(tree_project_active_item));
-
-    // 列表中删除该节点
-    tree_project_item_list.removeOne(tree_project_active_item);
-
-    // 定位到新的节点
-    if(projectList.length() !=0 && tree_project_item_list.length() != 0){
-        projectActive = projectList[0];
-        tree_project_active_item = tree_project_item_list[0];
-        if(tree_project_active_item->childCount() != 0){
-            tree_project_scene_active_item = tree_project_active_item->child(0);
-        }
-        pieceScene = projectActive->getActiveScene();
-    } else{
-        projectActive = NULL;
+    // 删除项目对应的切割件信息
+    if(proPieceInfoMap.contains(pName)){
+        // 释放内存
+        delete proPieceInfoMap[pName];
+        proPieceInfoMap[pName] = NULL;
+        proPieceInfoMap.remove(pName);
     }
 
     // 删除项目对应的材料信息
     if(proSheetInfoMap.contains(pName)){
-        // 清空所有列表
+        // 释放内存
         delete proSheetInfoMap[pName];
         proSheetInfoMap[pName] = NULL;
         proSheetInfoMap.remove(pName);
@@ -1999,32 +2299,143 @@ void Nest::onActionTreeProjectClose()
         proSceneListMap.remove(pName);
     }
 
+    // 删除项目对应的排版引擎配置信息
+    if(proNestEngineConfigMap.contains(pName)){
+        // 释放配置信息内存
+        delete proNestEngineConfigMap[pName];
+        proNestEngineConfigMap[pName] = NULL;
+        // 删除该项目的图层Map
+        proNestEngineConfigMap.remove(pName);
+    }
+
+    // 先删除子树
+    for(int i=0; i<tree_project_active_item->childCount(); i++){
+        QTreeWidgetItem *ch = tree_project_active_item->child(i);
+        tree_project_active_item->removeChild(ch);
+        // ****非常重要，不然会出现内存泄漏****
+        delete ch;
+        ch = NULL;
+    }
+
+    // 再删除树根
+    tree_project->takeTopLevelItem(tree_project_item_list.lastIndexOf(tree_project_active_item));
+
+    // 列表中删除该节点
+    tree_project_item_list.removeOne(tree_project_active_item);
+
+    // 定位到新的节点
+    if(projectList.length() !=0 && tree_project_item_list.length() != 0){
+        projectActive = projectList[0];
+        tree_project_active_item = tree_project_item_list[0];
+        if(tree_project_active_item->childCount() != 0){
+            tree_project_scene_active_item = tree_project_active_item->child(0);
+        }
+        if(!projectActive->getActiveScene()  && projectActive->getSceneList().length() > 0){
+            projectActive->setActiveScene(projectActive->getScene(0));
+        }
+    } else{
+        projectActive = NULL;
+    }
+
     emit nestProjectChange(projectActive);
 }
 
 void Nest::onActionTreeProjectSceneChangeTo()
 {
-
+    QString pName = tree_project_active_item->text(0);  // 获取项目名称
+    QString sName = tree_project_scene_active_item->text(0);  // 获取图层名称
+    projectActive = getProjectByName(pName);  // 更新活动项目
+    projectActive->setActiveScene(projectActive->getSceneByName(sName));  // 更新活动图层
+    if(proPieceInfoMap.contains(pName)){  // 更新当前切割件ID
+        int index = tree_project_active_item->indexOfChild(tree_project_scene_active_item);
+        proPieceInfoMap[pName]->curPieceID = index;
+    }
+    emit nestProjectChange(projectActive);  // 发送项目更新信息
 }
 
-void Nest::onActionTreeProjectSceneMoveUpOne()
+void Nest::onActionFirstPiece()
 {
-
+    qDebug() << "第一个切割件";
+    int index = tree_project_active_item->indexOfChild(tree_project_scene_active_item);  // 获取活动分支的索引
+    if(index == 0){
+        QMessageBox::warning(this, tr("警告"), tr("目前已经是第一个切割件！"));
+        return;
+    }
+    QString pName = tree_project_active_item->text(0);  // 获取项目名称
+    tree_project_scene_active_item = tree_project_active_item->child(0);  // 更新活动图层分支
+    QString sName = tree_project_scene_active_item->text(0);  // 获取图层名称
+    projectActive = getProjectByName(pName);  // 更新活动项目
+    projectActive->setActiveScene(projectActive->getSceneByName(sName));  // 更新活动图层
+    tree_project_active_item->child(index)->setSelected(false);
+    tree_project_scene_active_item->setSelected(true);
+    if(proPieceInfoMap.contains(pName)){  // 更新当前切割件ID
+        proPieceInfoMap[pName]->curPieceID = 0;
+    }
+    emit nestProjectChange(projectActive);  // 发送项目更新信息
 }
 
-void Nest::onActionTreeProjectSceneMoveUpTop()
+void Nest::onActionPreviousPiece()
 {
-
+    qDebug() << "上一个切割件";
+    int index = tree_project_active_item->indexOfChild(tree_project_scene_active_item);  // 获取活动分支的索引
+    if(index == 0){
+        QMessageBox::warning(this, tr("警告"), tr("目前已经是第一个切割件！"));
+        return;
+    }
+    QString pName = tree_project_active_item->text(0);  // 获取项目名称
+    tree_project_scene_active_item = tree_project_active_item->child(index-1);  // 更新活动图层分支
+    QString sName = tree_project_scene_active_item->text(0);  // 获取图层名称
+    projectActive = getProjectByName(pName);  // 更新活动项目
+    projectActive->setActiveScene(projectActive->getSceneByName(sName));  // 更新活动图层
+    tree_project_active_item->child(index)->setSelected(false);
+    tree_project_scene_active_item->setSelected(true);
+    if(proPieceInfoMap.contains(pName)){  // 更新当前切割件ID
+        proPieceInfoMap[pName]->curPieceID = index-1;
+    }
+    emit nestProjectChange(projectActive);  // 发送项目更新信息
 }
 
-void Nest::onActionTreeProjectSceneMoveDownOne()
+void Nest::onActionNextPiece()
 {
-
+    qDebug() << "下一个切割件";
+    int index = tree_project_active_item->indexOfChild(tree_project_scene_active_item);  // 获取活动分支的索引
+    if(index == tree_project_active_item->childCount() - 1){
+        QMessageBox::warning(this, tr("警告"), tr("目前已经是最后一个切割件！"));
+        return;
+    }
+    QString pName = tree_project_active_item->text(0);  // 获取项目名称
+    tree_project_scene_active_item = tree_project_active_item->child(index+1);  // 更新活动图层分支
+    QString sName = tree_project_scene_active_item->text(0);  // 获取图层名称
+    projectActive = getProjectByName(pName);  // 更新活动项目
+    projectActive->setActiveScene(projectActive->getSceneByName(sName));  // 更新活动图层
+    tree_project_active_item->child(index)->setSelected(false);
+    tree_project_scene_active_item->setSelected(true);
+    if(proPieceInfoMap.contains(pName)){  // 更新当前切割件ID
+        proPieceInfoMap[pName]->curPieceID = index+1;
+    }
+    emit nestProjectChange(projectActive);  // 发送项目更新信息
 }
 
-void Nest::onActionTreeProjectSceneMoveDownBottom()
+void Nest::onActionLastPiece()
 {
-
+    qDebug() << "最后一个切割件";
+    int index = tree_project_active_item->indexOfChild(tree_project_scene_active_item);  // 获取活动分支的索引
+    int lastChildIndex = tree_project_active_item->childCount() - 1;  // 最后子节点的序号
+    if(index == lastChildIndex){
+        QMessageBox::warning(this, tr("警告"), tr("目前已经是最后一个切割件！"));
+        return;
+    }
+    QString pName = tree_project_active_item->text(0);  // 获取项目名称
+    tree_project_scene_active_item = tree_project_active_item->child(lastChildIndex);  // 更新活动图层分支
+    QString sName = tree_project_scene_active_item->text(0);  // 获取图层名称
+    projectActive = getProjectByName(pName);  // 更新活动项目
+    projectActive->setActiveScene(projectActive->getSceneByName(sName));  // 更新活动图层
+    tree_project_active_item->child(index)->setSelected(false);
+    tree_project_scene_active_item->setSelected(true);
+    if(proPieceInfoMap.contains(pName)){  // 更新当前切割件ID
+        proPieceInfoMap[pName]->curPieceID = lastChildIndex;
+    }
+    emit nestProjectChange(projectActive);  // 发送项目更新信息
 }
 
 void Nest::onActionTreeProjectSceneRename()
@@ -2041,13 +2452,12 @@ void Nest::onActionTreeProjectSceneRename()
                                          tr("新切割件名称:"), QLineEdit::Normal,
                                          sName, &ok);
     if (ok && !text.isEmpty()){
-        // 优化此部分至槽函数
-        QString key = pName + "_" + sName;
-        if(nestNum.contains(key)){
-            int num = nestNum[key];
-            nestNum.remove(key);
-            QString newKey = pName + "_" + text;
-            nestNum.insert(newKey, num);
+        // 判断名称是否重复
+        foreach(Scene *scene, project->getSceneList()){
+            if(text == scene->getName()){
+                QMessageBox::warning(this, tr("警告"), tr("该图层已存在！"));
+                return;
+            }
         }
         tree_project_scene_active_item->setText(0, text);
         scene->setName(text);
@@ -2057,37 +2467,64 @@ void Nest::onActionTreeProjectSceneRename()
 
 void Nest::onActionTreeProjectSceneDelete()
 {
-    qDebug() << tree_project_scene_active_item->text(0) << "删除";
-    QString name = tree_project_scene_active_item->text(0);
-    bool ret = projectActive->removeSceneByName(name);
-    qDebug() << "删除之后的长度： " << projectActive->getSceneList().length();
-    if(ret){
-        // 优化此部分至槽函数
-        QString key = tree_project_active_item->text(0) + "_" + name;
-        if(nestNum.contains(key)){
-            nestNum.remove(key);
-        }
-        tree_project_active_item->removeChild(tree_project_scene_active_item);
-        //QMessageBox::information(this, tr("通知"), tr("删除成功！"));
-        if(projectActive->getScene(0)){
-            projectActive->setActiveScene(projectActive->getScene(0));
-            emit nestProjectChange(projectActive);
-        }
-    } else{
+    QString pName = tree_project_active_item->text(0);  // 获得该节点的项目名称
+    QString sName = tree_project_scene_active_item->text(0);  // 获得该节点的图层名称
+    qDebug() << "删除：" << pName << "-" << sName;
+    Project *project = getProjectByName(pName);  // 获取活动项目
+    bool ret = project->removeSceneByName(sName);  // 删除该项目的图层
+    if(!ret){  // 删除失败，返回
         QMessageBox::warning(this, tr("警告"), tr("删除失败！"));
+        return;
     }
+    QTreeWidgetItem *item = tree_project_scene_active_item;
+    int index = tree_project_active_item->indexOfChild(item);  // 该分支的位置
+    tree_project_active_item->removeChild(item);
+    delete item;  // 释放内存
+    item = NULL;
+    qDebug() << "删除后长度：" << tree_project_active_item->childCount();
+
+    // 更新项目-切割件信息
+    if(proPieceInfoMap.contains(pName)){
+        qDebug() << "更新：删去第"<< index << "个切割件";
+        if(proPieceInfoMap[pName]->pieceList.length() > 0){
+            Piece *piece = proPieceInfoMap[pName]->pieceList[index];
+            proPieceInfoMap[pName]->pieceList.removeAt(index);
+            delete piece;
+            piece = NULL;
+        }
+
+        // 更新图层分支及当前的零件ID
+        int childeCount = tree_project_active_item->childCount();  // 删除之后的子节点个数
+        int lastIndex = childeCount - 1;  // 获取项目的最后图层分支的序号
+        if(index > lastIndex){  // 如果删除的序号大于更新后的最后图层分支的序号，则将活动图层分支更新为最后一个
+            tree_project_scene_active_item = tree_project_active_item->child(lastIndex);
+            index = lastIndex;
+        }
+        proPieceInfoMap[pName]->curPieceID = index;
+    }
+
+    // 更新活动图层
+    if(!project->getActiveScene() && project->getSceneList().length() > 0){
+        project->setActiveScene(project->getScene(0));
+    }
+
+    emit nestProjectChange(project);
 }
 
 void Nest::onPieceNumChanged(const QString &num)
 {
-    if(projectList.length() == 0 || tree_project_item_list.length() == 0){
+    if(projectList.length() == 0
+            || tree_project_item_list.length() == 0){  // 如果项目列表为空或项目树为空，则返回
         return;
     }
-    if(!tree_project_active_item){
+    if(!tree_project_active_item){  // 如果活动项目树枝为空，则默认为第一个项目
         tree_project_active_item = tree_project->topLevelItem(0);
     }
 
-    if(projectActive->getSceneList().length() == 0 || tree_project_active_item->childCount() == 0){
+    QString pName = tree_project_active_item->text(0);  // 获取项目名称
+    Project *project = getProjectByName(pName);  // 获取项目指针
+    if(project->getSceneList().length() == 0
+            || tree_project_active_item->childCount() == 0){  // 如果该项目下图层为空或项目树子节点为空，则返回
         return;
     }
 
@@ -2095,14 +2532,18 @@ void Nest::onPieceNumChanged(const QString &num)
         tree_project_scene_active_item = tree_project_active_item->child(0);
     }
 
+    qDebug() << pName << " " << tree_project_scene_active_item->text(0);
+    if(tree_project_scene_active_item->text(0) == tr("切割件列表-空")){
+        QMessageBox::warning(this, tr("错误"), tr("当前项目切割件列表为空！"));
+        return;
+    }
+    int index = tree_project_active_item->indexOfChild(tree_project_scene_active_item);  // 获取图层节点的序号
     int n = num.toInt();
-    QString name = tree_project_active_item->text(0) + "_" +
-            tree_project_scene_active_item->text(0);
-    if(!nestNum.contains(name)){
-        nestNum.insert(name, n);
-    } else {
-        nestNum[name] = n;
+    if(proPieceInfoMap.contains(pName)){
+        proPieceInfoMap[pName]->curPieceID = index;
+        proPieceInfoMap[pName]->pieceList[index]->setCount(n);
+        qDebug() << proPieceInfoMap[pName]->pieceList[index]->getCount();
     }
 
-    qDebug() << n << " " << name;
+    qDebug() << index << " " << n << " " << pName;
 }

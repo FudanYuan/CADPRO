@@ -4,6 +4,7 @@
 
 Scene::Scene(QObject *parent) :
     QGraphicsScene(parent),
+    type(Sketch),
     name(""),
     curShape(Shape::None),
     modified(false),
@@ -33,8 +34,19 @@ Scene::~Scene()
 #ifdef DEBUG
     qDebug() << "scene has been deleted!";
 #endif
+    qDeleteAll(itemList);
     itemList.clear();
     curItem = NULL;
+}
+
+void Scene::setType(Scene::Type type)
+{
+    this->type = type;
+}
+
+Scene::Type Scene::getType()
+{
+    return type;
 }
 
 void Scene::setName(QString name)
@@ -888,66 +900,75 @@ void Scene::drawBackground(QPainter *painter, const QRectF &rect)
     painter->save();
     painter->setBrush(eStyle.backgroundColor);
     painter->drawRect(rect);
+    switch (type) {
+    case Sketch:{
+        if(axesGrid.grid.showGrid){
+            // 画网格
+            // 获取到当前的线宽，这里的线宽其实还是之前设置的线宽值;
+            // 比如我们之前设置线宽为 2 ，这里返回的线宽还是 2 ，但是当前的缩放比例变了；
+            // 其实当前的线宽就相当于 penWidth * scaleFactor;
+            // 所以如果我们想要让线宽保持不变，那就需要进行转换，即 penWidth = penWidth / scaleFactor;
+            // 重新设置画笔线宽;
+            QPen pen = QPen();
+            pen.setWidthF(0);
+            pen.setColor(axesGrid.grid.gridColor);
+            painter->setPen(pen);
 
-    if(axesGrid.grid.showGrid){
-        // 画网格
-        // 获取到当前的线宽，这里的线宽其实还是之前设置的线宽值;
-        // 比如我们之前设置线宽为 2 ，这里返回的线宽还是 2 ，但是当前的缩放比例变了；
-        // 其实当前的线宽就相当于 penWidth * scaleFactor;
-        // 所以如果我们想要让线宽保持不变，那就需要进行转换，即 penWidth = penWidth / scaleFactor;
-        // 重新设置画笔线宽;
-        QPen pen = QPen();
-        pen.setWidthF(0);
-        pen.setColor(axesGrid.grid.gridColor);
-        painter->setPen(pen);
+            const double w = sceneRect().width();
+            const double h = sceneRect().height();
 
-        const double w = sceneRect().width();
-        const double h = sceneRect().height();
-
-        for(int i=0; i<h; i+=axesGrid.grid.yStep / scaleFactor){
-            painter->drawLine(QPointF(-w,i),QPointF(w,i));
-            painter->drawLine(QPointF(-w,-i),QPointF(w,-i));
+            for(int i=0; i<h; i+=axesGrid.grid.yStep / scaleFactor){
+                painter->drawLine(QPointF(-w,i),QPointF(w,i));
+                painter->drawLine(QPointF(-w,-i),QPointF(w,-i));
+            }
+            for(int i=0; i<w; i+=axesGrid.grid.xStep / scaleFactor)
+            {
+                painter->drawLine(QPointF(i,-h),QPointF(i,h));
+                painter->drawLine(QPointF(-i,-h),QPointF(-i,h));
+            }
         }
-        for(int i=0; i<w; i+=axesGrid.grid.xStep / scaleFactor)
-        {
-            painter->drawLine(QPointF(i,-h),QPointF(i,h));
-            painter->drawLine(QPointF(-i,-h),QPointF(-i,h));
+        if(axesGrid.axes.showAxes){
+            // 画x轴
+            QPen pen = QPen();
+            pen.setWidthF(0);
+            pen.setColor(axesGrid.axes.xAxisColor);
+            pen.setJoinStyle(Qt::MiterJoin);
+            painter->setPen(pen);
+
+            QBrush brush = QBrush();
+            brush.setColor(axesGrid.axes.xAxisColor);
+            brush.setStyle(Qt::SolidPattern);
+            painter->setBrush(brush);
+
+            QPointF xPos = QPointF(axesGrid.axes.axisSizeInPix / scaleFactor,0);
+            QLineF lineX(QPointF(0,0), xPos);
+            drawLineWithArrow(painter, lineX, axesGrid.axes.arrowSizeInPix / scaleFactor);
+            painter->drawText(10, 0, 20, 20, Qt::AlignLeft | Qt::AlignTop, tr("x"));
+
+
+            // 画y轴
+            pen.setWidthF(0);
+            pen.setColor(axesGrid.axes.yAxisColor);
+            pen.setJoinStyle(Qt::MiterJoin);
+            painter->setPen(pen);
+
+            brush.setColor(axesGrid.axes.yAxisColor);
+            brush.setStyle(Qt::SolidPattern);
+            painter->setBrush(brush);
+
+            QPointF yPos = QPointF(0,-axesGrid.axes.axisSizeInPix / scaleFactor);
+            QLineF lineY(QPointF(0,0), yPos);
+            drawLineWithArrow(painter, lineY, axesGrid.axes.arrowSizeInPix / scaleFactor);
+            painter->drawText(-10, -20, 20, 20, Qt::AlignLeft | Qt::AlignTop, tr("y"));
         }
+        break;
     }
-
-    if(axesGrid.axes.showAxes){
-        // 画x轴
-        QPen pen = QPen();
-        pen.setWidthF(0);
-        pen.setColor(axesGrid.axes.xAxisColor);
-        pen.setJoinStyle(Qt::MiterJoin);
-        painter->setPen(pen);
-
-        QBrush brush = QBrush();
-        brush.setColor(axesGrid.axes.xAxisColor);
-        brush.setStyle(Qt::SolidPattern);
-        painter->setBrush(brush);
-
-        QPointF xPos = QPointF(axesGrid.axes.axisSizeInPix / scaleFactor,0);
-        QLineF lineX(QPointF(0,0), xPos);
-        drawLineWithArrow(painter, lineX, axesGrid.axes.arrowSizeInPix / scaleFactor);
-        painter->drawText(10, 0, 20, 20, Qt::AlignLeft | Qt::AlignTop, tr("x"));
-
-
-        // 画y轴
-        pen.setWidthF(0);
-        pen.setColor(axesGrid.axes.yAxisColor);
-        pen.setJoinStyle(Qt::MiterJoin);
-        painter->setPen(pen);
-
-        brush.setColor(axesGrid.axes.yAxisColor);
-        brush.setStyle(Qt::SolidPattern);
-        painter->setBrush(brush);
-
-        QPointF yPos = QPointF(0,-axesGrid.axes.axisSizeInPix / scaleFactor);
-        QLineF lineY(QPointF(0,0), yPos);
-        drawLineWithArrow(painter, lineY, axesGrid.axes.arrowSizeInPix / scaleFactor);
-        painter->drawText(-10, -20, 20, 20, Qt::AlignLeft | Qt::AlignTop, tr("y"));
+    case Nest:{
+        //qDebug() << "Nest background";
+        break;
+    }
+    default:
+        break;
     }
     painter->restore();
 }
@@ -960,6 +981,18 @@ Text *Scene::getTextdialog() const
 void Scene::setTextdialog(Text *value)
 {
     textdialog = value;
+}
+
+Scene *Scene::copy()
+{
+    Scene *s = new Scene();
+    s->setName(name);
+    s->setModified(modified);
+    s->setEntityStyle(eStyle);
+    foreach (Polyline* p, polylineList) {
+        s->addCustomPolylineItem(p->copy());
+    }
+    return s;
 }
 
 Eyelet *Scene::getEyeletDialog() const
@@ -992,7 +1025,7 @@ void Scene::onGridChanged(bool show)
 
 void Scene::onNewItem()
 {
-    qDebug() << "有新实体";
+    //qDebug() << "有新实体";
     emit sceneItemsChanged();
 }
 
