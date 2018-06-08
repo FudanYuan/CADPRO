@@ -106,8 +106,15 @@ void LineEdit::onTextEdited(const QString &value)
     emit customTextEdited(this->name, value);
 }
 
-CheckBox::CheckBox(QString name, QWidget *parent) :
+CheckBox::CheckBox(const QString &name, QWidget *parent) :
     QCheckBox(parent)
+{
+    this->name = name;
+    connect(this, &CheckBox::stateChanged, this, &CheckBox::onStateChanged);
+}
+
+CheckBox::CheckBox(const QString &name, const QString &text, QWidget *parent):
+    QCheckBox(text, parent)
 {
     this->name = name;
     connect(this, &CheckBox::stateChanged, this, &CheckBox::onStateChanged);
@@ -190,3 +197,34 @@ void ComboBox::onActivated(int index)
 {
     emit customActivated(this->name, index);
 }
+
+CustomTabWidget::CustomTabWidget(QWidget *parent) :
+    QWidget(parent)
+{
+
+}
+
+void CustomTabWidget::onColorChanged(QString key, QColor color)
+{
+#ifdef DEBUG
+    qDebug() << "CustomTabWidget:: " << key << " " << color.rgba();
+#endif
+    emit tabChanged(key, QVariant(color.rgba()));
+}
+
+void CustomTabWidget::onTextChanged(QString key, QString value)
+{
+    emit tabChanged(key, QVariant(value));
+}
+
+void CustomTabWidget::onComboBoxChanged(QString key, int value)
+{
+    qDebug() << value << "  ,penStyle: " << (Qt::PenStyle)value;
+    emit tabChanged(key, QVariant(value));
+}
+
+void CustomTabWidget::onCheckChanged(QString key, bool value)
+{
+    emit tabChanged(key, QVariant(value));
+}
+

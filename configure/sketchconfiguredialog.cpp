@@ -8,8 +8,9 @@
 #include <customwidget.h>
 #include <QGroupBox>
 #include <QCheckBox>
-#include <QDebug>
 #include <debug.h>
+
+#include <QDebug>
 
 SketchConfigureDialog::SketchConfigureDialog(SketchConfigure *config, QWidget *parent) :
     QDialog(parent)
@@ -638,34 +639,3 @@ LanguageTab::LanguageTab(SketchConfigure::Language &language, QWidget *parent) :
 {
 
 }
-
-CustomTabWidget::CustomTabWidget(QWidget *parent) :
-    QWidget(parent)
-{
-
-}
-
-void CustomTabWidget::onColorChanged(QString key, QColor color)
-{
-#ifdef DEBUG
-    qDebug() << "CustomTabWidget:: " << key << " " << color.rgba();
-#endif
-    emit tabChanged(key, QVariant(color.rgba()));
-}
-
-void CustomTabWidget::onTextChanged(QString key, QString value)
-{
-    emit tabChanged(key, QVariant(value));
-}
-
-void CustomTabWidget::onComboBoxChanged(QString key, int value)
-{
-    qDebug() << value << "  ,penStyle: " << (Qt::PenStyle)value;
-    emit tabChanged(key, QVariant(value));
-}
-
-void CustomTabWidget::onCheckChanged(QString key, bool value)
-{
-    emit tabChanged(key, QVariant(value));
-}
-

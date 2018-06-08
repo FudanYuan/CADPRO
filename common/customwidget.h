@@ -67,7 +67,8 @@ class CheckBox : public QCheckBox
 {
     Q_OBJECT
 public:
-    explicit CheckBox(QString name, QWidget *parent=0);
+    explicit CheckBox(const QString &name, QWidget *parent=0);
+    explicit CheckBox(const QString &name, const QString &text, QWidget *parent=0);
     QString getName();
 
 private:
@@ -110,6 +111,22 @@ signals:
 
 public slots:
     void onActivated(int index);
+};
+
+class CustomTabWidget : public QWidget
+{
+    Q_OBJECT
+public:
+    explicit CustomTabWidget(QWidget *parent=0);
+
+signals:
+    void tabChanged(QString, QVariant);
+
+public slots:
+    void onColorChanged(QString key, QColor color);
+    void onTextChanged(QString key, QString value);
+    void onComboBoxChanged(QString key, int value);
+    void onCheckChanged(QString key, bool value);
 };
 
 #endif // CUSTOMWIDGET_H

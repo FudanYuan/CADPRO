@@ -293,10 +293,6 @@ public:
     void writeConfigView(QSettings *settings);
     void readConfigView(QSettings *settings);
 
-    static QColor intToColor(int rgb);  // 将int转化为QColor
-
-    static QColor intToColor(int rgb, bool a); // 将int转华为color
-
     static void updateConfig(QList<KeyValue> keyValue);
 
 signals:

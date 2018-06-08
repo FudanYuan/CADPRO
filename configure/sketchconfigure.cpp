@@ -1,11 +1,14 @@
 #include "sketchconfigure.h"
 #include <QList>
 #include <QFileInfo>
-#include <QDebug>
 #include <debug.h>
+#include <common.h>
+
+#include <QDebug>
 
 SketchConfigure::SketchConfigure(QObject *parent) :
-    QObject(parent)
+    QObject(parent),
+    language(Chinese)
 {
     settings = new QSettings(SKETCH_CONFG_FILE_PATH, QSettings::IniFormat);
     readConfig(settings);
@@ -224,7 +227,7 @@ void SketchConfigure::readConfigOffset(QSettings *settings)
 
 void SketchConfigure::writeConfigLanguage(QSettings *settings)
 {
-    settings->setValue("language", QVariant(Chinese));
+    settings->setValue("language", QVariant(language));
 }
 
 void SketchConfigure::readConfigLanguage(QSettings *settings)
@@ -254,29 +257,6 @@ void SketchConfigure::readConfigView(QSettings *settings)
     settings->endGroup();
 }
 
-QColor SketchConfigure::intToColor(int rgb)
-{
-    //将Color 从int 转换成 QColor
-    int blue = rgb & 255;
-    int green = rgb >> 8 & 255;
-    int red = rgb >> 16 & 255;
-    int alpha = rgb >> 24 & 255;
-    return QColor(red, green, blue, alpha);
-}
-
-QColor SketchConfigure::intToColor(int rgb, bool a)
-{
-    //将Color 从int 转换成 QColor
-    int blue = rgb & 255;
-    int green = rgb >> 8 & 255;
-    int red = rgb >> 16 & 255;
-    int alpha = 255;
-    if(a){
-        alpha = rgb >> 24 & 255;
-    }
-    return QColor(red, green, blue, alpha);
-}
-
 void SketchConfigure::updateConfig(QList<KeyValue> keyValue)
 {
     QSettings *settings = new QSettings(SKETCH_CONFG_FILE_PATH, QSettings::IniFormat);
@@ -284,6 +264,7 @@ void SketchConfigure::updateConfig(QList<KeyValue> keyValue)
         settings->setValue(keyValue.at(i).key, keyValue.at(i).value);
     }
     delete settings;
+    settings = NULL;
 }
 
 void SketchConfigure::onConfigChanged(QString name, QVariant value)

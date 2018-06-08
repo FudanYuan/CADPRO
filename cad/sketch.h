@@ -543,7 +543,6 @@ signals:
 public slots:
     void onProjectNameChanged(QString lastName, QString presentName);
     void onMousePositionChanged(QPointF pos);  // 鼠标位置更新
-
     void onSceneItemsChanged();  // 响应场景图元改变
     void onPointSelected(Point *point);
     void onLineSelected(Line *line);  // 响应图形被选中

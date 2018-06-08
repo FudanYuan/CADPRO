@@ -2,23 +2,9 @@
 #define CONFIGUREDIALOG_H
 
 #include <QDialog>
+#include <customwidget.h>
 #include <sketchconfigure.h>
 #include <QList>
-class CustomTabWidget : public QWidget
-{
-    Q_OBJECT
-public:
-    explicit CustomTabWidget(QWidget *parent=0);
-
-signals:
-    void tabChanged(QString, QVariant);
-
-public slots:
-    void onColorChanged(QString key, QColor color);
-    void onTextChanged(QString key, QString value);
-    void onComboBoxChanged(QString key, int value);
-    void onCheckChanged(QString key, bool value);
-};
 
 //! [0]
 class EntityStyleTab : public CustomTabWidget

@@ -18,6 +18,7 @@
 #include "scene.h"
 #include "shape.h"
 #include "binarytree.h"
+#include "nestconfigure.h"
 #include "nestengineconfiguredialog.h"
 #include "piece.h"
 #include <QDebug>
@@ -153,6 +154,7 @@ public:
 
 private:
     Ui::Nest *ui;
+    NestConfigure *config;  // 排版配置
     View *nestView;  // 排版视图
     QList<Project *> projectList; // 项目列表
     Project *projectActive;  // 活动项目
@@ -301,6 +303,7 @@ private:
     QAction *action_tree_project_scene_delete;
 
 signals:
+    void nestConfigChanged(QString name, QVariant value);
     void nestEngineConfigChange(int i);
     void nestStart();  // 开始排版
     void nestProjectChange(Project *curProject);  // 排版项目改变信号

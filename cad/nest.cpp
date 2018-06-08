@@ -1,6 +1,5 @@
 #include "nest.h"
 #include "ui_nest.h"
-#include "rectnestengine.h"
 #include <QDockWidget>
 #include <QTreeWidgetItem>
 #include <QFileDialog>
@@ -11,14 +10,14 @@
 #include <QRegExp>
 #include <QValidator>
 #include <QMetaType>
+#include <nestconfiguredialog.h>
+#include "nest.h"
+#include "rectnestengine.h"
+#include "packpointnestengine.h"
+#include "nestengineconfiguredialog.h"
 #include <QDebug>
 
-#include "nest.h"
-#include "packpointnestengine.h"
-#include "quadtreenode.h"
 #include <sys/time.h>
-
-#include "nestengineconfiguredialog.h"
 
 #define COUNT 20
 
@@ -818,7 +817,10 @@ void Nest::updateAll()
 
 void Nest::initConfiguration()
 {
-
+    qDebug() << "显示配置界面";
+    //  if(config) delete config;
+    config = new NestConfigure(this);
+    connect(this, &Nest::nestConfigChanged, config, &NestConfigure::onConfigChanged);
 }
 
 void Nest::initConnect()
@@ -1570,7 +1572,9 @@ void Nest::onActionFilePrintSetup()
 
 void Nest::onActionFileConfiguration()
 {
-
+    NestConfigureDialog configDialog(config);
+    configDialog.exec();
+    initConfiguration();
 }
 
 void Nest::onActionFileExit()
