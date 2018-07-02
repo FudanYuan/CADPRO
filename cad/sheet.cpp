@@ -11,6 +11,7 @@
 #include <QFile>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
+#include "scene.h"
 
 SheetDialog::SheetDialog(Sheet::SheetType type) :
     role(Manager),

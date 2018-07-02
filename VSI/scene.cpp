@@ -166,7 +166,7 @@ void Scene::setDrawable(bool flag)
     this->drawable = flag;
 }
 
-void Scene::setEntityStyle(SketchConfigure::EntityStyle eStyle)
+void Scene::setEntityStyle(const SketchConfigure::EntityStyle &eStyle)
 {
     this->eStyle = eStyle;
 }
@@ -179,6 +179,46 @@ SketchConfigure::EntityStyle Scene::getEntityStyle()
 void Scene::setAxesGrid(SketchConfigure::AxesGrid axesGrid)
 {
     this->axesGrid = axesGrid;
+}
+
+void Scene::setSheetStyle(const NestConfigure::SheetStyle &style)
+{
+    this->sheetStyle = style;
+}
+
+NestConfigure::SheetStyle Scene::getSheetStyle() const
+{
+    return this->sheetStyle;
+}
+
+void Scene::setMainGrid(const NestConfigure::Grid &grid)
+{
+    this->mainGrid = grid;
+}
+
+NestConfigure::Grid Scene::getMainGrid() const
+{
+    return this->mainGrid;
+}
+
+void Scene::setSecondGrid(const NestConfigure::Grid &grid)
+{
+    this->secondGrid = grid;
+}
+
+NestConfigure::Grid Scene::getSecondGrid() const
+{
+    return this->secondGrid;
+}
+
+void Scene::setSheet(const Sheet &s)
+{
+    this->sheet = s;
+}
+
+Sheet Scene::getSheet() const
+{
+    return this->sheet;
 }
 
 void Scene::addCustomPointItem(Point *point)
@@ -897,11 +937,11 @@ void Scene::dropEvent(QGraphicsSceneDragDropEvent *event)
 
 void Scene::drawBackground(QPainter *painter, const QRectF &rect)
 {
-    painter->save();
-    painter->setBrush(eStyle.backgroundColor);
-    painter->drawRect(rect);
     switch (type) {
     case Sketch:{
+        painter->save();
+        painter->setBrush(eStyle.backgroundColor);
+        painter->drawRect(rect);
         if(axesGrid.grid.showGrid){
             // 画网格
             // 获取到当前的线宽，这里的线宽其实还是之前设置的线宽值;
@@ -964,7 +1004,71 @@ void Scene::drawBackground(QPainter *painter, const QRectF &rect)
         break;
     }
     case Nest:{
-        //qDebug() << "Nest background";
+        painter->save();
+        painter->setBrush(sheetStyle.backgroundColor);
+        painter->drawRect(rect);
+        // 画主网格
+        if(mainGrid.showGrid){
+            QPen pen = QPen();
+            pen.setWidthF(0);
+            pen.setColor(mainGrid.gridColor);
+            painter->setPen(pen);
+
+            const double w = sceneRect().width();
+            const double h = sceneRect().height();
+
+            for(int i=0; i<h; i+=mainGrid.yStep / scaleFactor){
+                painter->drawLine(QPointF(-w,i),QPointF(w,i));
+                painter->drawLine(QPointF(-w,-i),QPointF(w,-i));
+            }
+            for(int i=0; i<w; i+=mainGrid.xStep / scaleFactor)
+            {
+                painter->drawLine(QPointF(i,-h),QPointF(i,h));
+                painter->drawLine(QPointF(-i,-h),QPointF(-i,h));
+            }
+        }
+
+        // 画副网格
+        if(secondGrid.showGrid){
+            QPen pen = QPen();
+            pen.setWidthF(0);
+            pen.setColor(secondGrid.gridColor);
+            painter->setPen(pen);
+
+            const double w = sceneRect().width();
+            const double h = sceneRect().height();
+
+            for(int i=0; i<h; i+=secondGrid.yStep / scaleFactor){
+                painter->drawLine(QPointF(-w,i),QPointF(w,i));
+                painter->drawLine(QPointF(-w,-i),QPointF(w,-i));
+            }
+            for(int i=0; i<w; i+=secondGrid.xStep / scaleFactor)
+            {
+                painter->drawLine(QPointF(i,-h),QPointF(i,h));
+                painter->drawLine(QPointF(-i,-h),QPointF(-i,h));
+            }
+        }
+
+        // 画材料
+        QRectF layoutRect = sheet.layoutRect();  // 材料外接矩形
+        QPen pen = QPen();
+        pen.setWidthF(0);
+        pen.setColor(sheetStyle.sheetMarginColor);
+        pen.setStyle(Qt::DashLine);  // 设置虚线
+        painter->setPen(pen);
+        painter->drawRect(layoutRect);
+
+        // 如果是条板类型，则需要画上插板
+        if(sheet.type == Sheet::Strip){
+            QVector<QRectF> layoutRects = sheet.inforcementRects();  // 材料外接矩形
+            QPen pen = QPen();
+            pen.setWidthF(0);
+            pen.setColor(sheetStyle.reinforcementMarginColor);
+            pen.setStyle(Qt::SolidLine);  // 设置虚线
+            painter->setPen(pen);
+            painter->setBrush(QBrush(sheetStyle.reinforcementColor));
+            painter->drawRects(layoutRects);
+        }
         break;
     }
     default:

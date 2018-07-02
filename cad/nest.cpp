@@ -818,7 +818,10 @@ void Nest::updateAll()
 void Nest::initConfiguration()
 {
     qDebug() << "显示配置界面";
-    //  if(config) delete config;
+    if(config) {
+        delete config;
+        config = NULL;
+    }
     config = new NestConfigure(this);
     connect(this, &Nest::nestConfigChanged, config, &NestConfigure::onConfigChanged);
 }
@@ -921,7 +924,10 @@ void Nest::initSheet()
     // 构建一个新的图层
     Scene *scene = new Scene(nestView);
     scene->setType(Scene::Nest);  // 设置图层类型
-    // scene->setBackground();
+    scene->setSheetStyle(config->sheetStyle);
+    scene->setMainGrid(config->mainGrid);
+    scene->setSecondGrid(config->secondGrid);
+    scene->setSheet(*curSheet);
     proSceneListMap[pName].append(scene);
 }
 
@@ -1140,6 +1146,7 @@ void Nest::initRectNestEngine()
 void Nest::showNestResult()
 {
     QString pName = projectActive->getName();  // 获取项目名称
+    QPointF sheetCenter;
     if(proSceneListMap.contains(pName)){
         if(proSceneListMap[pName].length() > 0){
             nestScene = proSceneListMap[pName][0];  // 默认图层为第一个图层
@@ -1148,9 +1155,11 @@ void Nest::showNestResult()
     if(proSheetInfoMap.contains(pName)){
         if(proSheetInfoMap[pName]->sheetList.length() > 0){
             proSheetInfoMap[pName]->curSheetID = 0;  // 转到第一张材料
+            sheetCenter = proSheetInfoMap[pName]->sheetList[0]->layoutRect().center();
         }
     }
     nestView->setScene(nestScene);  // 更新排版视图
+    nestView->centerOn(nestView->mapFromScene(sheetCenter));
 }
 
 QString Nest::getNewProjectName()
@@ -1803,10 +1812,12 @@ void Nest::onActionSheetDuplicate()
     proSheetInfo->curSheetID = proSheetInfo->curSheetID + 1;
 
     // 添加图层
-    Scene *scene = new Scene;
-    Line *line = new Line;
-    line->setLine(0, 0 , 100, 100);
-    scene->addCustomLineItem(line);
+    Scene *scene = new Scene(nestView);
+    scene->setType(Scene::Nest);  // 设置图层类型
+    scene->setSheetStyle(config->sheetStyle);
+    scene->setMainGrid(config->mainGrid);
+    scene->setSecondGrid(config->secondGrid);
+
     // 将该图层加入proSceneListMap
     if(proSceneListMap.contains(pName)){
         proSceneListMap[pName].append(scene);
@@ -2158,8 +2169,8 @@ void Nest::onActionTreeProjectNestScene()
 void Nest::onActionTreeProjectAddScene()
 {
     qDebug() << "import dxf files";
-    QString fileName;// = QFileDialog::getOpenFileName(this, tr("打开DXF文件"), QDir::currentPath());
-    fileName = "/Users/Jeremy/Qt5.10.0/Projects/build-CADPRO-Desktop_Qt_5_10_0_clang_64bit-Debug/CADPRO.app/Contents/MacOS/toNest.dxf";
+    QString fileName = QFileDialog::getOpenFileName(this, tr("打开DXF文件"), QDir::currentPath());
+    //fileName = "/Users/Jeremy/Qt5.10.0/Projects/build-CADPRO-Desktop_Qt_5_10_0_clang_64bit-Debug/CADPRO.app/Contents/MacOS/toNest.dxf";
     if (!fileName.isEmpty()) {
         QString pName = tree_project_active_item->text(0);  // 获取当前项目
         Project *project = getProjectByName(pName);
@@ -2205,7 +2216,6 @@ void Nest::onActionTreeProjectAddScene()
                 Piece *piece = new Piece(polyline);  // 切割件个数默认为1，默认精确到6位
                 proPieceInfo->insertPiece(piece);
             }
-
             count++;
         }
         project->insertScene(sList);  // 加入图层列表
@@ -2239,7 +2249,6 @@ void Nest::onActionTreeProjectAddScene()
 void Nest::onActionTreeProjectSave()
 {
     qDebug() << tree_project_active_item->text(0) << "保存项目";
-
 }
 
 void Nest::onActionTreeProjectSaveAs()
@@ -2532,7 +2541,7 @@ void Nest::onPieceNumChanged(const QString &num)
         return;
     }
 
-    if(!tree_project_scene_active_item){
+    if(tree_project_scene_active_item->parent()->text(0) != pName){
         tree_project_scene_active_item = tree_project_active_item->child(0);
     }
 
@@ -2545,6 +2554,7 @@ void Nest::onPieceNumChanged(const QString &num)
     int n = num.toInt();
     if(proPieceInfoMap.contains(pName)){
         proPieceInfoMap[pName]->curPieceID = index;
+        qDebug() << proPieceInfoMap[pName]->pieceList.length();
         proPieceInfoMap[pName]->pieceList[index]->setCount(n);
         qDebug() << proPieceInfoMap[pName]->pieceList[index]->getCount();
     }

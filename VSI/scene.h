@@ -7,6 +7,7 @@
 #include <QList>
 #include <QLine>
 #include "sketchconfigure.h"
+#include "nestconfigure.h"
 #include "shape.h"
 #include "point.h"
 #include "line.h"
@@ -19,6 +20,8 @@
 #include "trapezium.h"
 #include "eyelet.h"
 #include "text.h"
+#include "sheet.h"
+
 
 class Scene : public QGraphicsScene
 {
@@ -69,10 +72,22 @@ public:
 
     void setDrawable(bool flag);  // 设置开始标识
 
-    void setEntityStyle(SketchConfigure::EntityStyle eStyle);  // 设置实体样式
+    void setEntityStyle(const SketchConfigure::EntityStyle &eStyle);  // 设置实体样式
     SketchConfigure::EntityStyle getEntityStyle();  // 获取实体样式
 
     void setAxesGrid(SketchConfigure::AxesGrid axesGrid);  // 设置网格坐标轴
+
+    void setSheetStyle(const NestConfigure::SheetStyle &style);  // 设置材料类型
+    NestConfigure::SheetStyle getSheetStyle() const;  // 获取实体样式
+
+    void setMainGrid(const NestConfigure::Grid &grid);  // 设置主网格
+    NestConfigure::Grid getMainGrid() const;  // 获取主网格
+
+    void setSecondGrid(const NestConfigure::Grid &grid);  // 设置主网格
+    NestConfigure::Grid getSecondGrid() const;  // 获取主网格
+
+    void setSheet(const Sheet &s);  // 设置材料类型
+    Sheet getSheet() const;  // 获取材料类型
 
     // 添加自定义图形元素
     void addCustomPointItem(Point *point);  // 添加自定义点
@@ -158,9 +173,15 @@ private:
     qreal penWidth;  // 画笔
     qreal scaleFactor;  // 缩放因子
 
-    // 配置文件
+    // 绘图配置文件
     SketchConfigure::EntityStyle eStyle;  // 实体类型
     SketchConfigure::AxesGrid axesGrid;  // 坐标网格
+
+    // 排版配置文件
+    NestConfigure::SheetStyle sheetStyle;  // 材料类型
+    NestConfigure::Grid mainGrid;  // 主网格
+    NestConfigure::Grid secondGrid;  // 副网格
+    Sheet sheet;  // 材料
 
     Eyelet *eyeletDialog ;//绘制鸡眼孔
     Text *textdialog;//文本的对话框传递

@@ -9,9 +9,10 @@
 #include <QTableWidget>
 #include <QGroupBox>
 #include <QDialogButtonBox>
-#include "sheet.h"
+#include <QLabel>
+#include <QComboBox>
+#include <QCheckBox>
 #include "view.h"
-#include "scene.h"
 
 #define SHEET_XML "sheet.xml"
 #define WHOLE tr("整体")
@@ -115,24 +116,18 @@ struct Sheet
                       (height - topMargin - bottomMargin));
     }
 
-    // 材料的排版区域集合
-    QVector<QRectF> layoutRects() const{
+    // 上插板区域
+    QVector<QRectF> inforcementRects() const{
         QVector<QRectF> retRects;
         switch (type) {
-        case Whole:
-            retRects.append(QRectF(leftMargin, topMargin,
-                                   (width - leftMargin - rightMargin),
-                                   (height - topMargin - bottomMargin)));
-            break;
         case Strip:
             for(int i=0; i<stripPW.length(); i++){
                 retRects.append(QRectF(stripPW[i].position, topMargin,
                                        stripPW[i].width, height-2*topMargin));
             }
             break;
+        case Whole:
         case Package:
-
-            break;
         default:
             break;
         }
@@ -160,6 +155,8 @@ struct Sheet
         return s;
     }
 };
+
+class Scene;
 
 // sheet管理对话框
 class SheetDialog : public QDialog

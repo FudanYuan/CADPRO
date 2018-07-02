@@ -67,7 +67,8 @@ public:
             sheetMarginColor(Qt::red),
             reinforcementColor(Qt::darkRed),
             reinforcementMarginColor(Qt::yellow),
-            sheetFilled(true)
+            sheetFilled(true),
+            backgroundColor(Qt::white)
         {}
 
         QColor sheetColor;  // 材料颜色
@@ -75,6 +76,7 @@ public:
         QColor reinforcementColor;  // 上插板颜色
         QColor reinforcementMarginColor;  // 上插板边缘颜色
         bool sheetFilled;  // 材料填充
+        QColor backgroundColor;  // 背景颜色
     };
 
     // 切割件颜色

@@ -12,6 +12,7 @@ View::View(QWidget *parent)
       keyboardFlag(true),
       xPos(0),
       yPos(0),
+      center(QPointF()),
       windowScale(1.0),
       zoomDelta(0.1),
       isTranslate(false),
@@ -144,16 +145,16 @@ void View::keyPressEvent(QKeyEvent *event)
     }
     switch (event->key()) {
     case Qt::Key_Up:
-        translate(QPointF(0, 2));  // 上移
+        translate_(QPointF(0, 2));  // 上移
         break;
     case Qt::Key_Down:
-        translate(QPointF(0, -2));  // 下移
+        translate_(QPointF(0, -2));  // 下移
         break;
     case Qt::Key_Left:
-        translate(QPointF(2, 0));  // 左移
+        translate_(QPointF(2, 0));  // 左移
         break;
     case Qt::Key_Right:
-        translate(QPointF(-2, 0));  // 右移
+        translate_(QPointF(-2, 0));  // 右移
         break;
     case Qt::Key_Plus:  // 放大
         zoomIn();
@@ -171,7 +172,6 @@ void View::keyPressEvent(QKeyEvent *event)
     default:
         QGraphicsView::keyPressEvent(event);
     }
-
 }
 
 void View::mousePressEvent(QMouseEvent *event)
@@ -235,8 +235,9 @@ void View::wheelEvent(QWheelEvent *event)
         event->ignore();
         return;
     }
+    center = event->posF();
     // 以鼠标位置为中心
-//    centerOn(event->posF());
+//    centerOn(mapFromScene(center));
     setResizeAnchor(QGraphicsView::AnchorUnderMouse); // AnchorUnderMouse
     // 滚轮的滚动量
     QPoint scrollAmount = event->angleDelta();
@@ -261,20 +262,22 @@ void View::zoomBack()
 
 void View::zoom(qreal scaleFactor)
 {
+    // 以鼠标位置为中心
+    //centerOn(mapFromScene(center));
     // 防止过小或过大
     qreal factor = transform().scale(scaleFactor, scaleFactor).mapRect(QRectF(0, 0, 1, 1)).width();
-//    qDebug() << "factor " << factor;
+    // qDebug() << "factor " << factor;
     if (factor < 0.01 || factor > 50){
         return;
     }
-//    qDebug() << "scaleFactor " << scaleFactor;
+    // qDebug() << "scaleFactor " << scaleFactor;
     scale(scaleFactor, scaleFactor);
     this->windowScale *= scaleFactor;
     // 发送视图缩放改变的信号
     emit viewScaleChanged(this->windowScale);
 }
 
-void View::translate(QPointF delta)
+void View::translate_(QPointF delta)
 {
     // 根据当前 zoom 缩放平移数
     delta *= this->windowScale;
