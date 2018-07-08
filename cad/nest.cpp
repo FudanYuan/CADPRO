@@ -684,11 +684,13 @@ void Nest::updatePieceView()
 
     // 更新项目-切割件
     QString pName = projectActive->getName();
+    qDebug() << "debug: " << pName;
     if(!proPieceInfoMap.contains(pName)){  // 项目-切割件信息为空，返回
         QMessageBox::warning(this, tr("错误"), tr("当前项目切割件列表为空！"));
         return;
     }
     int index = proPieceInfoMap[pName]->curPieceID;
+    qDebug() << "index: " << index;
     if(index != -1){  // 如果切割件列表为空时，文本框中默认为1
         int count = proPieceInfoMap[pName]->pieceList[index]->getCount();
         qDebug() << "保存个数为: " << count;
@@ -2206,17 +2208,16 @@ void Nest::onActionTreeProjectAddScene()
         int count = 0;
         foreach (Scene* s, projectTmp->getSceneList()) {// 获取读入的图层列表
             Scene *scene = s->copy();
-            QString name = scene->getName();
-            int index = name.toInt();
-            scene->setName(QString::number(oldLen+index));
-            sList.append(scene);
-
-            // 更新项目-切割件信息
+            // 更新项目-切割件信息，注意：图层要确保是多变形才加入图层
             foreach (Polyline *polyline, scene->getPolylineList()) {
+                QString name = scene->getName();
+                int index = name.toInt();
+                scene->setName(QString::number(oldLen+index));
+                sList.append(scene);
                 Piece *piece = new Piece(polyline);  // 切割件个数默认为1，默认精确到6位
                 proPieceInfo->insertPiece(piece);
+                count++;
             }
-            count++;
         }
         project->insertScene(sList);  // 加入图层列表
 

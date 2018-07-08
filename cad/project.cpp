@@ -260,13 +260,13 @@ void Project::dxfFileReader(const QString fileName)
         //qDebug() << "读取之前：" << sceneList.length();
         // 读取图层
         dxfLayerReader(dxfFilter);
-        
+
         // 读取point实体
         dxfPointReader(dxfFilter);
-        
+
         // 读取line实体
         dxfLineReader(dxfFilter);
-        
+
         //  读取Polyline实体
         dxfPolylineReader(dxfFilter);
 
@@ -278,7 +278,7 @@ void Project::dxfFileReader(const QString fileName)
         
         //  读取Ellipse实体
         dxfEllipseReader(dxfFilter);
-        
+
         //  读取Text实体
         dxfTextReader(dxfFilter);
 
