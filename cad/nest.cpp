@@ -42,6 +42,7 @@ Nest::Nest(QWidget *parent) :
     setMouseTracking(true);     // 开启鼠标追踪
 
     // 系统初始化
+    initAllPointers();  // 初始化所有指针
     initActions();      // 初始化动作
     initMenuBar();      // 初始化菜单栏
     initToolBar();      // 初始化工具栏
@@ -64,6 +65,19 @@ Nest::~Nest()
     }
     qDebug() << "end destroy nest";
     delete ui;
+}
+
+void Nest::initAllPointers()
+{
+    config = NULL;
+    nestView = NULL;
+    projectActive = NULL;
+    nestScene = NULL;
+    pieceView = NULL;
+    pieceScene = NULL;
+    curSheet = NULL;
+    nestThread = NULL;
+    nestEngine = NULL;
 }
 
 void Nest::initActions()
@@ -568,7 +582,7 @@ void Nest::initProjectView()
     tree_project->setHeaderLabel(tr("切割件列表")); //设置头的标题
     tree_project->setContextMenuPolicy(Qt::CustomContextMenu);//右键 不可少否则右键无反应
     connect(tree_project, &QTreeWidget::customContextMenuRequested, this, &Nest::showTreeMenu);
-    connect(tree_project, &QTreeWidget::itemClicked, this, &Nest::onProjectTreeItemClicked);
+    //connect(tree_project, &QTreeWidget::itemClicked, this, &Nest::onProjectTreeItemClicked);
     connect(tree_project, &QTreeWidget::itemDoubleClicked, this, &Nest::onTreeProjectItemDoubleClicked);
 
     dock_project->setWidget(tree_project);
@@ -690,7 +704,6 @@ void Nest::updatePieceView()
         return;
     }
     int index = proPieceInfoMap[pName]->curPieceID;
-    qDebug() << "index: " << index;
     if(index != -1){  // 如果切割件列表为空时，文本框中默认为1
         int count = proPieceInfoMap[pName]->pieceList[index]->getCount();
         qDebug() << "保存个数为: " << count;
@@ -945,8 +958,9 @@ void Nest::initNestEngine()
 
     NestEngineConfigure *nestEngineConfig = new NestEngineConfigure;  // 实例化时都要做配置文件操作
     Sheet::SheetType type = proSheetInfoMap[pName]->sheetType;
-    NestEngineConfigureDialog nestEngineconfigDialog(nestEngineConfig, (NestEngineConfigureDialog::TabType)(type));
+    NestEngineConfigureDialog nestEngineconfigDialog(nestEngineConfig);
     nestEngineconfigDialog.setDialogRole(NestEngineConfigureDialog::Nest);
+    nestEngineconfigDialog.onTabChanged(type);
     nestEngineconfigDialog.exec();
 
     if(!proNestEngineConfigMap.contains(pName)){  // 保存项目配置
@@ -984,6 +998,7 @@ void Nest::initNestEngine()
     }
 }
 
+/*矩形排版策略*/
 void Nest::initRectNestEngine()
 {
     double len = RectNestEngine::components.length();
@@ -1299,14 +1314,14 @@ bool Nest::saveFile(QString fileName)
         return false;
     }
 
-    try{
-        QString pName = projectActive->getName();
-        if(!proPieceCenterMap.contains(pName)
-                || !proPieceOffsetMap.contains(pName)){
-            QMessageBox::warning(this, tr("错误"), tr("该项目还未排版!"));
-            return false;
-        }
+    QString pName = projectActive->getName();
+    if(!proPieceCenterMap.contains(pName)
+            || !proPieceOffsetMap.contains(pName)){
+        QMessageBox::warning(this, tr("错误"), tr("该项目还未排版!"));
+        return false;
+    }
 
+    try{
         int centerCount = 0;
         for(int i=0; i < proSheetInfoMap[pName]->pieceNumList.length(); i++){
             centerCount += proSheetInfoMap[pName]->pieceNumList[i];
@@ -1548,14 +1563,11 @@ bool Nest::onActionFileSaveAs()
     if(fileName.isEmpty()){
         return false;
     }
-    if(fileName != projectActive->getName()){
-        //projectActive->changeName(fileName);
-    }
     // 保存逻辑
-    projectActive->saveProject();
     bool res = saveFile(fileName);
     projectActive->setSaved(res);
     if(res){
+        projectActive->saveProject();
         QMessageBox::information(this, tr("通知"), projectActive->getName() + tr("保存成功"));
     }
     return res;
@@ -1563,6 +1575,10 @@ bool Nest::onActionFileSaveAs()
 
 bool Nest::onActionFileSaveAll()
 {
+    foreach (Project *project, projectList) {
+        projectActive = project;
+        onActionFileSave();
+    }
     return true;
 }
 
@@ -2079,6 +2095,37 @@ void Nest::onActionTreeFoldAll()
 void Nest::onProjectTreeItemClicked(QTreeWidgetItem *item, int column)
 {
     qDebug() << "点击： " << item->text(0) << "  " << column;
+    QTreeWidgetItem *parent = item->parent();  //获得父节点
+    if(NULL == parent) {  // 项目树
+        tree_project_active_item = item;
+        tree_project_scene_active_item = tree_project_active_item->child(0);
+        // 根据项目名称获取项目指针
+        QString pName = item->text(0);
+        projectActive = getProjectByName(pName);  // 更新活动项目
+        // 如果活动项目的图层列表不为空，则设置该项目第一个图层为活动图层
+        if(projectActive->getSceneList().length() > 0){
+            projectActive->setActiveScene(projectActive->getScene(0));  // 设置该项目第一个图层为活动图层
+            QString sName = projectActive->getActiveScene()->getName();  // 获取图层名称
+            if(proPieceInfoMap.contains(pName) && sName != tr("切割件列表-空")){  // 更新当前切割件ID
+                proPieceInfoMap[pName]->curPieceID = 0;
+            } else{
+                proPieceInfoMap[pName]->curPieceID = -1;
+            }
+        }
+    } else{  // 图层树
+        tree_project_active_item = parent;
+        tree_project_scene_active_item = item;
+        QString pName = parent->text(0);
+        QString sName = item->text(0);
+        projectActive = getProjectByName(pName);  // 更新活动项目
+        projectActive->setActiveScene(projectActive->getSceneByName(sName));  // 更新活动图层
+        if(proPieceInfoMap.contains(pName) && sName != tr("切割件列表-空")){  // 更新当前切割件ID
+            int index = tree_project_active_item->indexOfChild(tree_project_scene_active_item);
+            proPieceInfoMap[pName]->curPieceID = index;
+        }
+    }
+    // 发送排版项目改变信号
+    emit nestProjectChange(projectActive);
 }
 
 void Nest::onTreeProjectItemDoubleClicked(QTreeWidgetItem *item)
@@ -2250,11 +2297,29 @@ void Nest::onActionTreeProjectAddScene()
 void Nest::onActionTreeProjectSave()
 {
     qDebug() << tree_project_active_item->text(0) << "保存项目";
+    Project *project = projectActive;  // 保存目前的项目状态
+    QString pName = tree_project_active_item->text(0);  // 获取当前项目
+    projectActive = getProjectByName(pName);
+    if(!projectActive){
+        QMessageBox::warning(this, tr("错误"), tr("无法获取当前项目"));
+        return;
+    }
+    onActionFileSave();  // 保存项目
+    projectActive = project;  // 恢复之前的状态
 }
 
 void Nest::onActionTreeProjectSaveAs()
 {
     qDebug() << tree_project_active_item->text(0) << "另存为项目";
+    Project *project = projectActive;  // 保存目前的项目状态
+    QString pName = tree_project_active_item->text(0);  // 获取当前项目
+    projectActive = getProjectByName(pName);
+    if(!projectActive){
+        QMessageBox::warning(this, tr("错误"), tr("无法获取当前项目"));
+        return;
+    }
+    onActionFileSaveAs();  // 另存为项目
+    projectActive = project;  // 恢复之前的状态
 }
 
 void Nest::onActionTreeProjectRename()

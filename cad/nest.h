@@ -119,6 +119,7 @@ public:
     explicit Nest(QWidget *parent = 0);
     ~Nest();
 
+    void initAllPointers();  // 初始化指针
     void initActions();  // 初始化action
     void initMenuBar();  // 初始化菜单栏
     void initToolBar();  // 初始化工具栏

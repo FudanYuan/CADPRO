@@ -51,12 +51,6 @@ NestEngineConfigureDialog::NestEngineConfigureDialog(NestEngineConfigure *config
                                         QSizePolicy::Expanding));
 }
 
-NestEngineConfigureDialog::NestEngineConfigureDialog(NestEngineConfigure *config, TabType type) :
-    NestEngineConfigureDialog(config)
-{
-    onTabChanged(type);
-}
-
 void NestEngineConfigureDialog::setDialogRole(NestEngineConfigureDialog::RoleType role)
 {
     this->role = role;
