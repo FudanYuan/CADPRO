@@ -1,6 +1,7 @@
-#include "project.h"
+﻿#include "project.h"
 #include <QMessageBox>
 #include <QMutableListIterator>
+#include <QTextCodec>
 #include <QDebug>
 
 Project::Project(QObject *parent) :
@@ -253,8 +254,10 @@ Scene *Project::getDXFLayer(QString name)
 
 void Project::dxfFileReader(const QString fileName)
 {
+    QTextCodec *code = QTextCodec::codecForName("GB2312");//解决中文路径问题
+    std::string name = code->fromUnicode(fileName).data();
     //初始化dxf文件
-    if (!dxf.in(fileName.toStdString(), &dxfFilter)) {
+    if (!dxf.in(name, &dxfFilter)) {
         throw(tr("无法读取DXF文件"));
     }else {
         //qDebug() << "读取之前：" << sceneList.length();

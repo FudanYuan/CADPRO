@@ -1,4 +1,4 @@
-#include "nest.h"
+﻿#include "nest.h"
 #include "ui_nest.h"
 #include <QDockWidget>
 #include <QTreeWidgetItem>
@@ -15,9 +15,9 @@
 #include "rectnestengine.h"
 #include "packpointnestengine.h"
 #include "nestengineconfiguredialog.h"
-#include <QDebug>
-
 #include <sys/time.h>
+
+#include <QDebug>
 
 #define COUNT 20
 
@@ -816,7 +816,9 @@ void Nest::updateNestView()
         return;
     }
     if(proSceneListMap[pName].length() != 0){
-        nestScene = proSceneListMap[pName][0];
+        ProSheetInfo *proSheetInfo = proSheetInfoMap[pName];  // 获取该项目的项目-材料指针
+        int id = proSheetInfo->curSheetID;  // 获取当前材料id
+        nestScene = proSceneListMap[pName][id];
         nestView->setScene(nestScene);
         nestView->centerOn(nestView->mapFromScene(0,0));
     }
@@ -1774,10 +1776,12 @@ void Nest::onActionSheetAdd()
     // Step4: 将选中的材料加入排版引擎列表
     initSheet();  // 添加材料
     updateSheetView();  // 更新视图
+    updateNestView();  // 更新排版视图
 }
 
 void Nest::onActionSheetRemove()
 {
+    // 删除材料不仅要删除材料信息，还要删除对应的图层信息
     qDebug() << "删除当前材料";
     if(!projectActive){  // 如果活动项目指针为空，返回
         QMessageBox::warning(this, tr("错误"), tr("未选择任何项目！"));
@@ -1794,15 +1798,24 @@ void Nest::onActionSheetRemove()
         return;
     }
     int id = proSheetInfo->curSheetID;  // 获取当前材料id
-    Sheet *s = proSheetInfo->sheetList[id];   // 在列表删除该材料
+    // 在列表删除该材料
+    Sheet *s = proSheetInfo->sheetList[id];
     proSheetInfo->sheetList.removeAt(id);
     delete s;  // 释放内存，防止内存泄漏
     s = NULL;
+
+    // 在列表删除该材料对应的图层
+    Scene *scene = proSceneListMap[pName][id];
+    proSceneListMap[pName].removeAt(id);
+    delete scene;
+    scene = NULL;
+
     if(id > proSheetInfo->sheetList.length() - 1){  // 如果id大于列表长度，则为最后一张
         proSheetInfo->curSheetID = proSheetInfo->sheetList.length() - 1;  // 更新当前材料id
     }
     qDebug() << "删除之后：" << proSheetInfo->curSheetID;
-    updateSheetView();  // 更新材料视图
+    updateSheetView();  // 更新视图
+    updateNestView();  // 更新排版视图
 }
 
 void Nest::onActionSheetDuplicate()
@@ -1844,7 +1857,8 @@ void Nest::onActionSheetDuplicate()
         sList.append(scene);
         proSceneListMap.insert(pName, sList);
     }
-    updateSheetView();  // 更新材料视图
+    updateSheetView();  // 更新视图
+    updateNestView();  // 更新排版视图
 }
 
 void Nest::onActionSheetAutoDuplicate()
@@ -2219,7 +2233,6 @@ void Nest::onActionTreeProjectAddScene()
 {
     qDebug() << "import dxf files";
     QString fileName = QFileDialog::getOpenFileName(this, tr("打开DXF文件"), QDir::currentPath());
-    //fileName = "/Users/Jeremy/Qt5.10.0/Projects/build-CADPRO-Desktop_Qt_5_10_0_clang_64bit-Debug/CADPRO.app/Contents/MacOS/toNest.dxf";
     if (!fileName.isEmpty()) {
         QString pName = tree_project_active_item->text(0);  // 获取当前项目
         Project *project = getProjectByName(pName);
@@ -2245,6 +2258,10 @@ void Nest::onActionTreeProjectAddScene()
             projectTmp->dxfFileReader(fileName);
         } catch (QString exception){
             QMessageBox::warning(this, tr("错误"), exception);
+            emit nestProjectChange(project);
+            delete projectTmp;
+            projectTmp = NULL;
+            return;
         }
 
         ProPieceInfo *proPieceInfo = proPieceInfoMap[pName];  // 获取切割件信息

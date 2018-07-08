@@ -1,4 +1,5 @@
 #include "nf_reader.h"
+#include <assert.h>
 #include <QDebug>
 
 NF_Reader::NF_Reader(FILE *fp) :
