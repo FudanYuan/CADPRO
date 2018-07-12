@@ -117,8 +117,8 @@ class NestEngineConfigureDialog : public QDialog
     Q_OBJECT
 public:
     enum RoleType{
-        Manager,
-        Nest
+        Manager,  // è¿›è¡Œææ–™çš„ç®¡ç†
+        Nest  // æ’ç‰ˆæ—¶è¿›è¡Œææ–™çš„å¢åŠ 
     };
 
     enum TabType{
@@ -127,26 +127,27 @@ public:
         Strip,
         Package
     };
-
     explicit NestEngineConfigureDialog(NestEngineConfigure *config);
+    explicit NestEngineConfigureDialog(NestEngineConfigure *config, TabType type);
 
-    void setDialogRole(NestEngineConfigureDialog::RoleType role);  // ÉèÖÃ¶Ô»°¿ò½ÇÉ«
-    NestEngineConfigureDialog::RoleType getDialogRole();  // »ñÈ¡¶Ô»°¿ò½ÇÉ«
+    void setDialogRole(NestEngineConfigureDialog::RoleType role);  // è®¾ç½®å¯¹è¯æ¡†è§’è‰²
+    NestEngineConfigureDialog::RoleType getDialogRole();  // è·å–å¯¹è¯æ¡†è§’è‰²
 
     NestEngineConfigure::StripSheetNest * getCurStripConfig();
     NestEngineConfigure::WholeSheetNest * getCurWholeConfig();
     NestEngineConfigure::PackageSheetNest * getCurPackageConfig();
 
+    QTableWidget * inittableWIdget();
+
+    QMap<int,QList<QList<int>>> dataMap;
+
 public slots:
     void onTabChanged(int i);
-    void onDialogButtonClicked(QAbstractButton *button);  // ÏìÓ¦²ÄÁÏĞÅÏ¢¸Ä±ä
-    void onDialogButtonOkClicked();
     void onDialogButtonCancelClicked();
-    void onDataChanged(int index,QList<QList<int>> changedData);            //ÏìÓ¦ÅäÖÃÊı¾İ±»±à¼­¸Ä±ä
-
+    void onDialogButtonOkClicked(QAbstractButton *button);  // å“åº”ææ–™ä¿¡æ¯æ”¹å˜
+    void onDataChanged(int index,QList<QList<int>> changedData);            //å“åº”é…ç½®æ•°æ®è¢«ç¼–è¾‘æ”¹å˜
 protected:
      void closeEvent(QCloseEvent *event);
-
 private:
     RoleType role;
     TabType tabType;
@@ -154,8 +155,8 @@ private:
     StripSheetConfigTab *sSheetTab;
     WholeSheetConfigTab *wSheetTab;
     PackageSheetConfig *pSheetTab;
-    QDialogButtonBox *buttonBox;
-    QMap<int,QList<QList<int>>> dataMap;
+    QDialogButtonBox * okButton;
+    QDialogButtonBox * cancelButton;
     NestEngineConfigure::StripSheetNest *curStripConfig;
     NestEngineConfigure::WholeSheetNest *curWholeConfig;
     NestEngineConfigure::PackageSheetNest *curPackageConfig;
