@@ -37,11 +37,11 @@ QMap<int,QList<QList<int>>> NestEngineConfigure::LoadConfigureXml()
                         configureList.append(r.readElementText().toInt());
                                     //qDebug() << "this name: " << r.readElementText();
                     }
-                    if(r.name() == "VerticalNest"){
+                    if(r.name() == "HorizontalNest"){
                         configureList.append(r.readElementText().toInt());
                                     //qDebug() << "type: " << r.readElementText();
                     }
-                    if(r.name() == "HorizontalNest"){
+                    if(r.name() == "VerticalNest"){
                         configureList.append(r.readElementText().toInt());
                     }
                     if(r.name() == "TailPieceMixing"){
@@ -99,11 +99,11 @@ QMap<int,QList<QList<int>>> NestEngineConfigure::LoadConfigureXml()
                         configureList.append(r.readElementText().toInt());
                                     //qDebug() << "this name: " << r.readElementText();
                     }
-                    if(r.name() == "VerticalNest"){
+                    if(r.name() == "HorizontalNest"){
                         configureList.append(r.readElementText().toInt());
                                     //qDebug() << "type: " << r.readElementText();
                     }
-                    if(r.name() == "HorizontalNest"){
+                    if(r.name() == "VerticalNest"){
                         configureList.append(r.readElementText().toInt());
                     }
                     if(r.name() == "TailPieceMixing"){
@@ -159,8 +159,8 @@ void NestEngineConfigure::WriteConfigureXml(QMap<int,QList<QList<int>>> & writed
         for(int i=0; i< writedata[0].length();i++){
             w.writeStartElement("Whole");
             w.writeTextElement("maxRotate", QString("%1").arg(writedata[index][i][0]));
-            w.writeTextElement("VerticalNest", QString("%1").arg(writedata[index][i][1]));
-            w.writeTextElement("HorizontalNest", QString("%1").arg(writedata[index][i][2]));
+            w.writeTextElement("HorizontalNest", QString("%1").arg(writedata[index][i][1]));
+            w.writeTextElement("VerticalNest", QString("%1").arg(writedata[index][i][2]));
             w.writeTextElement("TailPieceMixing", QString("%1").arg(writedata[index][i][3]));
             w.writeTextElement("TailLineMixing", QString("%1").arg(writedata[index][i][4]));
             w.writeTextElement("SameTypeSizeMixing", QString("%1").arg(writedata[index][i][5]));
@@ -187,8 +187,8 @@ void NestEngineConfigure::WriteConfigureXml(QMap<int,QList<QList<int>>> & writed
             w.writeStartElement("Package");
             //qDebug()<<"hellwwo"<<writedata[index].length();
             w.writeTextElement("maxRotate", QString("%1").arg(writedata[index][i][0]));
-            w.writeTextElement("VerticalNest", QString("%1").arg(writedata[index][i][1]));
-            w.writeTextElement("HorizontalNest", QString("%1").arg(writedata[index][i][2]));
+            w.writeTextElement("HorizontalNest", QString("%1").arg(writedata[index][i][1]));
+            w.writeTextElement("VerticalNest", QString("%1").arg(writedata[index][i][2]));
             w.writeTextElement("TailPieceMixing", QString("%1").arg(writedata[index][i][3]));
             w.writeTextElement("TailLineMixing", QString("%1").arg(writedata[index][i][4]));
             w.writeTextElement("SameTypeSizeMixing", QString("%1").arg(writedata[index][i][5]));
