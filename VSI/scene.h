@@ -216,6 +216,7 @@ signals:
 
 public slots:
     void onViewScaleChanged(qreal scaleFactor);  // 响应view缩放事件
+    void onViewOffsetChanged(QPointF offset);  // 响应view偏移事件
     void onAxesChanged(bool show);  // 响应坐标轴是否显示
     void onGridChanged(bool show);  // 响应网格是否显示
     void onNewItem();  // 图元改变

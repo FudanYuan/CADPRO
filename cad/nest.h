@@ -408,6 +408,7 @@ private slots:
     void onPieceNumChanged(const QString &num);
 
     void onDockNestSizeChanged();
+    void onDockPieceSizeChanged();
 };
 
 #endif // NEST_H

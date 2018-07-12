@@ -379,17 +379,14 @@ void SheetDialog::updateSheetInfo(const Sheet *sheetActive)
     qreal widthFactor = viewWidth / sheetWidth;
     qreal heightFactor = viewHeight / sheetHeight;
     qreal factor = widthFactor;
-    bool flag = false;  // 标志位，flag为false时代表为纵向偏移
     if(factor > heightFactor){
         factor = heightFactor;
-        flag = true;  // 标志位，flag为true时代表为横向偏移
     }
-    sheetView->zoom(factor);  // 进行缩放
+    sheetView->zoom(factor*0.98);  // 进行缩放
     QPointF bottomRightPos = sheetView->mapToScene(QPoint(viewWidth, viewHeight));  // 获取图层右下角坐标
-    QPointF offset = QPointF(0, qAbs(bottomRightPos.ry() - sheetHeight) / 2);  // 纵向偏移量
-    if(flag){
-        offset = QPointF(qAbs(bottomRightPos.rx() - sheetWidth) / 2, 0);  // 纵向偏移量
-    }
+    QPointF offset = QPointF(0, qAbs(bottomRightPos.ry() - sheetHeight) / 2) +
+            QPointF(qAbs(bottomRightPos.rx() - sheetWidth) / 2, 0);  // 偏移量
+
     sheetScene->setOffset(offset);  // 图层设置偏移量
 }
 
