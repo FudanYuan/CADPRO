@@ -1,4 +1,4 @@
-#include "view.h"
+﻿#include "view.h"
 #include <QDebug>
 
 #define VIEW_CENTER viewport()->rect().center()
@@ -190,6 +190,7 @@ void View::mouseMoveEvent(QMouseEvent *event)
         return;
     }
     QGraphicsView::mouseMoveEvent(event);
+    //qDebug() << "View中：" << event->pos();
     setPosition(event->pos());
     emit mousePositionChanged(mapToScene(event->pos()));
 }
@@ -237,7 +238,6 @@ void View::wheelEvent(QWheelEvent *event)
     }
     center = event->posF();
     // 以鼠标位置为中心
-//    centerOn(mapFromScene(center));
     setResizeAnchor(QGraphicsView::AnchorUnderMouse); // AnchorUnderMouse
     // 滚轮的滚动量
     QPoint scrollAmount = event->angleDelta();
@@ -262,11 +262,9 @@ void View::zoomBack()
 
 void View::zoom(qreal scaleFactor)
 {
-    // 以鼠标位置为中心
-    //centerOn(mapFromScene(center));
     // 防止过小或过大
     qreal factor = transform().scale(scaleFactor, scaleFactor).mapRect(QRectF(0, 0, 1, 1)).width();
-    // qDebug() << "factor " << factor;
+    //qDebug() << "factor " << factor;
     if (factor < 0.01 || factor > 50){
         return;
     }
@@ -285,6 +283,7 @@ void View::translate_(QPointF delta)
 
     // view 根据鼠标下的点作为锚点来定位 scene
     setTransformationAnchor(QGraphicsView::AnchorViewCenter);
+    //qDebug() << "平移：" << VIEW_WIDTH / 2 - delta.x() << "  " << VIEW_HEIGHT / 2 - delta.y();
     QPoint newCenter(VIEW_WIDTH / 2 - delta.x(),  VIEW_HEIGHT / 2 - delta.y());
     centerOn(mapToScene(newCenter));
 

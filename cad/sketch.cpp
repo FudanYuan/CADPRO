@@ -1,4 +1,4 @@
-#include "sketch.h"
+﻿#include "sketch.h"
 #include "ui_sketch.h"
 #include "customdocktitlebar.h"
 
@@ -35,6 +35,7 @@ Sketch::Sketch(QWidget *parent) :
     setMouseTracking(true);     // 开启鼠标追踪
 
     // 系统初始化
+    initAllPointers();  // 初始化所有指针
     initActions();      // 初始化动作
     initMenuBar();      // 初始化菜单栏
     initToolBar();      // 初始化工具栏
@@ -51,6 +52,14 @@ Sketch::~Sketch()
     for(int i=0; i<project_list.length();i++){
         if(project_list.at(i)) delete project_list.at(i);
     }
+}
+
+void Sketch::initAllPointers()
+{
+    config = NULL;
+    view = NULL;
+    project_active = NULL;
+    scene_active = NULL;
 }
 
 void Sketch::initActions()
@@ -1334,7 +1343,10 @@ void Sketch::initDockWidget()
 void Sketch::initConfiguration()
 {
     qDebug() << "初始化配置文件";
-//    if(config) delete config;
+    if(config) {
+        delete config;
+        config = NULL;
+    }
     config = new SketchConfigure(this);
     connect(this, &Sketch::configChanged, config, &SketchConfigure::onConfigChanged);
     action_view_xy_axes->setChecked(config->axesGrid.axes.showAxes);
@@ -1953,6 +1965,9 @@ void Sketch::onActionDrawImage()
 void Sketch::onActionDrawImageInsert()
 {
     qDebug() << "插入图像";
+    Rect *rect = new Rect;
+    rect->setRect(scene_active->getPolylineList().first()->getBoundingRect());
+    scene_active->addCustomRectItem(rect);
 }
 
 void Sketch::onActionDrawImageDelete()

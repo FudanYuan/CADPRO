@@ -1,4 +1,4 @@
-#include "nestconfigure.h"
+﻿#include "nestconfigure.h"
 #include <QList>
 #include <QFileInfo>
 #include <debug.h>

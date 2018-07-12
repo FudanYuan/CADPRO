@@ -1,4 +1,4 @@
-#include "common.h"
+﻿#include "common.h"
 #include <QDebug>
 #include <iostream>
 #include <iomanip>//要加入头文件
@@ -31,7 +31,7 @@ QColor intToColor(const int rgb, bool a)
     if(a){
         alpha = rgb >> 24 & 255;
     }
-    return QColor(red, green, blue, alpha);
+    return QColor(blue, green, red, alpha);
 }
 
 //qrealPrecision(1.234,2) = 1.23

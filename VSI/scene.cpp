@@ -1,4 +1,4 @@
-#include "scene.h"
+﻿#include "scene.h"
 #include <QDebug>
 #include <QPainter>
 
@@ -12,7 +12,9 @@ Scene::Scene(QObject *parent) :
     moveable(false),
     drawing(false),
     penWidth(1),
-    scaleFactor(1)
+    scaleFactor(1),
+    backgroundColor(Qt::white),
+    offset(QPointF(0, 0))
 {
     setSceneRect(SHRT_MIN, SHRT_MIN, SHRT_MAX * 2, SHRT_MAX * 2);
     polygonType = 1;
@@ -111,6 +113,10 @@ int Scene::getPolylineListLength() const
     return this->polylineList.length();
 }
 
+void Scene::addPolylineList(Polyline *polyline){
+    this->polylineList.append(polyline);
+}
+
 QList<Ellipse *> Scene::getEllipseList() const
 {
     return this->ellipseList;
@@ -164,6 +170,26 @@ bool Scene::isMoveable() const
 void Scene::setDrawable(bool flag)
 {
     this->drawable = flag;
+}
+
+void Scene::setBackgroundColor(QColor color)
+{
+    backgroundColor = color;
+}
+
+QColor Scene::getBackgroundColor()
+{
+    return backgroundColor;
+}
+
+void Scene::setOffset(QPointF pos)
+{
+    offset = pos;
+}
+
+QPointF Scene::getOffset()
+{
+    return offset;
 }
 
 void Scene::setEntityStyle(const SketchConfigure::EntityStyle &eStyle)
@@ -281,6 +307,7 @@ void Scene::addCustomPolylineItem(Polyline *polyline)
 
     itemList.append(polyline);
     polylineList.append(polyline);
+
     addItem(polyline);
     connect(polyline, &Shape::sceneMoveableChanged, polyline, &Polyline::onSceneMoveableChanged);
     connect(polyline, &Polyline::select, this, &Scene::onPolylineSelected);
@@ -1005,49 +1032,8 @@ void Scene::drawBackground(QPainter *painter, const QRectF &rect)
     }
     case Nest:{
         painter->save();
-        painter->setBrush(sheetStyle.backgroundColor);
+        painter->setBrush(backgroundColor);
         painter->drawRect(rect);
-        // 画主网格
-        if(mainGrid.showGrid){
-            QPen pen = QPen();
-            pen.setWidthF(0);
-            pen.setColor(mainGrid.gridColor);
-            painter->setPen(pen);
-
-            const double w = sceneRect().width();
-            const double h = sceneRect().height();
-
-            for(int i=0; i<h; i+=mainGrid.yStep / scaleFactor){
-                painter->drawLine(QPointF(-w,i),QPointF(w,i));
-                painter->drawLine(QPointF(-w,-i),QPointF(w,-i));
-            }
-            for(int i=0; i<w; i+=mainGrid.xStep / scaleFactor)
-            {
-                painter->drawLine(QPointF(i,-h),QPointF(i,h));
-                painter->drawLine(QPointF(-i,-h),QPointF(-i,h));
-            }
-        }
-
-        // 画副网格
-        if(secondGrid.showGrid){
-            QPen pen = QPen();
-            pen.setWidthF(0);
-            pen.setColor(secondGrid.gridColor);
-            painter->setPen(pen);
-
-            const double w = sceneRect().width();
-            const double h = sceneRect().height();
-
-            for(int i=0; i<h; i+=secondGrid.yStep / scaleFactor){
-                painter->drawLine(QPointF(-w,i),QPointF(w,i));
-                painter->drawLine(QPointF(-w,-i),QPointF(w,-i));
-            }
-            for(int i=0; i<w; i+=secondGrid.xStep / scaleFactor)
-            {
-                painter->drawLine(QPointF(i,-h),QPointF(i,h));
-                painter->drawLine(QPointF(-i,-h),QPointF(-i,h));
-            }
-        }
 
         // 画材料
         QRectF layoutRect = sheet.layoutRect();  // 材料外接矩形
@@ -1056,6 +1042,8 @@ void Scene::drawBackground(QPainter *painter, const QRectF &rect)
         pen.setColor(sheetStyle.sheetMarginColor);
         pen.setStyle(Qt::DashLine);  // 设置虚线
         painter->setPen(pen);
+        painter->translate(offset);
+        painter->setBrush(sheetStyle.sheetColor);
         painter->drawRect(layoutRect);
 
         // 如果是条板类型，则需要画上插板
@@ -1068,6 +1056,53 @@ void Scene::drawBackground(QPainter *painter, const QRectF &rect)
             painter->setPen(pen);
             painter->setBrush(QBrush(sheetStyle.reinforcementColor));
             painter->drawRects(layoutRects);
+        }
+
+        // 画主网格
+        if(mainGrid.showGrid){
+            //qDebug() << "主网格";
+            QPen pen = QPen();
+            pen.setWidthF(0);
+            pen.setColor(mainGrid.gridColor);
+            painter->setPen(pen);
+
+            const double w = layoutRect.width();
+            const double h = layoutRect.height();
+
+            for(int i=0; i<=h; i+=mainGrid.yStep / scaleFactor){
+                painter->drawLine(QPointF(-w,i),QPointF(w,i));
+                painter->drawLine(QPointF(-w,-i),QPointF(w,-i));
+            }
+            for(int i=0; i<=w; i+=mainGrid.xStep / scaleFactor)
+            {
+                painter->drawLine(QPointF(i,-h),QPointF(i,h));
+                painter->drawLine(QPointF(-i,-h),QPointF(-i,h));
+            }
+        }
+
+        // 画副网格
+        if(secondGrid.showGrid){
+            //qDebug() << "副网格";
+            QPen pen = QPen();
+            pen.setWidthF(1/scaleFactor);
+            pen.setColor(secondGrid.gridColor);
+            painter->setPen(pen);
+
+            const double w = layoutRect.width();
+            const double h = layoutRect.height();
+
+            for(int i=0; i<=h; i+=secondGrid.yStep / scaleFactor) {
+                painter->drawPoint(QPointF(-w,i));
+                painter->drawPoint(QPointF(w,i));
+                painter->drawPoint(QPointF(-w,-i));
+                painter->drawPoint(QPointF(w,-i));
+            }
+            for(int i=0; i<=w; i+=secondGrid.xStep / scaleFactor) {
+                painter->drawPoint(QPointF(i,-h));
+                painter->drawPoint(QPointF(-i,-h));
+                painter->drawPoint(QPointF(i,h));
+                painter->drawPoint(QPointF(-i,h));
+            }
         }
         break;
     }
@@ -1123,7 +1158,17 @@ void Scene::onAxesChanged(bool show)
 
 void Scene::onGridChanged(bool show)
 {
-    axesGrid.grid.showGrid = show;
+    switch (type) {
+    case Sketch:{
+        axesGrid.grid.showGrid = show;
+        break;
+    }
+    case Nest:{
+        mainGrid.showGrid = show;
+        secondGrid.showGrid = show;
+        break;
+    }
+    }
     update();
 }
 

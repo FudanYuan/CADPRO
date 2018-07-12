@@ -1,4 +1,4 @@
-#include "nestconfiguredialog.h"
+﻿#include "nestconfiguredialog.h"
 #include <QDesktopWidget>
 #include <QApplication>
 #include <QSizePolicy>
@@ -282,19 +282,19 @@ ColorsTab::ColorsTab(QWidget *parent) :
     QLabel *labelPieceReinforcement = new QLabel(tr("上插板"), this);
     QLabel *labelPieceOther = new QLabel(tr("其他"), this);
 
-    outsideColor = new ColorComboBox(tr("sheetStyle/pieceStyle_outsideColor"), this);
+    outsideColor = new ColorComboBox(tr("pieceStyle/pieceStyle_outsideColor"), this);
     connect(outsideColor, &ColorComboBox::colorChanged, this, &ColorsTab::onColorChanged);
 
-    insideColor = new ColorComboBox(tr("sheetStyle/pieceStyle_insideColor"), this);
+    insideColor = new ColorComboBox(tr("pieceStyle/pieceStyle_insideColor"), this);
     connect(insideColor, &ColorComboBox::colorChanged, this, &ColorsTab::onColorChanged);
 
-    liningColor = new ColorComboBox(tr("sheetStyle/pieceStyle_liningColor"), this);
+    liningColor = new ColorComboBox(tr("pieceStyle/pieceStyle_liningColor"), this);
     connect(liningColor, &ColorComboBox::colorChanged, this, &ColorsTab::onColorChanged);
 
-    pieceReinforcementColor = new ColorComboBox(tr("sheetStyle/pieceStyle_reinforcementColor"), this);
+    pieceReinforcementColor = new ColorComboBox(tr("pieceStyle/pieceStyle_reinforcementColor"), this);
     connect(pieceReinforcementColor, &ColorComboBox::colorChanged, this, &ColorsTab::onColorChanged);
 
-    otherColor = new ColorComboBox(tr("sheetStyle/pieceStyle_otherColor"), this);
+    otherColor = new ColorComboBox(tr("pieceStyle/pieceStyle_otherColor"), this);
     connect(otherColor, &ColorComboBox::colorChanged, this, &MiscellaneousTab::onColorChanged);
 
     QGridLayout *pieceStyleLayout = new QGridLayout(pieceStyleGroupBox);

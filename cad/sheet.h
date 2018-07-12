@@ -1,4 +1,4 @@
-#ifndef SHEETDIALOG_H
+﻿#ifndef SHEETDIALOG_H
 #define SHEETDIALOG_H
 
 #include <QDialog>
@@ -168,6 +168,7 @@ public:
         Nest  // 排版时进行材料的增加
     };
     SheetDialog(Sheet::SheetType type = Sheet::None);
+    ~SheetDialog();
     void setDialogType(Sheet::SheetType type);  // 设置显示材料类型
     Sheet::SheetType getDialogType();  // 获取显示材料类型
     void setDialogRole(SheetDialog::RoleType role);  // 设置对话框角色
@@ -192,7 +193,8 @@ protected:
 private:
     RoleType role;  // 打开该对话框的角色类型
     Sheet::SheetType sheetType;  // 材料类型
-    QList<Sheet*> sheetList;  // 材料列表
+    QList<Sheet*> sheetList;  // 读入的材料列表
+    QList<Sheet*> showList;  // 显示的材料列表
     Sheet *sheetActive;  // 选中材料
     int currentIndex;  // 当前序号
     bool insertFlag;  // 添加标志
@@ -248,6 +250,7 @@ signals:
     void sheetSelected(int i);  // 材料被选中
 
 private slots:
+    void onMousePositionChanged(QPointF pos);  // 响应鼠标移动
     void onDoubleStripChanged(bool checkd);
     void onSheetTypeComChanged(int index);  // 响应类型下拉框选项改变
     void onDialogButtonClicked(QAbstractButton *button);  // 响应材料信息改变

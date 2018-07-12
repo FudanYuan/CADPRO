@@ -1,4 +1,4 @@
-#ifndef SKETCH_H
+﻿#ifndef SKETCH_H
 #define SKETCH_H
 
 #include <QMainWindow>
@@ -28,6 +28,7 @@ public:
     explicit Sketch(QWidget *parent = 0);
     ~Sketch();
 
+    void initAllPointers();  // 初始化指针
     void initActions();         // 初始化action
     void initMenuBar();         // 初始化菜单栏
     void initToolBar();         // 初始化工具栏

@@ -1,4 +1,4 @@
-#ifndef POLYLINE_H
+﻿#ifndef POLYLINE_H
 #define POLYLINE_H
 
 #include <QGraphicsPathItem>
@@ -41,6 +41,8 @@ public:
 
     void setElevation(qreal elevation);  // 设置高程
     qreal getElevation();  // 获取高程
+
+    QRectF getBoundingRect();  // 获取包围矩形
 
     Polyline *copy();
 protected:

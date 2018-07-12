@@ -1,4 +1,4 @@
-#ifndef SKETCHCONFIGURE_H
+﻿#ifndef SKETCHCONFIGURE_H
 #define SKETCHCONFIGURE_H
 
 #include <QDialog>
@@ -45,13 +45,13 @@ public:
     {
         // 此方法类似于类的结构体
         PenStyle() :
-            color(Qt::red), style(Qt::SolidLine), width(1)
+            color(Qt::red), style(Qt::SolidLine), width(1), brush(Qt::white)
         {
 
         }
 
-        PenStyle(QColor c, Qt::PenStyle s, qreal w) :
-            color(c), style(s), width(w)
+        PenStyle(QColor c, Qt::PenStyle s, qreal w, QColor b=Qt::white) :
+            color(c), style(s), width(w), brush(b)
         {
 
         }
@@ -59,13 +59,15 @@ public:
         QColor color;  // 实体颜色, 默认为黑色
         Qt::PenStyle style;  // 实体样式，默认为实线
         qreal width;  // 实体宽度，默认为1
+        QColor brush;  // 刷子颜色
 
         // 设置画笔属性
-        void setPenStyle(QColor color, Qt::PenStyle style, double width)
+        void setPenStyle(QColor color, Qt::PenStyle style, double width, QColor brush = Qt::white)
         {
             this->color = color;
             this->style = style;
             this->width = width;
+            this->brush = brush;
         }
     };
 

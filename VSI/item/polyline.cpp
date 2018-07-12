@@ -1,4 +1,4 @@
-#include "polyline.h"
+﻿#include "polyline.h"
 #include <QCursor>
 #include <QPainter>
 #include <QPainterPath>
@@ -61,10 +61,12 @@ void Polyline::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     // 所以如果我们想要让线宽保持不变，那就需要进行转换，即 penWidth = penWidth / scaleFactor;
     QPen pen = this->pen();
     // 重新设置画笔线宽;
+    pen.setColor(penStyle.color);
     pen.setWidthF(pen.widthF() / scaleFactor);
     if(collision){
         pen.setColor(selectedEntity.color);
     }
+
     painter->setPen(pen);
     painter->setRenderHint(QPainter::Antialiasing);
 
@@ -84,7 +86,9 @@ void Polyline::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         for (int i = 0; i < len - 1; ++i) {
             //painter->setBrush(QBrush(collides ? selectedEntity.color : penStyle.color));
             //drawRectPoint(painter, points.at(i), size);
-            painter->setBrush(QBrush(Qt::gray));
+            if(fill){  // 如果填充，设置刷子颜色
+                painter->setBrush(penStyle.brush);
+            }
             path.lineTo(points.at(i+1));
         }
         if(!overFlag){
@@ -102,7 +106,7 @@ void Polyline::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             QPointF sp = points.at(i);
             QPointF ep = points.at(i+1);
 
-            painter->setBrush(QBrush(penStyle.color));
+            painter->setBrush(QBrush(penStyle.brush));
             drawRectPoint(painter, points.at(0), 1);
             painter->setBrush(QBrush());
 
@@ -165,8 +169,10 @@ void Polyline::setPolyline(QVector<QPointF> pList, int flag, qreal ele, qreal an
     pen.setColor(penStyle.color);
     pen.setStyle(penStyle.style);
     pen.setWidthF(penStyle.width);
+    pen.setBrush(penStyle.brush);
     setPen(pen);
 
+    fill = true;
     points.append(pList);
     type = (Type)(flag == 0 ? 1 : flag);
     elevation = ele;
@@ -205,6 +211,30 @@ void Polyline::setElevation(qreal elevation)
 qreal Polyline::getElevation()
 {
     return this->elevation;
+}
+
+QRectF Polyline::getBoundingRect()
+{
+    qreal top = LONG_MAX;
+    qreal bottom = LONG_MIN;
+    qreal left = LONG_MAX;
+    qreal right = LONG_MIN;
+    foreach (QPointF pos, points) {
+        if(top > pos.ry()){
+            top = pos.ry();
+        }
+        if(bottom < pos.ry()){
+            bottom = pos.ry();
+        }
+        if(left > pos.rx()){
+            left = pos.rx();
+        }
+        if(right < pos.rx()){
+            right = pos.rx();
+        }
+    }
+    QRectF boundRect(QPointF(left, top), QPointF(right, bottom));
+    return boundRect;
 }
 
 Polyline *Polyline::copy()

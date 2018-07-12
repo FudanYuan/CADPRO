@@ -1,4 +1,4 @@
-#ifndef SHAPE_H
+﻿#ifndef SHAPE_H
 #define SHAPE_H
 
 #include <QObject>
@@ -73,16 +73,19 @@ public:
     bool isSelected() const;  // 是否选中
 
     void setShowNode(bool showNode);  // 设置显示端点
-    bool isShowNode();  // 是否显示端点
+    bool isShowNode() const;  // 是否显示端点
 
     void setEditable(bool editable);  // 设置可编辑
-    bool isEditable();  // 是否可编辑
+    bool isEditable() const;  // 是否可编辑
 
     void setEditOverFlag(bool editOverFlag);  // 结束标志
     bool getEditOverFlag() const;  // 获取结束标识
 
+    void setFill(bool fill);  // 设置是否填充
+    bool isFill() const;  // 是否填充
+
     void setCollision(bool coll);  // 设置是否碰撞
-    bool getCollision();  // 是否碰撞
+    bool getCollision() const;  // 是否碰撞
 
 protected:
     QString layer;  // 图层名称
@@ -99,7 +102,7 @@ protected:
     bool showNode;  // 显示节点
     bool editable;  // 可编辑
     bool editOverFlag;  // 编辑结束
-
+    bool fill;  // 是否填充，仅针对封闭图形
     mutable bool collision;  // 是否碰撞
 
     SketchConfigure::ObjSize objSize;  // 对象大小

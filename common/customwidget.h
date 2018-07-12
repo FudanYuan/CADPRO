@@ -1,4 +1,4 @@
-#ifndef CUSTOMWIDGET_H
+﻿#ifndef CUSTOMWIDGET_H
 #define CUSTOMWIDGET_H
 
 #include <QTableWidget>
@@ -9,6 +9,7 @@
 #include <QLineEdit>
 #include <QCheckBox>
 #include <QPaintEvent>
+#include <QDockWidget>
 
 class ColorButton : public QPushButton
 {
@@ -129,4 +130,17 @@ public slots:
     void onCheckChanged(QString key, bool value);
 };
 
+class CustomDockWidget : public QDockWidget{
+    Q_OBJECT
+public:
+    explicit CustomDockWidget(const QString &title, QWidget *parent=0);
+
+signals:
+    void sizeChanged();
+
+protected:
+    void changeEvent(QEvent *event) Q_DECL_OVERRIDE;
+    void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
+    void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
+};
 #endif // CUSTOMWIDGET_H

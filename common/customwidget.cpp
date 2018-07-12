@@ -1,4 +1,4 @@
-#include "customwidget.h"
+﻿#include "customwidget.h"
 #include <QHeaderView>
 #include <QPixmap>
 #include <QIcon>
@@ -206,7 +206,7 @@ CustomTabWidget::CustomTabWidget(QWidget *parent) :
 
 void CustomTabWidget::onColorChanged(QString key, QColor color)
 {
-#ifdef DEBUG
+#if 1
     qDebug() << "CustomTabWidget:: " << key << " " << color.rgba();
 #endif
     emit tabChanged(key, QVariant(color.rgba()));
@@ -228,3 +228,35 @@ void CustomTabWidget::onCheckChanged(QString key, bool value)
     emit tabChanged(key, QVariant(value));
 }
 
+CustomDockWidget::CustomDockWidget(const QString &title, QWidget *parent) :
+    QDockWidget(title, parent)
+{
+
+}
+
+void CustomDockWidget::changeEvent(QEvent *event)
+{
+    qDebug() << (QEvent::Type)event->type();
+    switch (event->type()) {
+    case QEvent::Close:
+    case QEvent::Resize:
+        QDockWidget::changeEvent(event);
+        break;
+    default:
+        event->ignore();
+        break;
+    }
+}
+
+void CustomDockWidget::closeEvent(QCloseEvent *event)
+{
+    QDockWidget::closeEvent(event);
+    emit sizeChanged();
+}
+
+void CustomDockWidget::resizeEvent(QResizeEvent *event)
+{
+    qDebug() << "dockwidget resize event";
+    QWidget::resizeEvent(event);
+    emit sizeChanged();
+}

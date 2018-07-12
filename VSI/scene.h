@@ -1,4 +1,4 @@
-#ifndef SCENE_H
+﻿#ifndef SCENE_H
 #define SCENE_H
 
 #include <QGraphicsScene>
@@ -54,6 +54,7 @@ public:
 
     QList<Polyline *> getPolylineList() const;  // 获取多边形列表
     int getPolylineListLength() const;  // 获取多边形列表长度
+    void addPolylineList(Polyline *polyline);
 
     QList<Ellipse *> getEllipseList() const;  // 获取椭圆列表
     int getEllipseListLength() const;  // 获取椭圆列表长度
@@ -71,6 +72,12 @@ public:
     bool isMoveable() const;  // 返回图元是否可移动
 
     void setDrawable(bool flag);  // 设置开始标识
+
+    void setBackgroundColor(QColor color);  // 设置背景颜色
+    QColor getBackgroundColor();  // 获取背景颜色
+
+    void setOffset(QPointF pos);  // 设置偏移量
+    QPointF getOffset();  // 获取偏移量
 
     void setEntityStyle(const SketchConfigure::EntityStyle &eStyle);  // 设置实体样式
     SketchConfigure::EntityStyle getEntityStyle();  // 获取实体样式
@@ -172,6 +179,8 @@ private:
 
     qreal penWidth;  // 画笔
     qreal scaleFactor;  // 缩放因子
+    QPointF offset;  // 偏移量
+    QColor backgroundColor;  // 背景颜色
 
     // 绘图配置文件
     SketchConfigure::EntityStyle eStyle;  // 实体类型

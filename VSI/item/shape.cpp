@@ -1,4 +1,4 @@
-#include "shape.h"
+﻿#include "shape.h"
 
 Shape::Shape() :
     layer(""),
@@ -14,7 +14,8 @@ Shape::Shape() :
     selected(false),
     showNode(false),
     editable(false),
-    editOverFlag(false)
+    editOverFlag(false),
+    fill(false)
 {
 }
 
@@ -139,7 +140,7 @@ void Shape::setShowNode(bool showNode)
     this->showNode = showNode;
 }
 
-bool Shape::isShowNode()
+bool Shape::isShowNode() const
 {
     return showNode;
 }
@@ -149,7 +150,7 @@ void Shape::setEditable(bool editable)
     this->editable = editable;
 }
 
-bool Shape::isEditable()
+bool Shape::isEditable() const
 {
     return this->editable;
 }
@@ -164,12 +165,22 @@ bool Shape::getEditOverFlag() const
     return this->editOverFlag;
 }
 
+void Shape::setFill(bool fill)
+{
+    this->fill = fill;
+}
+
+bool Shape::isFill() const
+{
+    return this->fill;
+}
+
 void Shape::setCollision(bool coll)
 {
     this->collision = coll;
 }
 
-bool Shape::getCollision()
+bool Shape::getCollision() const
 {
     return this->collision;
 }

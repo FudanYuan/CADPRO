@@ -1,4 +1,4 @@
-#ifndef NEST_H
+﻿#ifndef NEST_H
 #define NEST_H
 
 #include <QMainWindow>
@@ -139,9 +139,9 @@ public:
     void initConnect();  // 初始化信号和槽的链接
 
     void addProject();  // 添加项目
-    void initSheet();  // 初始化材料
+    bool initSheet();  // 初始化材料
 
-    void initNestEngine();  // 初始化排版引擎
+    bool initNestEngine();  // 初始化排版引擎
     void initRectNestEngine();  // 初始化矩形排版引擎
     void showNestResult();  // 显示排版结果
 
@@ -265,10 +265,10 @@ private:
     QProgressBar *nestProgressBar;  // 排版进度条
     QLabel *nestProgressLabel;  // 排版进度
     QLabel *mousePositionLabel;  //  鼠标坐标
-    QDockWidget *dock_piece;  // 浮动窗口1
-    QDockWidget *dock_project;  // 浮动窗口2
-    QDockWidget *dock_sheet;  // 浮动窗口3
-    QDockWidget *dock_nest;   // 主窗口
+    CustomDockWidget *dock_piece;  // 浮动窗口1
+    CustomDockWidget *dock_project;  // 浮动窗口2
+    CustomDockWidget *dock_sheet;  // 浮动窗口3
+    CustomDockWidget *dock_nest;   // 主窗口
 
     QTreeWidget *tree_project;       // 项目树
     QList<QTreeWidgetItem *> tree_project_item_list; // 项目树列表
@@ -318,6 +318,7 @@ public slots:
     void onNestThreadFinished();
 
 protected:
+    void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
     void closeEvent(QCloseEvent *event);
 
 private slots:
@@ -405,6 +406,8 @@ private slots:
     void onActionTreeProjectSceneDelete();
 
     void onPieceNumChanged(const QString &num);
+
+    void onDockNestSizeChanged();
 };
 
 #endif // NEST_H
