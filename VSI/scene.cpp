@@ -1133,8 +1133,10 @@ void Scene::setTextdialog(Text *value)
 
 Scene *Scene::copy()
 {
-    Scene *s = new Scene();
-    s->setName(name);
+    Scene *s = new Scene;
+    if(name != ""){
+        s->setName(name);
+    }
     s->setModified(modified);
     s->setEntityStyle(eStyle);
     foreach (Polyline* p, polylineList) {

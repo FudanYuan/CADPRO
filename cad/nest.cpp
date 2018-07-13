@@ -704,6 +704,7 @@ void Nest::updatePieceView()
         return;
     }
 
+    // 使能
     widget->setDisabled(false);
 
     // 更新piece视图
@@ -2784,6 +2785,19 @@ void Nest::onPieceNumChanged(const QString &num)
 
 void Nest::onDockNestSizeChanged()
 {
+    // dock size change 事件在macOS上触发会出现问题
+    // 因此，设置了事件处理的条件，
+    // 条件：当项目初始化完成后再处理该事件
+    if(!projectActive){
+        return;
+    }
+    QString pName = projectActive->getName();
+    if(!proPieceInfoMap.contains(pName)
+            || !proSheetInfoMap.contains(pName)
+            || !proSceneListMap.contains(pName)
+            || !proNestEngineConfigMap.contains(pName)){
+        return;
+    }
     qDebug() << "nest size changed";
     update();
     updateNestView();
@@ -2791,6 +2805,16 @@ void Nest::onDockNestSizeChanged()
 
 void Nest::onDockPieceSizeChanged()
 {
+    if(!projectActive){
+        return;
+    }
+    QString pName = projectActive->getName();
+    if(!proPieceInfoMap.contains(pName)
+            || !proSheetInfoMap.contains(pName)
+            || !proSceneListMap.contains(pName)
+            || !proNestEngineConfigMap.contains(pName)){
+        return;
+    }
     qDebug() << "piece size changed";
     update();
     updatePieceView();
