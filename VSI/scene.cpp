@@ -1036,15 +1036,22 @@ void Scene::drawBackground(QPainter *painter, const QRectF &rect)
         painter->drawRect(rect);
 
         // 画材料
-        QRectF layoutRect = sheet.layoutRect();  // 材料外接矩形
+        QRectF boundRect = sheet.boundRect();  // 材料外接矩形
         QPen pen = QPen();
+        pen.setWidthF(0);
+        pen.setColor(sheetStyle.sheetColor);
+        pen.setStyle(Qt::SolidLine);  // 设置实线
+        painter->setPen(pen);
+        painter->translate(offset);
+        painter->setBrush(sheetStyle.sheetColor);
+        painter->drawRect(boundRect);  // 画出材料外接矩形区域
+
+        QRectF layoutRect = sheet.layoutRect();  // 获取排版区域
         pen.setWidthF(0);
         pen.setColor(sheetStyle.sheetMarginColor);
         pen.setStyle(Qt::DashLine);  // 设置虚线
         painter->setPen(pen);
-        painter->translate(offset);
-        painter->setBrush(sheetStyle.sheetColor);
-        painter->drawRect(layoutRect);
+        painter->drawRect(layoutRect);  // 画出材料排版的区域
 
         // 如果是条板类型，则需要画上插板
         if(sheet.type == Sheet::Strip){
@@ -1052,7 +1059,7 @@ void Scene::drawBackground(QPainter *painter, const QRectF &rect)
             QPen pen = QPen();
             pen.setWidthF(0);
             pen.setColor(sheetStyle.reinforcementMarginColor);
-            pen.setStyle(Qt::SolidLine);  // 设置虚线
+            pen.setStyle(Qt::SolidLine);  // 设置线型
             painter->setPen(pen);
             painter->setBrush(QBrush(sheetStyle.reinforcementColor));
             painter->drawRects(layoutRects);
@@ -1069,14 +1076,25 @@ void Scene::drawBackground(QPainter *painter, const QRectF &rect)
             const double w = layoutRect.width();
             const double h = layoutRect.height();
 
-            for(int i=0; i<=h; i+=mainGrid.yStep / scaleFactor){
-                painter->drawLine(QPointF(-w,i),QPointF(w,i));
-                painter->drawLine(QPointF(-w,-i),QPointF(w,-i));
+            int rows = h / mainGrid.yStep;  // 行数
+            int columns = w / mainGrid.xStep;  // 列数
+            for(int i=0; i<=rows; i++){  // 划横线
+                qreal rowsYPos = i*mainGrid.yStep+sheet.topMargin;  // 纵坐标
+                painter->drawLine(QPointF(sheet.leftMargin,rowsYPos),
+                                  QPointF(w+sheet.leftMargin,rowsYPos));
             }
-            for(int i=0; i<=w; i+=mainGrid.xStep / scaleFactor)
-            {
-                painter->drawLine(QPointF(i,-h),QPointF(i,h));
-                painter->drawLine(QPointF(-i,-h),QPointF(-i,h));
+            for(int i=0; i<=columns; i++){  // 划纵线
+                qreal columnsYPos = i*mainGrid.xStep+sheet.leftMargin;  // 横坐标
+                painter->drawLine(QPointF(columnsYPos,sheet.topMargin),
+                                  QPointF(columnsYPos,h+sheet.topMargin));
+            }
+            if(qrealPrecision(h - rows*mainGrid.yStep, 6) != 0.0f){  // 补齐横线
+                painter->drawLine(QPointF(sheet.leftMargin,h+sheet.topMargin),
+                                  QPointF(w+sheet.leftMargin,h+sheet.topMargin));
+            }
+            if(qrealPrecision(w - columns*mainGrid.xStep, 6) != 0.0f){  // 补齐纵线
+                painter->drawLine(QPointF(w+sheet.leftMargin,sheet.topMargin),
+                                  QPointF(w+sheet.leftMargin,h+sheet.topMargin));
             }
         }
 
@@ -1087,21 +1105,12 @@ void Scene::drawBackground(QPainter *painter, const QRectF &rect)
             pen.setWidthF(1/scaleFactor);
             pen.setColor(secondGrid.gridColor);
             painter->setPen(pen);
-
             const double w = layoutRect.width();
             const double h = layoutRect.height();
-
-            for(int i=0; i<=h; i+=secondGrid.yStep / scaleFactor) {
-                painter->drawPoint(QPointF(-w,i));
-                painter->drawPoint(QPointF(w,i));
-                painter->drawPoint(QPointF(-w,-i));
-                painter->drawPoint(QPointF(w,-i));
-            }
             for(int i=0; i<=w; i+=secondGrid.xStep / scaleFactor) {
-                painter->drawPoint(QPointF(i,-h));
-                painter->drawPoint(QPointF(-i,-h));
-                painter->drawPoint(QPointF(i,h));
-                painter->drawPoint(QPointF(-i,h));
+                for(int j=0; j<=h; j+=secondGrid.yStep / scaleFactor) {
+                    painter->drawPoint(QPointF(i+sheet.leftMargin,j+sheet.topMargin));
+                }
             }
         }
         break;
@@ -1147,6 +1156,22 @@ void Scene::setEyeletDialog(Eyelet *value)
 void Scene::onViewScaleChanged(qreal scaleFactor)
 {
     this->scaleFactor = scaleFactor;
+    update();
+}
+
+void Scene::onViewOffsetChanged(QPointF offset)
+{
+    qDebug() << "偏移了" << offset;
+    this->offset -= offset;
+    // 更新排版零件
+    foreach (Polyline *polyline, polylineList) {
+        QVector<QPointF> offsetPoints;
+        foreach (QPointF point, polyline->getPoints()) {
+            point -= offset;
+            offsetPoints.append(point);
+        }
+        polyline->setPoints(offsetPoints);
+    }
     update();
 }
 

@@ -1,4 +1,4 @@
-#include "nestengineconfiguredialog.h"
+﻿#include "nestengineconfiguredialog.h"
 #include <QDesktopWidget>
 #include <QApplication>
 #include <QSizePolicy>
@@ -15,9 +15,10 @@ NestEngineConfigureDialog::NestEngineConfigureDialog(NestEngineConfigure *config
     // 适应屏幕大小
     QDesktopWidget* desktopWidget = QApplication::desktop();
     QRect screenRect = desktopWidget->screenGeometry();
-    setFixedSize(screenRect.width() - 750, screenRect.height() - 450);
+    setFixedSize(screenRect.width() - 500, screenRect.height() - 450);
     setSizePolicy(QSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed));
 
+    // 读入配置
     this->dataMap = config->LoadConfigureXml();
 
     // 添加组件
@@ -36,26 +37,18 @@ NestEngineConfigureDialog::NestEngineConfigureDialog(NestEngineConfigure *config
     tabWidget->addTab(pSheetTab, tr("卷装材料"));
     connect(pSheetTab,&PackageSheetConfig::pDataChanged,this,&NestEngineConfigureDialog::onDataChanged);
 
-
     // 将确定取消的按键加入布局
-    okButton = new QDialogButtonBox(QDialogButtonBox::Ok,this);
-    okButton->setGeometry(this->x()+this->width()-200,this->y()+this->height()-50,60,40);
-    connect(okButton, &QDialogButtonBox::clicked, this, &NestEngineConfigureDialog::onDialogButtonOkClicked);
+    buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok
+                                     | QDialogButtonBox::Cancel, this);
+    connect(buttonBox, &QDialogButtonBox::clicked, this, &NestEngineConfigureDialog::onDialogButtonClicked);
 
-    cancelButton = new QDialogButtonBox(QDialogButtonBox::Cancel,this);
-    cancelButton->setGeometry(this->x()+this->width()-120,this->y()+this->height()-50,60,40);
-    connect(cancelButton,&QDialogButtonBox::clicked,this,&NestEngineConfigureDialog::onDialogButtonCancelClicked);
-
-}
-
-NestEngineConfigureDialog::NestEngineConfigureDialog(NestEngineConfigure *config, TabType type) :
-    NestEngineConfigureDialog(config)
-
-{
-    //this->dataMap = config->LoadConfigureXml();
-
-
-    onTabChanged(type);
+    QVBoxLayout *mainLayout = new QVBoxLayout(this); // 主布局
+    mainLayout->addWidget(tabWidget);
+    mainLayout->addWidget(buttonBox);
+    mainLayout->addItem(new QSpacerItem(this->width(),
+                                        10,
+                                        QSizePolicy::Expanding,
+                                        QSizePolicy::Expanding));
 }
 
 void NestEngineConfigureDialog::setDialogRole(NestEngineConfigureDialog::RoleType role)
@@ -81,11 +74,6 @@ NestEngineConfigure::PackageSheetNest *NestEngineConfigureDialog::getCurPackageC
     return curPackageConfig;
 }
 
-QTableWidget *NestEngineConfigureDialog::inittableWIdget()
-{
-    QTableWidget * widget = new QTableWidget();
-    return widget;
-}
 void NestEngineConfigureDialog::onTabChanged(int i)
 {
     tabType = (TabType)i;
@@ -119,153 +107,17 @@ void NestEngineConfigureDialog::onTabChanged(int i)
     }
 }
 
-void NestEngineConfigureDialog::onDialogButtonCancelClicked()
+void NestEngineConfigureDialog::onDialogButtonClicked(QAbstractButton *button)
 {
-    switch (tabType) {
-    if(role == Manager){
-        QDialog::accept();
-        return;
+    if(button->text() == "OK"){
+        onDialogButtonOkClicked();
+    } else if(button->text() == "Cancel"){
+        onDialogButtonCancelClicked();
     }
-    case Whole:
-
-        curWholeConfig = new NestEngineConfigure::WholeSheetNest();
-        //方向排版
-        curWholeConfig->wholedegree=wSheetTab->degree->text().toInt();
-        if(wSheetTab->HorizontalNest->isChecked())
-        {
-            curWholeConfig->wholeorientation=NestEngine::HorizontalNest;
-        }
-        else if(wSheetTab->VerticalNest->isChecked())
-        {
-            curWholeConfig->wholeorientation=NestEngine::VerticalNest;
-        }
-        //混合方式
-        if(wSheetTab->AllMixing->isChecked())
-        {
-            curWholeConfig->wholemixing = NestEngine::AllMixing;
-        }
-        else if(wSheetTab->TailPieceMixing->isChecked() && wSheetTab->TailLineMixing->isChecked()
-                &&!wSheetTab->SameTypeSizeMixing->isChecked())
-        {
-            curWholeConfig->wholemixing =NestEngine::TailPieceMixing|NestEngine::TailLineMixing;
-        }
-        else if(wSheetTab->TailPieceMixing->isChecked() && !wSheetTab->TailLineMixing->isChecked()
-                &&wSheetTab->SameTypeSizeMixing->isChecked())
-        {
-            curWholeConfig->wholemixing =NestEngine::TailPieceMixing|NestEngine::SameTypeSizeMixing;
-        }
-        else if(!wSheetTab->TailPieceMixing->isChecked() && wSheetTab->TailLineMixing->isChecked()
-                &&wSheetTab->SameTypeSizeMixing->isChecked())
-        {
-            curWholeConfig->wholemixing =NestEngine::TailLineMixing|NestEngine::SameTypeSizeMixing;
-        }
-        else if(wSheetTab->TailPieceMixing->isChecked() && !wSheetTab->TailLineMixing->isChecked()
-                &&!wSheetTab->SameTypeSizeMixing->isChecked())
-        {
-            curWholeConfig->wholemixing = NestEngine::TailPieceMixing;
-        }
-        else if(!wSheetTab->TailPieceMixing->isChecked() && wSheetTab->TailLineMixing->isChecked()
-                &&!wSheetTab->SameTypeSizeMixing->isChecked())
-        {
-            curWholeConfig->wholemixing = NestEngine::TailLineMixing;
-        }
-        else if(!wSheetTab->TailPieceMixing->isChecked() && !wSheetTab->TailLineMixing->isChecked()
-                &&wSheetTab->SameTypeSizeMixing->isChecked())
-        {
-            curWholeConfig->wholemixing = NestEngine::SameTypeSizeMixing;
-        }
-        else
-        {
-            curWholeConfig->wholemixing = NestEngine::NoMixing;
-        }
-        break;
-    case Strip:
-        // to do
-        curStripConfig = new NestEngineConfigure::StripSheetNest();
-        if(sSheetTab->leftRightTurnCBox->isChecked() && sSheetTab->sizeDownCBox->isChecked()){
-            curStripConfig->strategy = NestEngine::AllStrategys;
-        }
-        else if(sSheetTab->leftRightTurnCBox->isChecked()){
-            curStripConfig->strategy = NestEngine::LeftRightTurn;
-        }
-        else if(sSheetTab->sizeDownCBox->isChecked()){
-            curStripConfig->strategy = NestEngine::SizeDown;
-        } else {
-            curStripConfig->strategy = NestEngine::NoStrategy;
-        }
-        if(sSheetTab->HorizontalAdaptiveSpacing->isChecked())
-        {
-            curStripConfig->stripadaptive=NestEngine::HorizontalAdaptiveSpacing;
-        }
-        else if(sSheetTab->TailPieceMixing->isChecked())
-        {
-            curStripConfig->stripmixing=NestEngine::NoMixing;
-        }
-        break;
-    case Package:
-        curPackageConfig = new NestEngineConfigure::PackageSheetNest();
-        //方向排版
-        curPackageConfig->packagedegree=pSheetTab->degree->text().toInt();
-        if(pSheetTab->HorizontalNest->isChecked())
-        {
-            curPackageConfig->packageorientation=NestEngine::HorizontalNest;
-        }
-        else if(pSheetTab->VerticalNest->isChecked())
-        {
-            curPackageConfig->packageorientation=NestEngine::VerticalNest;
-        }
-        //混合方式
-        if(pSheetTab->AllMixing->isChecked())
-        {
-            curPackageConfig->packagemixing = NestEngine::AllMixing;
-        }
-        else if(pSheetTab->TailPieceMixing->isChecked() && pSheetTab->TailLineMixing->isChecked()
-                &&!pSheetTab->SameTypeSizeMixing->isChecked())
-        {
-            curPackageConfig->packagemixing =NestEngine::TailPieceMixing|NestEngine::TailLineMixing;
-        }
-        else if(pSheetTab->TailPieceMixing->isChecked() && !pSheetTab->TailLineMixing->isChecked()
-                &&pSheetTab->SameTypeSizeMixing->isChecked())
-        {
-            curPackageConfig->packagemixing =NestEngine::TailPieceMixing|NestEngine::SameTypeSizeMixing;
-        }
-        else if(!pSheetTab->TailPieceMixing->isChecked() && pSheetTab->TailLineMixing->isChecked()
-                &&pSheetTab->SameTypeSizeMixing->isChecked())
-        {
-            curPackageConfig->packagemixing =NestEngine::TailLineMixing|NestEngine::SameTypeSizeMixing;
-        }
-        else if(pSheetTab->TailPieceMixing->isChecked() && !pSheetTab->TailLineMixing->isChecked()
-                &&!pSheetTab->SameTypeSizeMixing->isChecked())
-        {
-            curPackageConfig->packagemixing = NestEngine::TailPieceMixing;
-        }
-        else if(!pSheetTab->TailPieceMixing->isChecked() && pSheetTab->TailLineMixing->isChecked()
-                &&!pSheetTab->SameTypeSizeMixing->isChecked())
-        {
-            curPackageConfig->packagemixing = NestEngine::TailLineMixing;
-        }
-        else if(!pSheetTab->TailPieceMixing->isChecked() && !pSheetTab->TailLineMixing->isChecked()
-                &&pSheetTab->SameTypeSizeMixing->isChecked())
-        {
-            curPackageConfig->packagemixing = NestEngine::SameTypeSizeMixing;
-        }
-
-        else
-        {
-            curPackageConfig->packagemixing = NestEngine::NoMixing;
-        }
-        break;
-    default:
-        break;
-    }
-    //QMessageBox::warning(this, tr("警告"), tr("将使用默认配置数据！"));
-    QDialog::accept();
-
 }
 
-void NestEngineConfigureDialog::onDialogButtonOkClicked(QAbstractButton *button)
+void NestEngineConfigureDialog::onDialogButtonOkClicked()
 {
-    qDebug() << button->text();
     switch (tabType) {
     case Whole:
         curWholeConfig = new NestEngineConfigure::WholeSheetNest();
@@ -400,34 +252,175 @@ void NestEngineConfigureDialog::onDialogButtonOkClicked(QAbstractButton *button)
         break;
     }
     NestEngineConfigure * configure = new NestEngineConfigure();
-
     configure->WriteConfigureXml(this->dataMap);
+    QDialog::accept();
+}
+
+void NestEngineConfigureDialog::onDialogButtonCancelClicked()
+{
+    if(role == Manager){
+        QDialog::accept();
+        return;
+    }
+    switch (tabType) {
+    case Whole:
+        curWholeConfig = new NestEngineConfigure::WholeSheetNest();
+        //方向排版
+        curWholeConfig->wholedegree=wSheetTab->degree->text().toInt();
+        if(wSheetTab->HorizontalNest->isChecked())
+        {
+            curWholeConfig->wholeorientation=NestEngine::HorizontalNest;
+        }
+        else if(wSheetTab->VerticalNest->isChecked())
+        {
+            curWholeConfig->wholeorientation=NestEngine::VerticalNest;
+        }
+        //混合方式
+        if(wSheetTab->AllMixing->isChecked())
+        {
+            curWholeConfig->wholemixing = NestEngine::AllMixing;
+        }
+        else if(wSheetTab->TailPieceMixing->isChecked() && wSheetTab->TailLineMixing->isChecked()
+                &&!wSheetTab->SameTypeSizeMixing->isChecked())
+        {
+            curWholeConfig->wholemixing =NestEngine::TailPieceMixing|NestEngine::TailLineMixing;
+        }
+        else if(wSheetTab->TailPieceMixing->isChecked() && !wSheetTab->TailLineMixing->isChecked()
+                &&wSheetTab->SameTypeSizeMixing->isChecked())
+        {
+            curWholeConfig->wholemixing =NestEngine::TailPieceMixing|NestEngine::SameTypeSizeMixing;
+        }
+        else if(!wSheetTab->TailPieceMixing->isChecked() && wSheetTab->TailLineMixing->isChecked()
+                &&wSheetTab->SameTypeSizeMixing->isChecked())
+        {
+            curWholeConfig->wholemixing =NestEngine::TailLineMixing|NestEngine::SameTypeSizeMixing;
+        }
+        else if(wSheetTab->TailPieceMixing->isChecked() && !wSheetTab->TailLineMixing->isChecked()
+                &&!wSheetTab->SameTypeSizeMixing->isChecked())
+        {
+            curWholeConfig->wholemixing = NestEngine::TailPieceMixing;
+        }
+        else if(!wSheetTab->TailPieceMixing->isChecked() && wSheetTab->TailLineMixing->isChecked()
+                &&!wSheetTab->SameTypeSizeMixing->isChecked())
+        {
+            curWholeConfig->wholemixing = NestEngine::TailLineMixing;
+        }
+        else if(!wSheetTab->TailPieceMixing->isChecked() && !wSheetTab->TailLineMixing->isChecked()
+                &&wSheetTab->SameTypeSizeMixing->isChecked())
+        {
+            curWholeConfig->wholemixing = NestEngine::SameTypeSizeMixing;
+        }
+        else
+        {
+            curWholeConfig->wholemixing = NestEngine::NoMixing;
+        }
+        break;
+    case Strip:
+        // to do
+        curStripConfig = new NestEngineConfigure::StripSheetNest();
+        if(sSheetTab->leftRightTurnCBox->isChecked() && sSheetTab->sizeDownCBox->isChecked()){
+            curStripConfig->strategy = NestEngine::AllStrategys;
+        }
+        else if(sSheetTab->leftRightTurnCBox->isChecked()){
+            curStripConfig->strategy = NestEngine::LeftRightTurn;
+        }
+        else if(sSheetTab->sizeDownCBox->isChecked()){
+            curStripConfig->strategy = NestEngine::SizeDown;
+        } else {
+            curStripConfig->strategy = NestEngine::NoStrategy;
+        }
+        if(sSheetTab->HorizontalAdaptiveSpacing->isChecked())
+        {
+            curStripConfig->stripadaptive=NestEngine::HorizontalAdaptiveSpacing;
+        }
+        else if(sSheetTab->TailPieceMixing->isChecked())
+        {
+            curStripConfig->stripmixing=NestEngine::NoMixing;
+        }
+        break;
+    case Package:
+        curPackageConfig = new NestEngineConfigure::PackageSheetNest();
+        //方向排版
+        curPackageConfig->packagedegree=pSheetTab->degree->text().toInt();
+        if(pSheetTab->HorizontalNest->isChecked())
+        {
+            curPackageConfig->packageorientation=NestEngine::HorizontalNest;
+        }
+        else if(pSheetTab->VerticalNest->isChecked())
+        {
+            curPackageConfig->packageorientation=NestEngine::VerticalNest;
+        }
+        //混合方式
+        if(pSheetTab->AllMixing->isChecked())
+        {
+            curPackageConfig->packagemixing = NestEngine::AllMixing;
+        }
+        else if(pSheetTab->TailPieceMixing->isChecked() && pSheetTab->TailLineMixing->isChecked()
+                &&!pSheetTab->SameTypeSizeMixing->isChecked())
+        {
+            curPackageConfig->packagemixing =NestEngine::TailPieceMixing|NestEngine::TailLineMixing;
+        }
+        else if(pSheetTab->TailPieceMixing->isChecked() && !pSheetTab->TailLineMixing->isChecked()
+                &&pSheetTab->SameTypeSizeMixing->isChecked())
+        {
+            qDebug()<<"运行到这里";
+            curPackageConfig->packagemixing =NestEngine::TailPieceMixing|NestEngine::SameTypeSizeMixing;
+        }
+        else if(!pSheetTab->TailPieceMixing->isChecked() && pSheetTab->TailLineMixing->isChecked()
+                &&pSheetTab->SameTypeSizeMixing->isChecked())
+        {
+            curPackageConfig->packagemixing =NestEngine::TailLineMixing|NestEngine::SameTypeSizeMixing;
+        }
+        else if(pSheetTab->TailPieceMixing->isChecked() && !pSheetTab->TailLineMixing->isChecked()
+                &&!pSheetTab->SameTypeSizeMixing->isChecked())
+        {
+            curPackageConfig->packagemixing = NestEngine::TailPieceMixing;
+        }
+        else if(!pSheetTab->TailPieceMixing->isChecked() && pSheetTab->TailLineMixing->isChecked()
+                &&!pSheetTab->SameTypeSizeMixing->isChecked())
+        {
+            curPackageConfig->packagemixing = NestEngine::TailLineMixing;
+        }
+        else if(!pSheetTab->TailPieceMixing->isChecked() && !pSheetTab->TailLineMixing->isChecked()
+                &&pSheetTab->SameTypeSizeMixing->isChecked())
+        {
+            curPackageConfig->packagemixing = NestEngine::SameTypeSizeMixing;
+        }
+
+        else
+        {
+            curPackageConfig->packagemixing = NestEngine::NoMixing;
+        }
+        break;
+    default:
+        break;
+    }
+
+    QMessageBox::warning(this, tr("警告"), tr("将使用默认配置数据！"));
     QDialog::accept();
 }
 
 void NestEngineConfigureDialog::onDataChanged(int index, QList<QList<int> > changedData)
 {
-    //qDebug()<<"i receive"<<index;
     this->dataMap[index] = changedData;
 }
 
 void NestEngineConfigureDialog::closeEvent(QCloseEvent *event)
 {
-        QMessageBox::StandardButton button;
-        if(role == Manager){
-            event->accept();  //接受退出信号，程序退出
-            return;
-        }
-        button = QMessageBox::question(this, tr("警告"),
-                                       QString(tr("确认关闭配置窗口?")),
-                                       QMessageBox::Yes | QMessageBox::No);
-        if (button == QMessageBox::No) {
-             event->ignore();  //忽略退出信号，程序继续运行
-        }
-        else if (button == QMessageBox::Yes) {
-            this->onDialogButtonCancelClicked();
-            event->accept();  //接受退出信号，程序退出
-        }
+    QMessageBox::StandardButton button;
+    if(role == Manager){
+        event->accept();  //接受退出信号，程序退出
+        return;
+    }
+    button = QMessageBox::question(this, tr("警告"),
+                                   QString(tr("确认关闭配置窗口?")),
+                                   QMessageBox::Yes | QMessageBox::No);
+    if (button == QMessageBox::No) {
+         event->ignore();  //忽略退出信号，程序继续运行
+    } else if (button == QMessageBox::Yes) {
+        onDialogButtonCancelClicked();
+        event->accept();  //接受退出信号，程序退出
+    }
 }
 
 WholeSheetConfigTab::WholeSheetConfigTab(QWidget *parent,QList<QList<int>> dataList) :
@@ -435,46 +428,38 @@ WholeSheetConfigTab::WholeSheetConfigTab(QWidget *parent,QList<QList<int>> dataL
 {
     setWindowTitle(tr("排版设置"));
     this->dataList = dataList;
-    QGridLayout *mainlayout1=new QGridLayout();
     QHBoxLayout *mainlayout=new QHBoxLayout();
     QVBoxLayout *vLayout1 = new QVBoxLayout();
     QVBoxLayout *vLayout2 = new QVBoxLayout();
     QHBoxLayout *hLayout = new QHBoxLayout();
     QHBoxLayout *hLayout1 = new QHBoxLayout();
 
-    QLabel *label1 =new QLabel(tr("摆动角度"));
+    QLabel *label1 = new QLabel(tr("摆动角度"), this);
     degree =new QLineEdit;
     degree->setText(tr("0"));
-    degree->setValidator(new QIntValidator(0,90, this));//限制只能输入数字0~90
-    QLabel *label2 =new QLabel(tr("度"));
-
-    HorizontalNest = new QRadioButton(tr("横向"));
-    VerticalNest = new QRadioButton(tr("纵向"));
+    degree->setValidator(new QIntValidator(0, 90, this));//限制只能输入数字0~90
+    QLabel *label2 = new QLabel(tr("度"), this);
+    HorizontalNest = new QRadioButton(tr("横向"), this);
+    VerticalNest = new QRadioButton(tr("纵向"), this);
     HorizontalNest->setChecked(true);
-
-
 
     hLayout->addWidget(label1);
     hLayout->addWidget(degree);
+    hLayout->addWidget(label2);
     hLayout->addWidget(HorizontalNest);
     hLayout->addWidget(VerticalNest);
 
-    vLayout1->addLayout(hLayout);
-    vLayout1->addStretch(0.6);
     TailPieceMixing = new QCheckBox(tr("尾只混合"), this);
     TailLineMixing = new QCheckBox(tr("尾行优化，允许随意角度"));
     SameTypeSizeMixing = new QCheckBox(tr("同型体内尺码混合"));
     AllMixing = new QCheckBox(tr("全混合"));
 
-    tableWidget = new QTableWidget(0,2);
+    tableWidget = new QTableWidget(0, 2);
     tableWidget->setShowGrid(true);
     QStringList m_Header;
     m_Header<<tr("类型")<<tr("名称");
-
     tableWidget->setHorizontalHeaderLabels(m_Header);
-
     tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-
     tableWidget->setFrameShape(QFrame::Box);//设置边框
     tableWidget->setShowGrid(true); //设置显示格子线
     vLayout2->addWidget(tableWidget);
@@ -482,24 +467,10 @@ WholeSheetConfigTab::WholeSheetConfigTab(QWidget *parent,QList<QList<int>> dataL
     button2 =new QPushButton(tr("编辑"));
     button3 =new QPushButton(tr("删除"));
     button4 = new QPushButton(tr("增加"));
-
     button1->setEnabled(false);
     button2->setEnabled(false);
     button3->setEnabled(false);
-//    degree->setEnabled(false);
-//    HorizontalNest->setEnabled(false);
-//    VerticalNest->setEnabled(false);
-//    TailPieceMixing->setEnabled(false);
-//    TailLineMixing->setEnabled(false);
-//    SameTypeSizeMixing->setEnabled(false);
-//    AllMixing->setEnabled(false);
-
-
     this->setTableWidget();
-
-
-//    }
-    //tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);//默认不可编辑
     tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);  //整行选中的方式
     tableWidget->show();
 
@@ -508,40 +479,38 @@ WholeSheetConfigTab::WholeSheetConfigTab(QWidget *parent,QList<QList<int>> dataL
     hLayout1->addWidget(button3);
     hLayout1->addWidget(button1);
     vLayout2->addLayout(hLayout1);
+
+    vLayout1->addLayout(hLayout);
     vLayout1->addWidget(TailPieceMixing);
-    vLayout1->addStretch(0.6);
     vLayout1->addWidget(TailLineMixing);
-    vLayout1->addStretch(0.6);
     vLayout1->addWidget(SameTypeSizeMixing);
-    vLayout1->addStretch(0.6);
     vLayout1->addWidget(AllMixing);
-    vLayout1->addStretch(2.5);
 
     mainlayout->addLayout(vLayout1);
     mainlayout->addLayout(vLayout2);
-    mainlayout->setStretch(0,8);
-    mainlayout->setStretch(1,25);
+    mainlayout->setStretch(0, 10);
+    mainlayout->setStretch(1, 25);
+    mainlayout->addItem(new QSpacerItem(this->width(),
+                                        10,
+                                        QSizePolicy::Expanding,
+                                        QSizePolicy::Expanding));
     setLayout(mainlayout);
 
     connect(AllMixing, &QCheckBox::toggled, this, &WholeSheetConfigTab::onQCheckBoxChanged);
     connect(TailPieceMixing, &QCheckBox::toggled, this, &WholeSheetConfigTab::onQCheckBoxChanged1);
     connect(TailLineMixing, &QCheckBox::toggled, this, &WholeSheetConfigTab::onQCheckBoxChanged2);
     connect(SameTypeSizeMixing, &QCheckBox::toggled, this, &WholeSheetConfigTab::onQCheckBoxChanged3);
-
     connect(button1,&QPushButton::clicked,this,&WholeSheetConfigTab::onConfigureButtonClicked);
     connect(button2,&QPushButton::clicked,this,&WholeSheetConfigTab::onEditButtonClicked);
     connect(button3,&QPushButton::clicked,this,&WholeSheetConfigTab::onDeleteButtonClicked);
     connect(button4,&QPushButton::clicked,this,&WholeSheetConfigTab::onNewButtonClicked);
     connect(tableWidget,&QTableWidget::currentItemChanged,this,&WholeSheetConfigTab::onItemChanged);
-
 }
 
 void WholeSheetConfigTab::setTableWidget()
 {
     //tableWidget->clear();
     for(int row = 0; row<this->dataList.length(); row++){
-
-
         tableWidget->insertRow(row);
         QTableWidgetItem * type = new QTableWidgetItem(tr("Whole"));
         type->setFlags(type->flags()&(~Qt::ItemIsEditable));
@@ -549,24 +518,16 @@ void WholeSheetConfigTab::setTableWidget()
         QString  name = QString("%1").arg(row+1);
         name = "材料"+name;
         tableWidget->setItem(row,1,new QTableWidgetItem(name));
-
     }
 }
 void WholeSheetConfigTab::onConfigureButtonClicked()
 {
-
-
     //this->tableWidget->clearSelection();
-
-
-
     //这部分代码用来处理 edit
     this->button1->setEnabled(false);
     this->button2->setEnabled(false);
     this->button3->setEnabled(false);
     this->button4->setEnabled(true);
-
-
 
     int index = this->tableWidget->currentItem()->row();
     this->dataList[index][0] = this->degree->text().toInt();
@@ -856,28 +817,17 @@ StripSheetConfigTab::StripSheetConfigTab(QWidget *parent,QList<QList<int>> dataL
      QVBoxLayout *layout = new QVBoxLayout();
      QVBoxLayout *layout1 = new QVBoxLayout();
      QHBoxLayout *hLayout1= new QHBoxLayout();
-     QLabel *label1 =new QLabel(tr("排版设置"));
-     QLabel *label2 =new QLabel(tr("排版方式"));
      leftRightTurnCBox = new QCheckBox(tr("左右交替"));
      sizeDownCBox = new QCheckBox(tr("尺码大到小"));
      HorizontalAdaptiveSpacing = new QCheckBox(tr("横向自适应间距"));
      TailPieceMixing = new QCheckBox(tr("尾只混合"));
 
-     //HorizontalAdaptiveSpacing->setChecked(true);
-     layout->addWidget(label1);
-     layout->addStretch(0.6);
-     layout->addWidget(label2);
-     layout->addStretch(0.6);
      layout->addWidget(leftRightTurnCBox);
-     layout->addStretch(0.6);
      layout->addWidget(sizeDownCBox);
-     layout->addStretch(0.6);
      layout->addWidget(HorizontalAdaptiveSpacing);
-     layout->addStretch(0.6);
      layout->addWidget(TailPieceMixing);
-     layout->addStretch(2.5);
      mainlayout->addLayout(layout);
-     tableWidget = new QTableWidget(0,2);
+     tableWidget = new QTableWidget(0, 2);
      tableWidget->setShowGrid(true);
      QStringList m_Header;
      m_Header<<tr("类型")<<tr("名称");
@@ -896,10 +846,7 @@ StripSheetConfigTab::StripSheetConfigTab(QWidget *parent,QList<QList<int>> dataL
      button1->setEnabled(false);
      button2->setEnabled(false);
      button3->setEnabled(false);
-//     leftRightTurnCBox->setEnabled(false);
-//     sizeDownCBox->setEnabled(false);
-//     HorizontalAdaptiveSpacing->setEnabled(false);
-//     TailPieceMixing->setEnabled(false);
+     button4->setEnabled(true);
 
      hLayout1->addWidget(button4);
      hLayout1->addWidget(button2);
@@ -908,8 +855,8 @@ StripSheetConfigTab::StripSheetConfigTab(QWidget *parent,QList<QList<int>> dataL
      layout1->addLayout(hLayout1);
      mainlayout->addLayout(layout1);
      setLayout(mainlayout);
-     mainlayout->setStretch(0,8);
-     mainlayout->setStretch(1,25);
+     mainlayout->setStretch(0, 8);
+     mainlayout->setStretch(1, 25);
 
      connect(button1,&QPushButton::clicked,this,&StripSheetConfigTab::onConfigureButtonClicked);
      connect(button2,&QPushButton::clicked,this,&StripSheetConfigTab::onEditButtonClicked);
@@ -922,8 +869,6 @@ StripSheetConfigTab::StripSheetConfigTab(QWidget *parent,QList<QList<int>> dataL
 void StripSheetConfigTab::setTabWidget()
 {
     for(int row = 0; row<this->dataList.length(); row++){
-
-
         tableWidget->insertRow(row);
         QTableWidgetItem * type = new QTableWidgetItem(tr("Strip"));
         type->setFlags(type->flags()&(~Qt::ItemIsEditable));
@@ -931,7 +876,6 @@ void StripSheetConfigTab::setTabWidget()
         QString  name = QString("%1").arg(row+1);
         name = "材料"+name;
         tableWidget->setItem(row,1,new QTableWidgetItem(name));
-
     }
 }
 
@@ -1122,25 +1066,24 @@ PackageSheetConfig::PackageSheetConfig(QWidget *parent,QList<QList<int>> dataLis
     QLabel *label1 =new QLabel(tr("摆动角度"));
     degree =new QLineEdit;
     degree->setText(tr("0"));
-    degree->setValidator(new QIntValidator(0,90, this));//限制只能输入数字0~90
-    QLabel *label2 =new QLabel(tr("度"));
-
+    degree->setValidator(new QIntValidator(0, 90, this));//限制只能输入数字0~90
+    QLabel *label2 = new QLabel(tr("度"), this);
     HorizontalNest = new QRadioButton(tr("横向"));
     VerticalNest = new QRadioButton(tr("纵向"));
     HorizontalNest->setChecked(true);
     hLayout->addWidget(label1);
     hLayout->addWidget(degree);
+    hLayout->addWidget(label2);
     hLayout->addWidget(HorizontalNest);
     hLayout->addWidget(VerticalNest);
-
     vLayout1->addLayout(hLayout);
-    vLayout1->addStretch(0.6);
+
     TailPieceMixing = new QCheckBox(tr("尾只混合"), this);
     TailLineMixing = new QCheckBox(tr("尾行优化，允许随意角度"));
     SameTypeSizeMixing = new QCheckBox(tr("同型体内尺码混合"));
     AllMixing = new QCheckBox(tr("全混合"));
 
-    tableWidget = new QTableWidget(0,2);
+    tableWidget = new QTableWidget(0, 2);
     tableWidget->setShowGrid(true);
     QStringList m_Header;
     m_Header<<tr("类型")<<tr("名称");
@@ -1172,31 +1115,26 @@ PackageSheetConfig::PackageSheetConfig(QWidget *parent,QList<QList<int>> dataLis
     hLayout1->addWidget(button3);
     hLayout1->addWidget(button1);
     vLayout2->addLayout(hLayout1);
+
     vLayout1->addWidget(TailPieceMixing);
-    vLayout1->addStretch(0.6);
     vLayout1->addWidget(TailLineMixing);
-    vLayout1->addStretch(0.6);
     vLayout1->addWidget(SameTypeSizeMixing);
-    vLayout1->addStretch(0.6);
     vLayout1->addWidget(AllMixing);
-    vLayout1->addStretch(2.5);
     mainlayout->addLayout(vLayout1);
     mainlayout->addLayout(vLayout2);
-    mainlayout->setStretch(0,8);
-    mainlayout->setStretch(1,25);
+    mainlayout->setStretch(0, 10);
+    mainlayout->setStretch(1, 25);
     setLayout(mainlayout);
+
     connect(AllMixing, &QCheckBox::toggled, this, &PackageSheetConfig::onQCheckBoxChanged11);
     connect(TailPieceMixing, &QCheckBox::toggled, this, &PackageSheetConfig::onQCheckBoxChanged12);
     connect(TailLineMixing, &QCheckBox::toggled, this, &PackageSheetConfig::onQCheckBoxChanged13);
     connect(SameTypeSizeMixing, &QCheckBox::toggled, this, &PackageSheetConfig::onQCheckBoxChanged14);
-
-
     connect(button1,&QPushButton::clicked,this,&PackageSheetConfig::onConfigureButtonClicked);
     connect(button2,&QPushButton::clicked,this,&PackageSheetConfig::onEditButtonClicked);
     connect(button3,&QPushButton::clicked,this,&PackageSheetConfig::onDeleteButtonClicked);
     connect(button4,&QPushButton::clicked,this,&PackageSheetConfig::onNewButtonClicked);
     connect(tableWidget,&QTableWidget::currentItemChanged,this,&PackageSheetConfig::onItemChanged);
-
 }
 void WholeSheetConfigTab::onQCheckBoxChanged(bool checked)
 {
@@ -1227,14 +1165,10 @@ void WholeSheetConfigTab::onQCheckBoxChanged3(bool checked)
     }
 }
 
-
-
 void PackageSheetConfig::setTableWidget()
 {
     //tableWidget->clear();
     for(int row = 0; row<this->dataList.length(); row++){
-
-
         tableWidget->insertRow(row);
         QTableWidgetItem * type = new QTableWidgetItem(tr("Package"));
         type->setFlags(type->flags()&(~Qt::ItemIsEditable));
@@ -1242,7 +1176,6 @@ void PackageSheetConfig::setTableWidget()
         QString  name = QString("%1").arg(row+1);
         name = "材料"+name;
         tableWidget->setItem(row,1,new QTableWidgetItem(name));
-
     }
 }
 

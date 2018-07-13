@@ -109,6 +109,10 @@ struct Sheet
                 (height - topMargin - bottomMargin);
     }
 
+    QRectF boundRect() const {
+        return QRectF(0, 0, width, height);
+    }
+
     // 材料的有效区域
     QRectF layoutRect() const {
         return QRectF(leftMargin, topMargin,

@@ -1,4 +1,4 @@
-#include "nestengine.h"
+﻿#include "nestengine.h"
 #include "nestengineconfigure.h"
 #include <QDebug>
 
@@ -476,27 +476,36 @@ void NestEngine::packAlg()
 
 void NestEngine::packPieces(QVector<int> indexList)
 {
-
+    Q_UNUSED(indexList);
 }
 
 bool NestEngine::packOnePiece(Piece piece, NestEngine::NestPiece &nestPiece)
 {
-
+    Q_UNUSED(piece);
+    Q_UNUSED(nestPiece);
+    return true;
 }
 
 bool NestEngine::packOnePieceOnSheet(Piece piece, int sheetID, NestEngine::NestPiece &nestPiece)
 {
-
+    Q_UNUSED(piece);
+    Q_UNUSED(sheetID);
+    Q_UNUSED(nestPiece);
+    return true;
 }
 
 bool NestEngine::compact(int sheetID, NestEngine::NestPiece &nestPiece)
 {
-
+    Q_UNUSED(sheetID);
+    Q_UNUSED(nestPiece);
+    return true;
 }
 
 bool NestEngine::collidesWithOtherPieces(int sheetID, Piece piece)
 {
-
+    Q_UNUSED(piece);
+    Q_UNUSED(sheetID);
+    return true;
 }
 
 void NestEngine::onNestStart()

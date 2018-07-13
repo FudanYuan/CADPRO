@@ -57,7 +57,7 @@ private:
     qreal xPos;  // x点坐标
     qreal yPos;  // y点坐标
 
-    QPointF center;  // 中心点
+    QPoint anchor;  // 中心点
     qreal windowScale;  // 缩放量
     qreal zoomDelta;  // 缩放的增量
 
@@ -70,6 +70,7 @@ private:
 signals:
     void mousePositionChanged(QPointF pos);  // 鼠标坐标更改事件
     void viewScaleChanged(qreal scaleFactor);  // view缩放改变
+    void viewOffsetChanged(QPointF offset);  // 发送偏移量
 
 public slots:
     void zoomIn();  // 放大

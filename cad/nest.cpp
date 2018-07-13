@@ -560,9 +560,9 @@ void Nest::initDockWidget()
     dock_nest = new CustomDockWidget(tr("排版区"), this);  // 添加排版区
     //connect(dock_project, &CustomDockWidget::visibilityChanged, this, &Nest::onDockNestSizeChanged);
     //connect(dock_piece, &CustomDockWidget::visibilityChanged, this, &Nest::onDockNestSizeChanged);
-    connect(dock_piece, &CustomDockWidget::sizeChanged, this, &Nest::onDockNestSizeChanged);
+    connect(dock_piece, &CustomDockWidget::sizeChanged, this, &Nest::onDockPieceSizeChanged);
     //connect(dock_sheet, &CustomDockWidget::visibilityChanged, this, &Nest::onDockNestSizeChanged);
-    //connect(dock_nest, &CustomDockWidget::visibilityChanged, this, &Nest::onDockNestSizeChanged);
+    connect(dock_nest, &CustomDockWidget::sizeChanged, this, &Nest::onDockNestSizeChanged);
 
     // 绘图区隐藏标题栏
     QWidget * qw=new QWidget(this);
@@ -637,6 +637,7 @@ void Nest::initPieceView()
     widget = new QWidget(this);
 
     pieceView = new View(widget);  // 初始化piece view
+    pieceView->setSceneRect(0, 0, pieceView->width(), pieceView->height());
     //pieceView->setMouseFlag(false);  // 忽略鼠标事件
     pieceView->setWheelFlag(false);  // 忽略滚轮事件
     pieceView->setKeyboardFlag(false);  // 忽略键盘事件
@@ -730,7 +731,7 @@ void Nest::updatePieceView()
         if(factor > heightFactor){
             factor = heightFactor;
         }
-        pieceView->zoom(factor * 0.8);  // 进行缩放
+        pieceView->zoom(factor * 0.6);  // 进行缩放
         QPointF bottomRightPos = pieceView->mapToScene(QPoint(viewWidth, viewHeight));  // 获取图层右下角坐标
         QPointF offset = QPointF(0, qAbs(bottomRightPos.ry() - pieceHeight) / 2) +
                 QPointF(qAbs(bottomRightPos.rx() - pieceWidth) / 2, 0);  // 偏移量
@@ -852,6 +853,7 @@ void Nest::initNestView()
 
     // 初始化排版图层，无项目情况下的默认图层
     nestScene = new Scene(nestView);
+    connect(nestView, &View::viewOffsetChanged, nestScene, &Scene::onViewOffsetChanged);
     nestScene->setType(Scene::Nest);  // 设置图层类型
     nestScene->setBackgroundColor(config->backgroundColor);
     nestScene->update();
@@ -876,15 +878,14 @@ void Nest::updateNestView()
         nestScene = proSceneListMap[pName][id];
 
         // 更新排版视图
-        nestView->setSceneRect(0, 0, curSheet->width, curSheet->height);
+        // 视图大小
+        qreal viewWidth = nestView->width();
+        qreal viewHeight = nestView->height();
+        nestView->setSceneRect(0, 0, viewWidth, viewHeight);
         nestView->setScene(nestScene);
 
         // 材料居中显示
         nestView->zoomBack();  // 视图还原
-        // 视图大小
-        qreal viewWidth = nestView->width();
-        qreal viewHeight = nestView->height();
-        //qDebug() << "视图大小" << nestView->size();
         // 材料大小
         qreal sheetWidth = curSheet->width;
         qreal sheetHeight = curSheet->height;
@@ -893,17 +894,13 @@ void Nest::updateNestView()
         qreal widthFactor = viewWidth / sheetWidth;
         qreal heightFactor = viewHeight / sheetHeight;
         qreal factor = widthFactor;
-        bool flag = false;  // 标志位，flag为false时代表为纵向偏移
         if(factor > heightFactor){
             factor = heightFactor;
-            flag = true;  // 标志位，flag为true时代表为横向偏移
         }
-        nestView->zoom(factor);  // 进行缩放
+        nestView->zoom(factor * 0.9);  // 进行缩放
         QPointF bottomRightPos = nestView->mapToScene(QPoint(viewWidth, viewHeight));  // 获取图层右下角坐标
-        QPointF offset = QPointF(0, qAbs(bottomRightPos.ry() - sheetHeight) / 2);  // 纵向偏移量
-        if(flag){
-            offset = QPointF(qAbs(bottomRightPos.rx() - sheetWidth) / 2, 0);  // 纵向偏移量
-        }
+        QPointF offset = QPointF(0, qAbs(bottomRightPos.ry() - sheetHeight) / 2) +
+                QPointF(qAbs(bottomRightPos.rx() - sheetWidth) / 2, 0);  // 纵向偏移量
 
         QPointF oldOffset = nestScene->getOffset();  // 获取之前的偏移量
         nestScene->setOffset(offset);  // 图层设置新的偏移量
@@ -917,6 +914,10 @@ void Nest::updateNestView()
             }
             polyline->setPoints(offsetPoints);
         }
+    }
+    else{
+        nestScene = NULL;
+        nestView->setScene(nestScene);
     }
 }
 
@@ -1462,17 +1463,22 @@ void Nest::setNestActionDisabled(bool flag)
 
 void Nest::onMousePositionChanged(QPointF pos)
 {
+    pos -= nestScene->getOffset();
+    // 如果鼠标范围没有在材料内部，则关闭所有接口
+    if(!nestScene->getSheet().layoutRect().contains(pos)){
+//        nestView->setMouseFlag(false);
+//        nestView->setKeyboardFlag(false);
+//        nestView->setWheelFlag(false);
+        return;
+    }
+//    nestView->setMouseFlag(true);
+//    nestView->setKeyboardFlag(true);
+//    nestView->setWheelFlag(true);
     mousePositionLabel->setText(tr("X=") + QString::number(pos.rx()) + " Y=" + QString::number(-pos.ry())
                                 + tr("view: X=") + QString::number(nestView->mapFromScene(pos).rx())
                                 + " Y=" + QString::number(nestView->mapFromScene(pos).ry())
                                 + "view size: " + QString::number(nestView->width()) + ", "
                                 + QString::number(nestView->height()));
-
-//    mousePositionLabel->setText(tr("X=") + QString::number(pos.rx()) + " Y=" + QString::number(-pos.ry())
-//                                + tr("view: X=") + QString::number(pieceView->mapFromScene(pos).rx())
-//                                + " Y=" + QString::number(pieceView->mapFromScene(pos).ry())
-//                                + "view size: " + QString::number(pieceView->width()) + ", "
-//                                + QString::number(pieceView->height()));
 }
 
 void Nest::onNestProjectChanged(Project *curProject)
@@ -2127,11 +2133,13 @@ void Nest::onActionViewGrid(bool toggled)
 void Nest::onActionViewZoomWindow()
 {
     qDebug() << "缩放窗口";
+    nestScene->onViewOffsetChanged(QPointF(100, 0));
 }
 
 void Nest::onActionViewZoomAll()
 {
     qDebug() << "全部缩放";
+    updateNestView();
 }
 
 void Nest::onActionViewZoomIn()
@@ -2146,7 +2154,7 @@ void Nest::onActionViewZoomOut()
 
 void Nest::onActionViewZoomBack()
 {
-    nestView->zoomBack();
+    updateNestView();
 }
 
 void Nest::onActionViewLockLayout(bool toggled)
@@ -2776,8 +2784,14 @@ void Nest::onPieceNumChanged(const QString &num)
 
 void Nest::onDockNestSizeChanged()
 {
-    qDebug() << "size changed";
+    qDebug() << "nest size changed";
     update();
     updateNestView();
+}
+
+void Nest::onDockPieceSizeChanged()
+{
+    qDebug() << "piece size changed";
+    update();
     updatePieceView();
 }

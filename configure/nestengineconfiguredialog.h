@@ -127,8 +127,8 @@ public:
         Strip,
         Package
     };
+
     explicit NestEngineConfigureDialog(NestEngineConfigure *config);
-    explicit NestEngineConfigureDialog(NestEngineConfigure *config, TabType type);
 
     void setDialogRole(NestEngineConfigureDialog::RoleType role);  // 设置对话框角色
     NestEngineConfigureDialog::RoleType getDialogRole();  // 获取对话框角色
@@ -137,17 +137,16 @@ public:
     NestEngineConfigure::WholeSheetNest * getCurWholeConfig();
     NestEngineConfigure::PackageSheetNest * getCurPackageConfig();
 
-    QTableWidget * inittableWIdget();
-
-    QMap<int,QList<QList<int>>> dataMap;
-
 public slots:
     void onTabChanged(int i);
+    void onDialogButtonClicked(QAbstractButton *button);  // 响应材料信息改变
+    void onDialogButtonOkClicked();
     void onDialogButtonCancelClicked();
-    void onDialogButtonOkClicked(QAbstractButton *button);  // 响应材料信息改变
     void onDataChanged(int index,QList<QList<int>> changedData);            //响应配置数据被编辑改变
+
 protected:
      void closeEvent(QCloseEvent *event);
+
 private:
     RoleType role;
     TabType tabType;
@@ -155,8 +154,8 @@ private:
     StripSheetConfigTab *sSheetTab;
     WholeSheetConfigTab *wSheetTab;
     PackageSheetConfig *pSheetTab;
-    QDialogButtonBox * okButton;
-    QDialogButtonBox * cancelButton;
+    QDialogButtonBox *buttonBox;
+    QMap<int,QList<QList<int>>> dataMap;
     NestEngineConfigure::StripSheetNest *curStripConfig;
     NestEngineConfigure::WholeSheetNest *curWholeConfig;
     NestEngineConfigure::PackageSheetNest *curPackageConfig;
