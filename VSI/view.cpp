@@ -1,4 +1,5 @@
 ﻿#include "view.h"
+#include "scene.h"
 #include <QDebug>
 
 #define VIEW_CENTER viewport()->rect().center()
@@ -27,7 +28,7 @@ View::View(QWidget *parent)
     setRenderHint(QPainter::Antialiasing);
 
     // 设置视图中央
-    centerOn(mapToScene(VIEW_CENTER));
+    centerOn(mapToScene(0, 0));
 #if 0
     // 视图坐标原点(0,0)对应场景坐标（场景坐标）
     qDebug() << "mapToScene(0, 0):" << mapToScene(0, 0);
@@ -135,6 +136,42 @@ void View::setAngle(qreal angle)
 qreal View::getAngle()
 {
     return this->angle;
+}
+
+QPointF View::customFitInView(const QRectF &rect, qreal rate)
+{
+    // 材料居中显示
+    this->zoomBack();  // 视图还原
+
+    // 获取视图大小并设置图层矩形
+    qreal viewWidth = width();
+    qreal viewHeight = height();
+    this->setSceneRect(0, 0, viewWidth, viewHeight);
+
+    // 获取兴趣区域大小
+    qreal rectWidth = rect.width();
+    qreal rectHeight = rect.height();
+
+    // 缩放比例，长宽缩放比例不等时选择缩放比例较小的进行缩放，以确保兴趣区域全部显示
+    qreal widthFactor = viewWidth / rectWidth;
+    qreal heightFactor = viewHeight / rectHeight;
+    qreal factor = widthFactor;
+    bool flag = false;
+    if(factor > heightFactor){
+        factor = heightFactor;
+        flag = true;
+    }
+    // 如果factor>1代表图层比视图小
+    if(factor > 1){
+        qreal newViewWidth = flag ? viewWidth / factor : rectWidth;
+        qreal newViewHeight = flag ? rectHeight : viewHeight / factor;
+        this->setSceneRect(0, 0, newViewWidth, newViewHeight);
+    }
+    this->zoom(factor * rate);  // 进行缩放，以便中心显示
+    QPointF bottomRightPos = mapToScene(QPoint(viewWidth, viewHeight));  // 获取图层右下角坐标
+    QPointF offset = QPointF(0, qAbs(bottomRightPos.ry() - rectHeight) / 2) +
+            QPointF(qAbs(bottomRightPos.rx() - rectWidth) / 2, 0);  // 计算偏移量
+    return offset;  // 返回偏移量
 }
 
 void View::keyPressEvent(QKeyEvent *event)
@@ -261,12 +298,12 @@ void View::zoomBack()
 void View::zoom(qreal scaleFactor)
 {
     // 记录锚点对应的图层坐标
-    QPointF anchorSceneBefore = mapToScene(anchor);
-    qDebug() << "变换前视图坐标" << anchor << ",锚点图层坐标：" << anchorSceneBefore;
+//    QPointF anchorSceneBefore = mapToScene(anchor);
+//    qDebug() << "变换前视图坐标" << anchor << ",锚点图层坐标：" << anchorSceneBefore;
 
-    QPoint viewCenter = viewport()->rect().center();
-    QPointF sceneCenter = mapToScene(viewCenter);
-    qDebug() << "变换前中心点：" << viewCenter << ", 对应图层：" << sceneCenter;
+//    QPoint viewCenter = viewport()->rect().center();
+//    QPointF sceneCenter = mapToScene(viewCenter);
+//    qDebug() << "变换前中心点：" << viewCenter << ", 对应图层：" << sceneCenter;
     // 防止过小或过大
     qreal factor = transform().scale(scaleFactor, scaleFactor).mapRect(QRectF(0, 0, 1, 1)).width();
 
@@ -276,25 +313,25 @@ void View::zoom(qreal scaleFactor)
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     scale(scaleFactor, scaleFactor);
     this->windowScale *= scaleFactor;
-    qDebug() << "windowScale: " << windowScale;
+//    qDebug() << "windowScale: " << windowScale;
 
-    QPointF anchorSceneNow = mapToScene(anchor);
-    qDebug() << "变换后锚点图层坐标：" << anchorSceneNow;
+//    QPointF anchorSceneNow = mapToScene(anchor);
+//    qDebug() << "变换后锚点图层坐标：" << anchorSceneNow;
 
-    QPointF offset = anchorSceneNow - anchorSceneBefore;  // 偏移
-    qDebug() << "偏移量为：" << offset;
+//    QPointF offset = anchorSceneNow - anchorSceneBefore;  // 偏移
+//    qDebug() << "偏移量为：" << offset;
 
-    qDebug() << "变换后中心点：" << viewCenter
-             << ", 对应图层：" << mapToScene(viewCenter);
-    qDebug() << "原来点对应的view坐标：" << mapFromScene(sceneCenter);
+//    qDebug() << "变换后中心点：" << viewCenter
+//             << ", 对应图层：" << mapToScene(viewCenter);
+//    qDebug() << "原来点对应的view坐标：" << mapFromScene(sceneCenter);
 
-    centerOn(mapToScene(viewCenter)+offset);
-    qDebug() << "11变换后中心点：" << mapFromScene(mapToScene(viewCenter)+offset)
-             << ", 对应图层：" << mapToScene(viewCenter)+offset;
+//    centerOn(mapToScene(viewCenter)+offset);
+//    qDebug() << "11变换后中心点：" << mapFromScene(mapToScene(viewCenter)+offset)
+//             << ", 对应图层：" << mapToScene(viewCenter)+offset;
 
     // 发送视图缩放改变的信号
     emit viewScaleChanged(this->windowScale);
-    emit viewOffsetChanged(offset);
+    //emit viewOffsetChanged(offset);
 
     // 场景左上角对应视图坐标（视图坐标）
 //    qDebug() << "view rect: " << sceneRect();

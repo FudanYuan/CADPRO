@@ -37,6 +37,7 @@ Nest::Nest(QWidget *parent) :
 {
     ui->setupUi(this);
     qRegisterMetaType<QVector<NestEngine::NestPiece>>("QVector<NestEngine::NestPiece>");
+    qRegisterMetaType<Sheet>("Sheet");
     setWindowTitle("CADPRO");
     setWindowState(Qt::WindowMaximized);
     setMouseTracking(true);     // 开启鼠标追踪
@@ -643,8 +644,6 @@ void Nest::initPieceView()
     pieceView->setKeyboardFlag(false);  // 忽略键盘事件
 
     pieceScene = new Scene(pieceView);
-    pieceScene->setType(Scene::Nest);  // 设置图层类型
-    pieceScene->setBackgroundColor(config->backgroundColor);
     pieceView->setScene(pieceScene);
 
     label = new QLabel(tr("设置切割件个数"), widget);
@@ -709,34 +708,20 @@ void Nest::updatePieceView()
 
     // 更新piece视图
     pieceView->setScene(NULL);
+
+    // 设置图层样式
+    setSceneStyle(pieceScene, PieceScene, config);
+
+    // 获取pieceScene的复件
     Scene *s = pieceScene->copy();
     QList<Polyline*> polylineList = s->getPolylineList();
     if(!polylineList.isEmpty()){
-        s->setSceneRect(polylineList.first()->getBoundingRect());
-        QRectF boundRect = s->sceneRect();  // 切割件大小
+        // 设置图层范围与切割件外包矩形相同
+        QRectF boundRect = polylineList.first()->getBoundingRect(); // 切割件外包矩形
+        s->setSceneRect(boundRect);
+        QPointF offset = pieceView->customFitInView(boundRect, 0.6);
 
-        qreal pieceWidth = boundRect.width();
-        qreal pieceHeight = boundRect.height();
-        pieceView->setSceneRect(0, 0, pieceWidth, pieceHeight);
-
-        // 材料居中显示
-        pieceView->zoomBack();  // 视图还原
-        // 视图大小
-        qreal viewWidth = pieceView->width();
-        qreal viewHeight = pieceView->height();
-
-        // 缩放比例，长宽缩放比例不等时选择缩放比例较小的进行缩放，以确保材料全部显示
-        qreal widthFactor = viewWidth / pieceWidth;
-        qreal heightFactor = viewHeight / pieceHeight;
-        qreal factor = widthFactor;
-        if(factor > heightFactor){
-            factor = heightFactor;
-        }
-        pieceView->zoom(factor * 0.6);  // 进行缩放
-        QPointF bottomRightPos = pieceView->mapToScene(QPoint(viewWidth, viewHeight));  // 获取图层右下角坐标
-        QPointF offset = QPointF(0, qAbs(bottomRightPos.ry() - pieceHeight) / 2) +
-                QPointF(qAbs(bottomRightPos.rx() - pieceWidth) / 2, 0);  // 偏移量
-        // 先将图形移动至左上角，然后在移动至视图中心
+        // 先将图形移动至左上角，然后再移动至视图中心
         QPointF offset1 = boundRect.topLeft();
         QVector<QPointF> points = polylineList.first()->getPoints();
         QVector<QPointF> Offsetpoints;
@@ -749,7 +734,6 @@ void Nest::updatePieceView()
     }
     s->update();
     pieceView->setScene(s);
-    pieceView->update();
 
     // 更新项目-切割件
     QString pName = projectActive->getName();
@@ -798,8 +782,9 @@ void Nest::updateSheetView()
     QList<qreal> pieceNumList = proSheetInfoMap[pName]->pieceNumList;
     QList<qreal> usageList = proSheetInfoMap[pName]->usageList;
     int sheetNum = sheetList.length();
-    qreal rateTotal = 0.0;
-
+    qreal sheetAreaTotal = 0.0f;  // 材料总面积
+    qreal pieceAreaTotal = 0.0f;  // 切割件总面积
+    qreal rateTotal = 0.0f;  // 总利用率
     // 更新材料树
     for(int i=0;i<sheetNum;i++){
         QString sheetName = sheetList[i]->name;
@@ -807,7 +792,8 @@ void Nest::updateSheetView()
         qreal height = sheetList[i]->height;
         int pieceNum = pieceNumList[i];
         qreal rate = usageList[i];
-        rateTotal += rate;
+        sheetAreaTotal += width * height;
+        pieceAreaTotal += rate * sheetAreaTotal;
 
         QStringList sList1;
         sList1 << tr("材料") + QString("%1").arg(i+1) + tr("：") + sheetName;
@@ -816,7 +802,7 @@ void Nest::updateSheetView()
         QStringList sList3;
         sList3 << tr("切割件：") + QString("%1").arg(pieceNum);
         QStringList sList4;
-        sList4 << tr("产能（利用率）：") + QString("%1").arg(rate) + tr("%");
+        sList4 << tr("产能（利用率）：") + QString("%1").arg(qrealPrecision(rate, 2)) + tr("%");
 
         QTreeWidgetItem *item_sheet = new QTreeWidgetItem(tree_sheet, sList1);
         QTreeWidgetItem *item_sheet_size = new QTreeWidgetItem(item_sheet, sList2); //子节点1
@@ -828,6 +814,7 @@ void Nest::updateSheetView()
         item_sheet->addChild(item_sheet_rate);
     }
 
+    rateTotal = pieceAreaTotal/sheetAreaTotal;
     const char *ch1 = "材料信息（共";
     const char *ch2 = "张板材料，总产能（利用率）：";
     const char *ch3 = "%）";
@@ -876,44 +863,30 @@ void Nest::updateNestView()
     if(proSceneListMap[pName].length() != 0){
         ProSheetInfo *proSheetInfo = proSheetInfoMap[pName];  // 获取该项目的项目-材料指针
         int id = proSheetInfo->curSheetID;  // 获取当前材料id
-        nestScene = proSceneListMap[pName][id];
-
-        // 更新排版视图
-        // 视图大小
-        qreal viewWidth = nestView->width();
-        qreal viewHeight = nestView->height();
-        nestView->setSceneRect(0, 0, viewWidth, viewHeight);
-        nestView->setScene(nestScene);
-
-        // 材料居中显示
-        nestView->zoomBack();  // 视图还原
-        // 材料大小
-        qreal sheetWidth = curSheet->width;
-        qreal sheetHeight = curSheet->height;
-
-        // 缩放比例，长宽缩放比例不等时选择缩放比例较小的进行缩放，以确保材料全部显示
-        qreal widthFactor = viewWidth / sheetWidth;
-        qreal heightFactor = viewHeight / sheetHeight;
-        qreal factor = widthFactor;
-        if(factor > heightFactor){
-            factor = heightFactor;
-        }
-        nestView->zoom(factor * 0.9);  // 进行缩放
-        QPointF bottomRightPos = nestView->mapToScene(QPoint(viewWidth, viewHeight));  // 获取图层右下角坐标
-        QPointF offset = QPointF(0, qAbs(bottomRightPos.ry() - sheetHeight) / 2) +
-                QPointF(qAbs(bottomRightPos.rx() - sheetWidth) / 2, 0);  // 纵向偏移量
-
+        nestScene = proSceneListMap[pName][id];  // 获取排版图层
+        setSceneStyle(nestScene, NestScene, config);  // 设置图层样式
+        QRectF rect = nestScene->getSheet().boundRect();  // 获取图层兴趣区域
         QPointF oldOffset = nestScene->getOffset();  // 获取之前的偏移量
-        nestScene->setOffset(offset);  // 图层设置新的偏移量
+        QPointF newOffset = nestView->customFitInView(rect, 0.9);  // 更新排版视图
+        nestScene->setOffset(newOffset);  // 图层设置新的偏移量
+        nestView->setScene(nestScene);  // 更新图层
 
         // 更新排版零件
         foreach (Polyline *polyline, nestScene->getPolylineList()) {
+            // 设置点坐标
             QVector<QPointF> offsetPoints;
             foreach (QPointF point, polyline->getPoints()) {
-                point += offset - oldOffset;
+                point += newOffset - oldOffset;
                 offsetPoints.append(point);
             }
             polyline->setPoints(offsetPoints);
+
+            // 设置显示样式
+            SketchConfigure::EntityStyle eStyle;
+            eStyle.backgroundColor = config->pieceStyle.outsideColor;
+            eStyle.perimeterLine.color = config->pieceStyle.liningColor;
+            eStyle.perimeterLine.brush = config->pieceStyle.insideColor;
+            polyline->setPenStyle(eStyle.perimeterLine);
         }
     }
     else{
@@ -932,7 +905,7 @@ void Nest::updateAll()
 
 void Nest::initConfiguration()
 {
-    qDebug() << "显示配置界面";
+    qDebug() << "初始化配置";
     if(config) {
         delete config;
         config = NULL;
@@ -940,6 +913,22 @@ void Nest::initConfiguration()
     config = new NestConfigure(this);
     connect(this, &Nest::nestConfigChanged, config, &NestConfigure::onConfigChanged);
     action_view_grid->setChecked(config->mainGrid.showGrid || config->secondGrid.showGrid);
+
+    // 配置加载后，更新整个系统
+    // 如果无活动项目，返回
+    if(!projectActive){
+        return;
+    }
+    // 如果项目未初始化完成，返回
+    QString pName = projectActive->getName();
+    if(!proPieceInfoMap.contains(pName)
+            || !proSheetInfoMap.contains(pName)
+            || !proSceneListMap.contains(pName)
+            || !proNestEngineConfigMap.contains(pName)){
+        return;
+    }
+    // 如果条件都满足，更新系统
+    updateAll();
 }
 
 void Nest::initConnect()
@@ -1037,13 +1026,8 @@ bool Nest::initSheet()
 
     // 构建一个新的图层
     Scene *scene = new Scene(nestView);
-    scene->setType(Scene::Nest);  // 设置图层类型
-    scene->setBackgroundColor(config->backgroundColor);
-    scene->setSheetStyle(config->sheetStyle);
-    scene->setMainGrid(config->mainGrid);
-    scene->setSecondGrid(config->secondGrid);
+    setSceneStyle(scene, NestScene, config);
     scene->setSheet(*curSheet);
-    scene->update();
     proSceneListMap[pName].append(scene);
     return true;
 }
@@ -1278,7 +1262,8 @@ void Nest::showNestResult()
             sheetCenter = proSheetInfoMap[pName]->sheetList[0]->layoutRect().center();
         }
     }
-    nestView->setScene(nestScene);  // 更新排版视图
+    updateNestView();  // 更新排版视图
+    updateSheetView();  // 更新材料信息视图
 }
 
 QString Nest::getNewProjectName()
@@ -1462,8 +1447,34 @@ void Nest::setNestActionDisabled(bool flag)
     action_sheet_sheet_property->setDisabled(flag);
 }
 
+void Nest::setSceneStyle(Scene *scene, Nest::SceneType type, NestConfigure *config)
+{
+    switch (type) {
+    case NestScene:
+        scene->setType(Scene::Nest);  // 设置图层类型
+        scene->setBackgroundColor(config->backgroundColor);
+        scene->setSheetStyle(config->sheetStyle);
+        scene->setMainGrid(config->mainGrid);
+        scene->setSecondGrid(config->secondGrid);
+        break;
+    case PieceScene:
+        break;
+    default:
+        break;
+    }
+
+    // 无论那种图层都要设置实体类型
+    SketchConfigure::EntityStyle eStyle;
+    eStyle.backgroundColor = config->pieceStyle.outsideColor;
+    eStyle.perimeterLine.color = config->pieceStyle.liningColor;
+    eStyle.perimeterLine.brush = config->pieceStyle.insideColor;
+    scene->setEntityStyle(eStyle);
+    scene->update();
+}
+
 void Nest::onMousePositionChanged(QPointF pos)
 {
+    /*
     pos -= nestScene->getOffset();
     // 如果鼠标范围没有在材料内部，则关闭所有接口
     if(!nestScene->getSheet().layoutRect().contains(pos)){
@@ -1475,6 +1486,7 @@ void Nest::onMousePositionChanged(QPointF pos)
 //    nestView->setMouseFlag(true);
 //    nestView->setKeyboardFlag(true);
 //    nestView->setWheelFlag(true);
+    */
     mousePositionLabel->setText(tr("X=") + QString::number(pos.rx()) + " Y=" + QString::number(-pos.ry())
                                 + tr("view: X=") + QString::number(nestView->mapFromScene(pos).rx())
                                 + " Y=" + QString::number(nestView->mapFromScene(pos).ry())
@@ -1573,7 +1585,10 @@ void Nest::onNestFinished(QVector<NestEngine::NestPiece> nestPieceList)
         proPieceOffsetMap[pName].clear();  // 如果已排，则清空旧的排版信息
     }
 
-    if(proSceneListMap.contains(pName) && proPieceInfoMap.contains(pName)){
+    // 保存零件偏移和中心信息
+    if(proSceneListMap.contains(pName)
+            && proPieceInfoMap.contains(pName)
+            && proSheetInfoMap.contains(pName)){
         QList<Scene*> sceneList = proSceneListMap[pName];
         QVector<Piece*> pieceList = proPieceInfoMap[pName]->pieceList.toVector();
         for(int i=0; i<pieceList.length(); i++) {  // 遍历零件列表，保存偏移点
@@ -1589,13 +1604,22 @@ void Nest::onNestFinished(QVector<NestEngine::NestPiece> nestPieceList)
                                     RESERVE_INT, offsetList.length(), pointsList);
             proPieceOffsetMap[pName].append(pieceOffset);
         }
-        for(int i=0; i<nestPieceList.length(); i++){  // 保存
+
+        // 遍历排版结果列表，保存至图层，并更新材料信息视图
+
+        // 更新材料使用状况
+        ProSheetInfo *proSheetInfo = proSheetInfoMap[pName];
+        int sheetNum = proSheetInfo->sheetList.length();  // 材料总张数
+        int pieceCountList[sheetNum] = {0};
+        qreal pieceAreaList[sheetNum] = {0.0f};
+        for(int i=0; i<nestPieceList.length(); i++){
             Polyline *p = new Polyline;
             int typeID = nestPieceList[i].typeID;  // 切割件ID
-            int sheetID = nestPieceList[i].sheetID;
-            QPointF pos = nestPieceList[i].position;
-            qreal angle = nestPieceList[i].alpha;
-            Piece piece = *pieceList[typeID];
+            int sheetID = nestPieceList[i].sheetID;  // 材料ID
+            QPointF pos = nestPieceList[i].position;  // 切割件位置
+            qreal angle = nestPieceList[i].alpha;  // 切割件旋转角度
+            Piece piece = *pieceList[typeID];  // 切割件对象
+            qreal area = piece.getArea();  // 切割件面积
             piece.moveTo(pos); // 移动
             piece.rotate(piece.getMinBoundingRect().center(), angle);  // 旋转
 
@@ -1610,11 +1634,51 @@ void Nest::onNestFinished(QVector<NestEngine::NestPiece> nestPieceList)
             // 保存零件中心点
             PieceCenter pieceCenter(i, sheetID, typeID, angle, RESERVE_INT, pos.rx(), pos.ry());
             proPieceCenterMap[pName].append(pieceCenter);
+
+            // 更新材料使用情况
+            pieceCountList[sheetID]++;  // 切割件个数计数器
+            pieceAreaList[sheetID] += area;  // 切割件总面积计数器
+        }
+
+        for(int i=0; i<sheetNum; i++){
+            proSheetInfo->pieceNumList[i] = pieceCountList[i];
+            qreal sheetArea = proSheetInfo->sheetList[i]->area();
+            proSheetInfo->usageList[i] = pieceAreaList[i] / sheetArea * 100;
         }
     }
 
     // 显示排版结果
     showNestResult();
+}
+
+void Nest::onNestInterrupted(int remainNum)
+{
+    QMessageBox::warning(this, tr("警告"),
+                             tr("排版中断！未排版零件个数：") + QString("%1").arg(remainNum));
+}
+
+void Nest::onAutoRepeatedLastSheet(Sheet sheet)
+{
+    qDebug() << "添加材料";
+    QString pName = projectActive->getName();
+    if(!proSheetInfoMap.contains(pName)
+            || !proSceneListMap.contains(pName)){
+        return;
+    }
+    ProSheetInfo* proSheetInfo = proSheetInfoMap[pName];
+    proSheetInfo->sheetType = sheet.type;
+    proSheetInfo->sheetList.append(sheet.sheet());
+    proSheetInfo->usageList.append(0.0);
+    proSheetInfo->pieceNumList.append(0);
+
+    // 添加一个新的图层
+    Scene *scene = new Scene(nestView);
+    setSceneStyle(scene, NestScene, config);
+    scene->setSheet(sheet);
+    proSceneListMap[pName].append(scene);
+
+    updateNestView();
+    updateSheetView();
 }
 
 void Nest::onNestThreadFinished()
@@ -1626,8 +1690,6 @@ void Nest::onNestThreadFinished()
 
 void Nest::resizeEvent(QResizeEvent *event)
 {
-    //qDebug() << "大小改变";
-    //qDebug() << "大小重置事件——nest view 大小：" << nestView->size();
     QWidget::resizeEvent(event);
     updateNestView();
 }
@@ -1808,7 +1870,6 @@ void Nest::onActionNestStart()
     // 按照配置初始化排版引擎
     QVector<Piece> pieceList;  // 初始化排样切割件
     foreach (Piece *piece, proPieceInfoMap[pName]->pieceList) {
-        qDebug() << "hah: " << piece->getCount();
         pieceList.append(*piece);
     }
 
@@ -1816,24 +1877,32 @@ void Nest::onActionNestStart()
     foreach (Sheet *sheet, proSheetInfoMap[pName]->sheetList) {
         sheetList.append(*sheet);
     }
-    // 创建线程
-    nestThread = new QThread();
-    // 创建排版引擎
+
+    // 创建排版引擎，如果已存在，则删除后重新创建
+    if(nestEngine){
+        nestEngine = NULL;
+        delete nestEngine;
+    }
     nestEngine = new PackPointNestEngine(pieceList, sheetList, 50, 1);
     nestEngine->setCompactStep(5);
     nestEngine->setCompactAccuracy(1);
     nestEngine->setCutStep(300);
-    nestEngine->setAutoRepeatLastSheet(false);
+    nestEngine->setAutoRepeatLastSheet(true);
     NestEngineConfigure *proConfig = proNestEngineConfigMap[pName];
     nestEngine->initNestEngineConfig(proSheetInfo->sheetType, proConfig);  // 初始化排版配置
-    // 将排版引擎移至线程
-    nestEngine->moveToThread(nestThread);
+
+    // 创建线程
+    nestThread = new QThread();
+    nestEngine->moveToThread(nestThread);  // 将排版引擎移至线程
     connect(nestThread, &QThread::finished, nestThread, &QObject::deleteLater);
     connect(nestThread, &QThread::finished, nestEngine, &QObject::deleteLater);
     connect(nestThread, &QThread::finished, this, &Nest::onNestThreadFinished);
     connect(this, &Nest::nestStart, nestEngine, &NestEngine::onNestStart);
     connect(nestEngine, &NestEngine::progress, this, &Nest::onNestProgressChanged);
     connect(nestEngine, &NestEngine::nestFinished, this, &Nest::onNestFinished);
+    connect(nestEngine, &NestEngine::nestInterrupted, this, &Nest::onNestInterrupted);
+    connect(nestEngine, &NestEngine::autoRepeatedLastSheet, this, &Nest::onAutoRepeatedLastSheet);
+
     emit nestStart();  // 发送排版信号
     nestThread->start();
 }
@@ -1987,6 +2056,7 @@ void Nest::onActionSheetDuplicate()
 void Nest::onActionSheetAutoDuplicate()
 {
     qDebug() << "自动重复当前材料";
+
 }
 
 void Nest::onActionSheetPrevious()
@@ -2017,8 +2087,7 @@ void Nest::onActionSheetPrevious()
     proSheetInfo->curSheetID = id - 1;
 
     // 按材料更新nest Scene的背景
-    nestView->setScene(nestScene);
-    nestView->centerOn(nestView->mapFromScene(0,0));
+    updateNestView();
 }
 
 void Nest::onActionSheetNext()
@@ -2049,8 +2118,7 @@ void Nest::onActionSheetNext()
     proSheetInfo->curSheetID = id + 1;
 
     // 按材料更新nest Scene的背景
-    nestView->setScene(nestScene);
-    nestView->centerOn(nestView->mapFromScene(0,0));
+    updateNestView();
 }
 
 void Nest::onActionSheetSheetNumber()
@@ -2076,8 +2144,7 @@ void Nest::onActionSheetSheetNumber()
         proSheetInfo->curSheetID = id - 1;
 
         // 按材料更新nest Scene的背景
-        nestView->setScene(nestScene);
-        nestView->centerOn(nestView->mapFromScene(0,0));
+        updateNestView();
     }
 }
 
@@ -2409,15 +2476,7 @@ void Nest::onActionTreeProjectAddScene()
                 QString name = scene->getName();
                 int index = name.toInt();
                 scene->setName(QString::number(oldLen+index));
-                scene->setSceneRect(0, 0, polyline->getBoundingRect().width(), polyline->getBoundingRect().height());
-                // 设置图层样式
-                SketchConfigure::EntityStyle eStyle;
-                eStyle.backgroundColor = config->pieceStyle.outsideColor;
-                eStyle.perimeterLine.color = config->pieceStyle.liningColor;
-                eStyle.perimeterLine.brush = config->pieceStyle.insideColor;
-                scene->setEntityStyle(eStyle);
                 sList.append(scene);
-
                 count++;
             }
         }

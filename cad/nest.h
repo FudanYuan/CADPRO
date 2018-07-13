@@ -34,6 +34,12 @@ class Nest : public QMainWindow
 {
     Q_OBJECT
 public:
+    // 图层类型
+    enum SceneType{
+        NestScene,  // 排版图层
+        PieceScene  // 零件图层
+    };
+
     // 零件
     struct Component
     {
@@ -153,6 +159,7 @@ public:
     bool saveFile(QString fileName);  // 实现文件的存储
     void setNestActionDisabled(bool flag);  // 使除能与Nest相关的action
 
+    void setSceneStyle(Scene *scene, SceneType type, NestConfigure *config);  // 设置图层样式
 private:
     Ui::Nest *ui;
     NestConfigure *config;  // 排版配置
@@ -315,6 +322,8 @@ public slots:
     void onProjectNameChanged(QString lastName, QString presentName);  // 响应项目名称改变
     void onNestProgressChanged(int i);  // 响应排版进度变化
     void onNestFinished(QVector<NestEngine::NestPiece> nestPieceList);  // 响应排版结束
+    void onNestInterrupted(int remainNum);  // 响应排版中断
+    void onAutoRepeatedLastSheet(Sheet sheet);  // 响应排版自动重复了最后一张材料
     void onNestThreadFinished();
 
 protected:

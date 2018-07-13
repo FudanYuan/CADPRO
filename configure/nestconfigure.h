@@ -1,4 +1,4 @@
-#ifndef NESTCONFIGURE_H
+﻿#ifndef NESTCONFIGURE_H
 #define NESTCONFIGURE_H
 
 #include <QObject>

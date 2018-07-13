@@ -192,8 +192,10 @@ public:
     void xmlFileWrite(QString fileName, QList<Sheet*> list);  // 写入xml数据
     Sheet* getSheetActive();
     bool sheetNameConflict(const int index);  // 检查名字是否冲突
+
 protected:
      void closeEvent(QCloseEvent *) Q_DECL_OVERRIDE;
+
 private:
     RoleType role;  // 打开该对话框的角色类型
     Sheet::SheetType sheetType;  // 材料类型

@@ -1,4 +1,4 @@
-#ifndef NESTENGINECONFIGURE_H
+﻿#ifndef NESTENGINECONFIGURE_H
 #define NESTENGINECONFIGURE_H
 
 #include <QObject>
@@ -18,37 +18,56 @@
 class NestEngineConfigure
 {
 public:
+    // 针对于整体材料的配置
     struct WholeSheetNest{
         WholeSheetNest() :
             wholemixing(NestEngine::NoMixing),
-            wholeorientation(NestEngine::VerticalNest)
-            {}
+            wholeorientation(NestEngine::VerticalNest),
+            wholedegree(0)
+        {
+
+        }
         NestEngine::NestMixingTypes wholemixing;
         NestEngine::NestOrientations wholeorientation;
-        int wholedegree=0;
+        int wholedegree;
     };
 
+    // 针对于条板材料的配置
     struct StripSheetNest{
         StripSheetNest() :
             strategy(NestEngine::NoStrategy),
             stripmixing(NestEngine::NoMixing),
             stripadaptive(NestEngine::NoAdaptiveSpacing)
-        {}
+        {
+
+        }
         NestEngine::NestEngineStrategys strategy;
         NestEngine::NestMixingTypes stripmixing;
         NestEngine::NestAdaptiveSpacingTypes stripadaptive;
     };
 
+    // 针对于卷装材料的配置
     struct PackageSheetNest{
         PackageSheetNest() :
             packagemixing(NestEngine::NoMixing),
-            packageorientation(NestEngine::VerticalNest)
-            {}
+            packageorientation(NestEngine::VerticalNest),
+            packagedegree(0)
+        {
+
+        }
         NestEngine::NestMixingTypes packagemixing;
         NestEngine::NestOrientations packageorientation;
-        int packagedegree=0;
+        int packagedegree;
     };
 
+    // 公有配置
+    struct CommonConfig
+    {
+        CommonConfig()
+        {
+
+        }
+    };
     explicit NestEngineConfigure();
     QMap<int,QList<QList<int>>>  LoadConfigureXml();
     void WriteConfigureXml(QMap<int,QList<QList<int>>> & writedata);

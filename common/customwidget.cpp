@@ -256,7 +256,7 @@ void CustomDockWidget::closeEvent(QCloseEvent *event)
 
 void CustomDockWidget::resizeEvent(QResizeEvent *event)
 {
-    qDebug() << "dockwidget resize event";
+    //qDebug() << "dockwidget resize event";
     QWidget::resizeEvent(event);
     emit sizeChanged();
 }

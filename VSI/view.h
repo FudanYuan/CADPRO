@@ -5,6 +5,8 @@
 #include <QKeyEvent>
 #include "debug.h"
 
+class Scene;
+
 class View : public QGraphicsView
 {
     Q_OBJECT
@@ -36,6 +38,8 @@ public:
 
     void setAngle(qreal angle);  // 设置旋转角度
     qreal getAngle();  // 获取旋转角度
+
+    QPointF customFitInView(const QRectF &rect, qreal rate=1);  // 自定义 自适应显示图层, 显示比例
 
 protected:
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;

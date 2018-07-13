@@ -171,6 +171,7 @@ void NestConfigure::readConfigOthers(QSettings *settings)
 
 void NestConfigure::updateConfig(QList<NestConfigure::KeyValue> keyValue)
 {
+    // 更新配置
     QSettings *settings = new QSettings(NEST_CONFG_FILE_PATH, QSettings::IniFormat);
     for(int i=0; i<keyValue.length();i++){
         settings->setValue(keyValue.at(i).key, keyValue.at(i).value);

@@ -1,4 +1,4 @@
-#include "packpointnestengine.h"
+﻿#include "packpointnestengine.h"
 
 PackPointNestEngine::PackPointNestEngine() :
     NestEngine(NULL),
@@ -219,8 +219,16 @@ void PackPointNestEngine::packPieces(QVector<int> indexList)
         }
     }
 
-    // 如果没有设置自动重复最后一张材料 或 没有剩余零件，则排版结束
-    if(!autoRepeatLastSheet || unnestedPieceIndexlist.length() == 0){
+    int remainNum = unnestedPieceIndexlist.length();  // 剩余个数
+    // 如果没有剩余零件，则排版结束
+    if(remainNum == 0){
+        emit nestFinished(nestPieceList);  // 发送排版结束信号
+        return;
+    }
+
+    // 如果没有设置自动重复最后一张材料 并且 剩余个数不为0，则发送排版中断信号，并返回
+    if(!autoRepeatLastSheet && remainNum != 0){
+        emit nestInterrupted(remainNum);
         return;
     }
 
@@ -231,6 +239,7 @@ void PackPointNestEngine::packPieces(QVector<int> indexList)
     sheetList.append(sheet);
     initPackPointOneSheet(len, PPD);  // 初始化该材料的排样点
     initQuadTreeMap(len);  // 初始化该张材料的四叉树
+    emit autoRepeatedLastSheet(sheet);  // 排版结束后发送 重复了最后一张材料
     packPieces(unnestedPieceIndexlist);  // 进行排版
 }
 

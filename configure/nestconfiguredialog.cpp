@@ -82,7 +82,10 @@ int NestConfigureDialog::hasKey(QString key)
 
 void NestConfigureDialog::accept()
 {
-    NestConfigure::updateConfig(keyValueList);
+    // 点击确认按钮时先判断是否有更改信息
+    if(!keyValueList.isEmpty()){
+        NestConfigure::updateConfig(keyValueList);
+    }
     QDialog::accept();
 }
 

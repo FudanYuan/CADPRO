@@ -362,32 +362,9 @@ void SheetDialog::updateSheetInfo(const Sheet *sheetActive)
     sheetScene->setSecondGrid(config->secondGrid);
     sheetScene->setSheet(*sheetActive);
 
-    // 更新材料视图
-    sheetView->setSceneRect(0, 0, sheetActive->width, sheetActive->height);
-    sheetView->setScene(sheetScene);
-
-    // 材料居中显示
-    sheetView->zoomBack();  // 视图还原
-    // 视图大小
-    qreal viewWidth = sheetView->width();
-    qreal viewHeight = sheetView->height();
-    // 材料大小
-    qreal sheetWidth = sheetActive->width;
-    qreal sheetHeight = sheetActive->height;
-
-    // 缩放比例，长宽缩放比例不等时选择缩放比例较小的进行缩放，以确保材料全部显示
-    qreal widthFactor = viewWidth / sheetWidth;
-    qreal heightFactor = viewHeight / sheetHeight;
-    qreal factor = widthFactor;
-    if(factor > heightFactor){
-        factor = heightFactor;
-    }
-    sheetView->zoom(factor*0.98);  // 进行缩放
-    QPointF bottomRightPos = sheetView->mapToScene(QPoint(viewWidth, viewHeight));  // 获取图层右下角坐标
-    QPointF offset = QPointF(0, qAbs(bottomRightPos.ry() - sheetHeight) / 2) +
-            QPointF(qAbs(bottomRightPos.rx() - sheetWidth) / 2, 0);  // 偏移量
-
-    sheetScene->setOffset(offset);  // 图层设置偏移量
+    QPointF offset = sheetView->customFitInView(sheetActive->boundRect(), 0.9);  // 获取偏移
+    sheetScene->setOffset(offset);  // 设置图层偏移
+    sheetView->setScene(sheetScene);  // 更新材料视图
 }
 
 void SheetDialog::updateSheetActive(Sheet *sheetActive)

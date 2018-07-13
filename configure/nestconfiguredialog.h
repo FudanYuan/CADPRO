@@ -1,4 +1,4 @@
-#ifndef NESTCONFIGUREDIALOG_H
+﻿#ifndef NESTCONFIGUREDIALOG_H
 #define NESTCONFIGUREDIALOG_H
 
 #include <QDialog>

@@ -1,4 +1,4 @@
-#ifndef NESTENGINE_H
+﻿#ifndef NESTENGINE_H
 #define NESTENGINE_H
 
 #include <QObject>
@@ -229,6 +229,8 @@ public:
 
 signals:
     void nestFinished(QVector<NestEngine::NestPiece> nestPieceList);  // 排版完成信号
+    void nestInterrupted(int remainNum);  // 排版中断
+    void autoRepeatedLastSheet(Sheet sheet);  // 添加材料
     void progress(int count);  // 排版进程
 
 public slots:

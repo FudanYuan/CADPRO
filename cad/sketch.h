@@ -12,7 +12,6 @@
 #include "sketchconfigure.h"
 #include "project.h"
 #include "view.h"
-#include "scene.h"
 #include "shape.h"
 
 

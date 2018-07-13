@@ -511,7 +511,5 @@ bool NestEngine::collidesWithOtherPieces(int sheetID, Piece piece)
 void NestEngine::onNestStart()
 {
     initNestPieceList();  // 初始化排样零件
-    qDebug() << nestPieceList.length();
     packAlg();  // 进行排版
-    emit nestFinished(nestPieceList);  // 发送排版结束信号
 }
