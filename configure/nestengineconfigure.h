@@ -22,7 +22,7 @@ public:
     struct WholeSheetNest{
         WholeSheetNest() :
             wholemixing(NestEngine::NoMixing),
-            wholeorientation(NestEngine::VerticalNest),
+            wholeorientation(NestEngine::HorizontalNest),
             wholedegree(0)
         {
 

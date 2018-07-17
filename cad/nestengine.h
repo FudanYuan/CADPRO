@@ -264,6 +264,9 @@ protected:
     int maxRotateAngle;  // 最大转动角度
     bool minHeightOpt;  // 最小高度优化
     int collisionCount;  // 碰撞检测次数
+
+    // debug
+    int counter;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(NestEngine::NestMixingTypes)

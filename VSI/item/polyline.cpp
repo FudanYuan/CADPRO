@@ -147,6 +147,8 @@ void Polyline::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     painter->drawPath(path);
     drawRectPoint(painter, this->boundingRect().center(), 2);
     setPath(path);
+
+    painter->drawText(boundingRect().center(), QString("%1").arg(i));
 }
 
 QPainterPath Polyline::shape() const

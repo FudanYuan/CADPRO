@@ -236,7 +236,7 @@ CustomDockWidget::CustomDockWidget(const QString &title, QWidget *parent) :
 
 void CustomDockWidget::changeEvent(QEvent *event)
 {
-    qDebug() << (QEvent::Type)event->type();
+    //qDebug() << (QEvent::Type)event->type();
     switch (event->type()) {
     case QEvent::Close:
     case QEvent::Resize:

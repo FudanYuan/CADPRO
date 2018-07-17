@@ -179,7 +179,7 @@ void Nest::initActions()
 // ![3] 排版
     action_nest_start = new QAction(tr("排版"));
     action_nest_start->setStatusTip(tr("开始排版"));
-    action_nest_start->setDisabled(true);
+    action_nest_start->setDisabled(false);  // debug时为false
     connect(action_nest_start, &QAction::triggered, this, &Nest::onActionNestStart);
 
     action_nest_config = new QAction(tr("自动排版配置"));
@@ -188,7 +188,7 @@ void Nest::initActions()
 
     action_nest_side_left = new QAction(tr("左靠边"));
     action_nest_side_left->setStatusTip(tr("切割件紧靠材料左边"));
-    action_nest_side_left->setDisabled(true);
+    action_nest_side_left->setDisabled(false);  // debug时为false
     connect(action_nest_side_left, &QAction::triggered, this, &Nest::onActionNestSideLeft);
 
     action_nest_side_right = new QAction(tr("右靠边"));
@@ -792,8 +792,8 @@ void Nest::updateSheetView()
         qreal height = sheetList[i]->height;
         int pieceNum = pieceNumList[i];
         qreal rate = usageList[i];
+        pieceAreaTotal += rate * width * height;
         sheetAreaTotal += width * height;
-        pieceAreaTotal += rate * sheetAreaTotal;
 
         QStringList sList1;
         sList1 << tr("材料") + QString("%1").arg(i+1) + tr("：") + sheetName;
@@ -802,7 +802,7 @@ void Nest::updateSheetView()
         QStringList sList3;
         sList3 << tr("切割件：") + QString("%1").arg(pieceNum);
         QStringList sList4;
-        sList4 << tr("产能（利用率）：") + QString("%1").arg(qrealPrecision(rate, 2)) + tr("%");
+        sList4 << tr("产能（利用率）：") + QString("%1").arg(qrealPrecision(rate*100, 2)) + tr("%");
 
         QTreeWidgetItem *item_sheet = new QTreeWidgetItem(tree_sheet, sList1);
         QTreeWidgetItem *item_sheet_size = new QTreeWidgetItem(item_sheet, sList2); //子节点1
@@ -819,7 +819,7 @@ void Nest::updateSheetView()
     const char *ch2 = "张板材料，总产能（利用率）：";
     const char *ch3 = "%）";
     char *buf = new char[strlen(ch1) + strlen(ch2) + strlen(ch3) + sizeof(sheetNum) + sizeof(rateTotal)];
-    sprintf(buf, "%s%d%s%.2f%s", ch1, sheetNum, ch2, rateTotal, ch3);
+    sprintf(buf, "%s%d%s%.2f%s", ch1, sheetNum, ch2, rateTotal*100, ch3);
     tree_sheet->setHeaderLabel(tr(buf)); //设置头的标题
 
     // 更新标题
@@ -988,11 +988,14 @@ bool Nest::initSheet()
         sheetType = proSheetInfoMap[pName]->sheetType;
         qDebug() << "项目已选择材料，材料类型为：" << sheetType;
     }
-    SheetDialog mDialog(sheetType);
-    mDialog.setDialogRole(SheetDialog::Nest);
-    mDialog.exec();
-    curSheet = mDialog.getSheetActive();
 
+#ifdef DEBUG
+//    SheetDialog mDialog(sheetType);
+//    mDialog.setDialogRole(SheetDialog::Nest);
+//    mDialog.exec();
+//    curSheet = mDialog.getSheetActive();
+    curSheet = new Sheet;
+#endif
     if(!curSheet){  // 如果选择的材料为空，则返回
         QMessageBox::warning(this, tr("错误"), tr("未选择材料！"));
         return false;
@@ -1042,6 +1045,22 @@ bool Nest::initNestEngine()
         return false;
     }
 
+    if(!proNestEngineConfigMap.contains(pName)){  // 保存项目配置
+        NestEngineConfigure *config = new NestEngineConfigure();
+        proNestEngineConfigMap.insert(pName, config);
+    }
+    NestEngineConfigure *config = proNestEngineConfigMap[pName];  // 获取项目排版引擎配置指针
+
+#ifdef DEBUG
+    NestEngineConfigure::WholeSheetNest wholeNest;
+    config->setWholeSheetNest(wholeNest);
+    qDebug() <<"whole";
+    qDebug() << "混合方式"<<config->getWholeSheetNest().wholemixing;
+    qDebug() <<"排版"<<config->getWholeSheetNest().wholeorientation;
+    qDebug() <<"旋转角度"<<config->getWholeSheetNest().wholedegree;
+    return true;
+#endif
+
     NestEngineConfigure *nestEngineConfig = new NestEngineConfigure;  // 实例化时都要做配置文件操作
     Sheet::SheetType type = proSheetInfoMap[pName]->sheetType;
     NestEngineConfigureDialog nestEngineconfigDialog(nestEngineConfig);
@@ -1049,11 +1068,6 @@ bool Nest::initNestEngine()
     nestEngineconfigDialog.onTabChanged(type);
     nestEngineconfigDialog.exec();
 
-    if(!proNestEngineConfigMap.contains(pName)){  // 保存项目配置
-        NestEngineConfigure *config = new NestEngineConfigure();
-        proNestEngineConfigMap.insert(pName, config);
-    }
-    NestEngineConfigure *config = proNestEngineConfigMap[pName];  // 获取项目排版引擎配置指针
     // 获取通过这个对话框设置的排版配置
     if(type == Sheet::Whole){
         NestEngineConfigure::WholeSheetNest *curWholeConfig = nestEngineconfigDialog.getCurWholeConfig();
@@ -1474,7 +1488,7 @@ void Nest::setSceneStyle(Scene *scene, Nest::SceneType type, NestConfigure *conf
 
 void Nest::onMousePositionChanged(QPointF pos)
 {
-    /*
+
     pos -= nestScene->getOffset();
     // 如果鼠标范围没有在材料内部，则关闭所有接口
     if(!nestScene->getSheet().layoutRect().contains(pos)){
@@ -1486,8 +1500,8 @@ void Nest::onMousePositionChanged(QPointF pos)
 //    nestView->setMouseFlag(true);
 //    nestView->setKeyboardFlag(true);
 //    nestView->setWheelFlag(true);
-    */
-    mousePositionLabel->setText(tr("X=") + QString::number(pos.rx()) + " Y=" + QString::number(-pos.ry())
+
+    mousePositionLabel->setText(tr("X=") + QString::number(pos.rx()) + " Y=" + QString::number(pos.ry())
                                 + tr("view: X=") + QString::number(nestView->mapFromScene(pos).rx())
                                 + " Y=" + QString::number(nestView->mapFromScene(pos).ry())
                                 + "view size: " + QString::number(nestView->width()) + ", "
@@ -1584,7 +1598,6 @@ void Nest::onNestFinished(QVector<NestEngine::NestPiece> nestPieceList)
     } else{
         proPieceOffsetMap[pName].clear();  // 如果已排，则清空旧的排版信息
     }
-
     // 保存零件偏移和中心信息
     if(proSceneListMap.contains(pName)
             && proPieceInfoMap.contains(pName)
@@ -1610,12 +1623,26 @@ void Nest::onNestFinished(QVector<NestEngine::NestPiece> nestPieceList)
         // 更新材料使用状况
         ProSheetInfo *proSheetInfo = proSheetInfoMap[pName];
         int sheetNum = proSheetInfo->sheetList.length();  // 材料总张数
-        int pieceCountList[sheetNum] = {0};
-        qreal pieceAreaList[sheetNum] = {0.0f};
+        int pieceCountList[sheetNum];
+        qreal pieceAreaList[sheetNum];
+
+        // 初始化
+        for(int i=0; i<sheetNum; i++){
+            pieceCountList[i] = 0;
+            pieceAreaList[i] = 0.0f;
+        }
+
         for(int i=0; i<nestPieceList.length(); i++){
             Polyline *p = new Polyline;
             int typeID = nestPieceList[i].typeID;  // 切割件ID
             int sheetID = nestPieceList[i].sheetID;  // 材料ID
+
+            qDebug() << i << ", 材料ID：" << sheetID;
+            if(sheetID == -1){
+//                QMessageBox::warning(this, tr("错误"),
+//                                         tr("第") + QString("%1").arg(i) + tr("未排放"));
+                continue;
+            }
             QPointF pos = nestPieceList[i].position;  // 切割件位置
             qreal angle = nestPieceList[i].alpha;  // 切割件旋转角度
             Piece piece = *pieceList[typeID];  // 切割件对象
@@ -1629,6 +1656,7 @@ void Nest::onNestFinished(QVector<NestEngine::NestPiece> nestPieceList)
                 offsetPoints.append(point);
             }
             p->setPolyline(offsetPoints, Polyline::line);
+            p->i = nestPieceList[i].typeID;
             sceneList[sheetID]->addCustomPolylineItem(p);  // 将多边形加入该图层
 
             // 保存零件中心点
@@ -1643,7 +1671,7 @@ void Nest::onNestFinished(QVector<NestEngine::NestPiece> nestPieceList)
         for(int i=0; i<sheetNum; i++){
             proSheetInfo->pieceNumList[i] = pieceCountList[i];
             qreal sheetArea = proSheetInfo->sheetList[i]->area();
-            proSheetInfo->usageList[i] = pieceAreaList[i] / sheetArea * 100;
+            proSheetInfo->usageList[i] = pieceAreaList[i] / sheetArea;
         }
     }
 
@@ -1920,6 +1948,14 @@ void Nest::onActionNestEngineConfig()
 void Nest::onActionNestSideLeft()
 {
     qDebug() << "左靠边";
+#ifdef DEBUG
+    addProject();
+    fName = "/Users/Jeremy/Qt5.10.0/Projects/build-CADPRO-Desktop_Qt_5_10_0_clang_64bit-Debug/CADPRO.app/Contents/MacOS/toNest2.dxf";
+    onActionTreeProjectAddScene();
+    return;
+    fName = "/Users/Jeremy/Qt5.10.0/Projects/build-CADPRO-Desktop_Qt_5_10_0_clang_64bit-Debug/CADPRO.app/Contents/MacOS/toNest.dxf";
+    onActionTreeProjectAddScene();
+#endif
 }
 
 void Nest::onActionNestSideRight()
@@ -2056,7 +2092,6 @@ void Nest::onActionSheetDuplicate()
 void Nest::onActionSheetAutoDuplicate()
 {
     qDebug() << "自动重复当前材料";
-
 }
 
 void Nest::onActionSheetPrevious()
@@ -2428,7 +2463,7 @@ void Nest::onActionTreeProjectNestScene()
 void Nest::onActionTreeProjectAddScene()
 {
     qDebug() << "import dxf files";
-    QString fileName = QFileDialog::getOpenFileName(this, tr("打开DXF文件"), QDir::currentPath());
+    QString fileName = fName;//QFileDialog::getOpenFileName(this, tr("打开DXF文件"), QDir::currentPath());
     if (!fileName.isEmpty()) {
         QString pName = tree_project_active_item->text(0);  // 获取当前项目
         Project *project = getProjectByName(pName);

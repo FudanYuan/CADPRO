@@ -9,12 +9,12 @@ Scene::Scene(QObject *parent) :
     curShape(Shape::None),
     modified(false),
     drawable(true),
-    moveable(false),
+    moveable(true),  // debug时为true
     drawing(false),
     penWidth(1),
     scaleFactor(1),
-    backgroundColor(Qt::white),
-    offset(QPointF(0, 0))
+    offset(QPointF(0, 0)),
+    backgroundColor(Qt::white)
 {
     setSceneRect(SHRT_MIN, SHRT_MIN, SHRT_MAX * 2, SHRT_MAX * 2);
     polygonType = 1;

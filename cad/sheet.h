@@ -46,7 +46,7 @@ struct Sheet
         name(""),
         type(Whole),
         material(""),
-        width(1000),
+        width(500),
         height(1000),
         componentGap(0),
         topMargin(0),

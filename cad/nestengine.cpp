@@ -17,7 +17,8 @@ NestEngine::NestEngine(QObject *parent) :
     rotatable(false),
     maxRotateAngle(0),
     minHeightOpt(false),
-    collisionCount(0)
+    collisionCount(0),
+    counter(0)
 {
 
 }

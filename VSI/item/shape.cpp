@@ -11,7 +11,7 @@ Shape::Shape() :
     moveable(false),
     selectable(false),
     overFlag(false),
-    selected(false),
+    selected(true),  // debug时为true
     showNode(false),
     editable(false),
     editOverFlag(false),

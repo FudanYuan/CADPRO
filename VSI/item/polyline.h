@@ -45,6 +45,9 @@ public:
     QRectF getBoundingRect();  // 获取包围矩形
 
     Polyline *copy();
+
+    int i;
+
 protected:
     //鼠标事件
     void mousePressEvent(QGraphicsSceneMouseEvent *event) Q_DECL_OVERRIDE;
@@ -61,7 +64,6 @@ protected:
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) Q_DECL_OVERRIDE;
 
 private:
-    int i;
     QVector<QPointF> points;  // 各个点的坐标
     QPointF newPoint;  // 最后一个点
     Type type;  // 类型

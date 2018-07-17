@@ -122,7 +122,8 @@ void Piece::setCount(int c)
 
 int Piece::getCount() const
 {
-    return count;
+    // return count;
+    return 1;
 }
 
 QVector<QPointF> Piece::getOffset()

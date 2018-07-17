@@ -161,6 +161,7 @@ public:
 
     void setSceneStyle(Scene *scene, SceneType type, NestConfigure *config);  // 设置图层样式
 private:
+    QString fName;  // debug 文件名称
     Ui::Nest *ui;
     NestConfigure *config;  // 排版配置
     View *nestView;  // 排版视图
@@ -328,7 +329,7 @@ public slots:
 
 protected:
     void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
-    void closeEvent(QCloseEvent *event);
+    void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
 
 private slots:
     // FILE

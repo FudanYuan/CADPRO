@@ -2363,7 +2363,6 @@ void Sketch::onActionPatternTrim()
 {
     qDebug() << "关闭修剪";
     // 实例划一个 itemSelect 类；
-
 }
 
 void Sketch::onActionPatternCheck()
