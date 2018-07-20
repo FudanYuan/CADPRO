@@ -104,6 +104,11 @@ public:
         int maxIndex;  // 最大序号
     };
 
+
+    /**
+     * @brief The NestEngineType enum
+     * 引擎类型
+     */
     enum NestEngineType{
         PackPointNest,
         MinRectNest
@@ -114,9 +119,46 @@ public:
      * 排版方式
      */
     enum NestType{
-        SigleRow,  // 单排,默认为单排
+        SingleRow,  // 单排,默认为单排
         DoubleRow,  // 双排
-        PairwiseDoubleRow,  // 对头双排
+        OppositeSingleRow,  // 对头单排
+        OppositeDoubleRow,  // 对头双排
+    };
+
+    /**
+     * @brief The BestNestType struct
+     * 最佳排版配置
+     */
+    struct BestNestType
+    {
+        BestNestType() :
+            pieceID(-1),
+            nestType(SingleRow),
+            alpha(0.0f),
+            step(0.0f),
+            pOffset(QPointF()),
+            rOffset(QPointF())
+        {
+
+        }
+
+        BestNestType(int id, NestType type, qreal a, qreal s, QPointF po, QPointF ro) :
+            pieceID(id),
+            nestType(type),
+            alpha(a),
+            step(s),
+            pOffset(po),
+            rOffset(ro)
+        {
+
+        }
+
+        int pieceID;  // 零件Id
+        NestType nestType;  // 排版方式
+        qreal alpha;  // 旋转角度
+        qreal step;  // 送料步距
+        QPointF pOffset;  // 针对双排方式的位置偏移
+        QPointF rOffset;  // 针对对头方式的旋转中心的偏移
     };
 
     /**
@@ -229,8 +271,6 @@ public:
     void initsameTypeNestPieceIndexListMap();  // 初始化同型体排版零件列表Map
     void initNestEngineConfig(Sheet::SheetType sheetType, NestEngineConfigure *proConfig);  // 初始化排版引擎配置
 
-    void packAlg();  // 排版算法
-
     void singleRowNest(Piece piece, qreal &alpha, qreal &stepX, qreal &width, qreal &height);  // 最优单排
     void doubleRowNest(Piece piece, const int n, qreal &alpha, qreal &stepX, QPointF &cOffset, qreal &width, qreal &height);  // 最优双排
     void pairwiseDoubleRowNest(Piece piece, qreal &alpha, QPointF &cOffset, qreal &width, qreal &height);  // 最优对头双排
@@ -242,6 +282,10 @@ public:
     qreal doubleRowNestWithVerAlg(Piece piece, qreal &alpha, qreal &step, qreal &X, qreal &H, const qreal n=100);  // 双排，使用顶点算法
     qreal oppositeSingleRowNestWithVerAlg(Piece piece, qreal &alpha, qreal &step, QPointF &offset);  // 对头单排，使用顶点算法
     qreal oppositeDoubleRowNestWithVerAlg(Piece piece, qreal &alpha, qreal &step, QPointF &offset, qreal &H, const qreal n=100);  // 对头双排，使用顶点算法
+    NestType getBestNestType(const Piece &piece, qreal &alpha, qreal &step, QPointF &pOffset, QPointF &rOffset);  // 获取零件的最佳排版方式
+
+    void packDiscontinuously();  // 排版算法
+    void packContinuously();  // 连续排版
 
     virtual void packPieces(QVector<int> indexList);  //  排版算法
     virtual bool packOnePiece(Piece piece, NestEngine::NestPiece &nestPiece);  // 排放单个零件
@@ -268,7 +312,8 @@ protected:
     QVector<int> nestedPieceIndexlist;  // 已排零件Index列表
     QVector<int> unnestedPieceIndexlist;  // 未排零件Index列表
     QMap<int, QVector<int>> nestSheetPieceMap;  // 排样材料-零件索引 Map<材料id, 零件序号列表>
-    QMap<int, int> pieceMaxPackPointMap;  // 记录零件-最大排样点序号 Map<零件id, 排样点id>
+    QMap<int, BestNestType> pieceBestNestTypeMap;   // 记录零件-最佳排版方式 Map<零件id, 最佳排版方式>
+    QMap<int, int> pieceMaxPackPointMap;  // 记录零件-最大排样点序号 Map<零件id, 排样点id>   /////迁移至packPointNestEngine
     QMap<int, QuadTreeNode<Object>*> quadTreeMap;  // 四叉树 Map<材料id，四叉树>
     bool autoRepeatLastSheet;  // 自动重复使用最后一张材料
     qreal compactStep;  // 靠接步长，单位为mm

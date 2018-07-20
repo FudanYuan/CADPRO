@@ -2108,13 +2108,15 @@ void Nest::onActionNestSideBottom()
     qDebug() << "offset: " << nestScene->getOffset();
 
     QVector<QPointF> points;
-    points.append(QPointF(0,0));
-    points.append(QPointF(0,100));
-    points.append(QPointF(50,150));
-    points.append(QPointF(50,100));
-    points.append(QPointF(25,75));
-    points.append(QPointF(25,0));
-    points.append(QPointF(0,0));
+//    points.append(QPointF(0,0));
+//    points.append(QPointF(0,100));
+//    points.append(QPointF(50,150));
+//    points.append(QPointF(50,100));
+//    points.append(QPointF(25,75));
+//    points.append(QPointF(25,0));
+//    points.append(QPointF(0,0));
+
+
 //    points.append(QPointF(100,0));
 //    points.append(QPointF(100,100));
 //    points.append(QPointF(0,100));
@@ -2125,115 +2127,106 @@ void Nest::onActionNestSideBottom()
 //    points.append(QPointF(200,100));
 //    points.append(QPointF(200,0));
 //    points.append(QPointF(100,0));
-    Piece piece(points);
 
-    qreal alpha, stepX;
+    points.append(QPointF(0,0));
+    points.append(QPointF(0,100));
+    points.append(QPointF(50,150));
+    points.append(QPointF(25,0));
+    points.append(QPointF(0,0));
+    Piece piece(points);
+    piece.rotate(piece.getMinBoundingRect().center(), piece.getAngle());
+
+    qreal alpha, step;
     PackPointNestEngine *nestEngine = new PackPointNestEngine;
-    qreal rate = nestEngine->singleRowNestWithVerAlg(piece, alpha, stepX);
+    qreal rate = nestEngine->singleRowNestWithVerAlg(piece, alpha, step);
     qDebug() << "singleRowNestWithVerAlg rate: " << rate;
 
     Piece piece1 = piece;  // 构造影子零件
-    QPointF pos1(300, 300);
+    QPointF pos1(0, 100);
     piece1.moveTo(pos1 + nestScene->getOffset());  // 将零件移至原点
     piece1.rotate(pos1 + nestScene->getOffset(), alpha);  // 将零件绕中心点旋转
 
-    Piece piece2 = piece;  // 构造影子零件
-    QPointF pos2(stepX+300, 300);
-    piece2.moveTo(pos2 + nestScene->getOffset());  // 将影子零件移动至(d, 0)处,以保证在旋转过程中,两零件不会碰撞
-    piece2.rotate(pos2 + nestScene->getOffset(), alpha);  // 将影子零件绕中心点旋转
+    for(int i = 0; i < 10; i++){
+        Piece piece2 = piece;  // 构造影子零件
+        QPointF pos2(step*i, 100);
+        piece2.moveTo(pos2 + nestScene->getOffset());  // 将影子零件移动至(d, 0)处,以保证在旋转过程中,两零件不会碰撞
+        piece2.rotate(pos2 + nestScene->getOffset(), alpha);  // 将影子零件绕中心点旋转
 
-    Polyline *p1 = new Polyline;
-    p1->setPolyline(piece1.getPointsList(), 1);
-    p1->i = 1;
-    nestScene->addCustomPolylineItem(p1);
-
-    Polyline *p2 = new Polyline;
-    p2->setPolyline(piece2.getPointsList(), 1);
-    p2->i = 2;
-    nestScene->addCustomPolylineItem(p2);
+        Polyline *p2 = new Polyline;
+        p2->setPolyline(piece2.getPointsList(), 1);
+        p2->i = 2;
+        nestScene->addCustomPolylineItem(p2);
+    }
 
     QPointF center;
     qreal H;
-    rate = nestEngine->oppositeDoubleRowNestWithVerAlg(piece, alpha, stepX, center, H, 100);  //
+    rate = nestEngine->oppositeDoubleRowNestWithVerAlg(piece, alpha, step, center, H, 100);  //
     qDebug() << "oppositeDoubleRowNestWithVerAlg rate: " << rate;
 
-    Piece piece3 = piece;  // 构造影子零件
-    QPointF pos3(100, 100);
-    piece3.moveTo(pos3 + nestScene->getOffset());  // 将零件移至原点
-    piece3.rotate(pos3 + nestScene->getOffset(), alpha);  // 将零件绕中心点旋转
+    for(int i=0; i<10; i++){
+        Piece piece3 = piece;  // 构造影子零件
+        QPointF pos3(step*i, 400);
+        piece3.moveTo(pos3 + nestScene->getOffset());  // 将零件移至原点
+        piece3.rotate(pos3 + nestScene->getOffset(), alpha);  // 将零件绕中心点旋转
 
-    Piece piece4 = piece3;  // 构造影子零件
-    piece4.rotate(piece4.getPosition()+center, 180);  // 将影子零件绕中心点旋转
+        Piece piece4 = piece3;  // 构造影子零件
+        piece4.rotate(piece4.getPosition()+center, 180);  // 将影子零件绕中心点旋转
 
-    Polyline *p3 = new Polyline;
-    p3->setPolyline(piece3.getPointsList(), 1);
-    p3->i = 3;
-    nestScene->addCustomPolylineItem(p3);
+        Polyline *p3 = new Polyline;
+        p3->setPolyline(piece3.getPointsList(), 1);
+        p3->i = 3;
+        nestScene->addCustomPolylineItem(p3);
 
-    Polyline *p4 = new Polyline;
-    p4->setPolyline(piece4.getPointsList(), 1);
-    p4->i = 4;
-    nestScene->addCustomPolylineItem(p4);
+        Polyline *p4 = new Polyline;
+        p4->setPolyline(piece4.getPointsList(), 1);
+        p4->i = 4;
+        nestScene->addCustomPolylineItem(p4);
+    }
 
-    rate = nestEngine->oppositeSingleRowNestWithVerAlg(piece, alpha, stepX, center);  //
+    rate = nestEngine->oppositeSingleRowNestWithVerAlg(piece, alpha, step, center);  //
     qDebug() << "oppositeSingleRowNestWithVerAlg rate: " << rate;
+    for(int i=0; i<10; i++){
+        Piece piece5 = piece;  // 构造影子零件
+        QPointF pos5(step*i, 600);
+        piece5.moveTo(pos5 + nestScene->getOffset());  // 将零件移至原点
+        piece5.rotate(pos5 + nestScene->getOffset(), alpha);  // 将零件绕中心点旋转
 
-    Piece piece5 = piece;  // 构造影子零件
-    QPointF pos5(500, 500);
-    piece5.moveTo(pos5 + nestScene->getOffset());  // 将零件移至原点
-    piece5.rotate(pos5 + nestScene->getOffset(), alpha);  // 将零件绕中心点旋转
+        Piece piece6 = piece5;  // 构造影子零件
+        piece6.rotate(piece6.getPosition()+center, 180);  // 将影子零件绕中心点旋转
 
-    Piece piece6 = piece5;  // 构造影子零件
-    piece6.rotate(piece6.getPosition()+center, 180);  // 将影子零件绕中心点旋转
+        Polyline *p5 = new Polyline;
+        p5->setPolyline(piece5.getPointsList(), 1);
+        p5->i = 5;
+        nestScene->addCustomPolylineItem(p5);
 
-    Piece piece7 = piece5;  // 构造影子零件
-    piece7.moveTo(pos5+nestScene->getOffset()+QPointF(stepX, 0));
-
-    Polyline *p5 = new Polyline;
-    p5->setPolyline(piece5.getPointsList(), 1);
-    p5->i = 5;
-    nestScene->addCustomPolylineItem(p5);
-
-    Polyline *p6 = new Polyline;
-    p6->setPolyline(piece6.getPointsList(), 1);
-    p6->i = 6;
-    nestScene->addCustomPolylineItem(p6);
-
-    Polyline *p7 = new Polyline;
-    p7->setPolyline(piece7.getPointsList(), 1);
-    p7->i = 7;
-    nestScene->addCustomPolylineItem(p7);
+        Polyline *p6 = new Polyline;
+        p6->setPolyline(piece6.getPointsList(), 1);
+        p6->i = 6;
+        nestScene->addCustomPolylineItem(p6);
+    }
 
     qreal X;
-    rate = nestEngine->doubleRowNestWithVerAlg(piece, alpha, stepX, X, H);  //
+    rate = nestEngine->doubleRowNestWithVerAlg(piece, alpha, step, X, H);  //
     qDebug() << "doubleRowNestWithVerAlg rate: " << rate;
+    for(int i=0; i<10; i++){
+        Piece piece8 = piece;  // 构造影子零件
+        QPointF pos8(step*i, 800);
+        piece8.moveTo(pos8 + nestScene->getOffset());  // 将零件移至原点
+        piece8.rotate(pos8 + nestScene->getOffset(), alpha);  // 将零件绕中心点旋转
 
-    Piece piece8 = piece;  // 构造影子零件
-    QPointF pos8(600, 200);
-    piece8.moveTo(pos8 + nestScene->getOffset());  // 将零件移至原点
-    piece8.rotate(pos8 + nestScene->getOffset(), alpha);  // 将零件绕中心点旋转
+        Piece piece9 = piece8;  // 构造影子零件
+        piece9.moveTo(pos8 + nestScene->getOffset() + QPointF(X, H));
 
-    Piece piece9 = piece8;  // 构造影子零件
-    piece9.moveTo(pos8 + nestScene->getOffset() + QPointF(X, H));
+        Polyline *p8 = new Polyline;
+        p8->setPolyline(piece8.getPointsList(), 1);
+        p8->i = 8;
+        nestScene->addCustomPolylineItem(p8);
 
-    Piece piece10 = piece8;  // 构造影子零件
-    piece10.moveTo(pos8 + nestScene->getOffset() + QPointF(stepX, 0));
-
-    Polyline *p8 = new Polyline;
-    p8->setPolyline(piece8.getPointsList(), 1);
-    p8->i = 8;
-    nestScene->addCustomPolylineItem(p8);
-
-    Polyline *p9 = new Polyline;
-    p9->setPolyline(piece9.getPointsList(), 1);
-    p9->i = 9;
-    nestScene->addCustomPolylineItem(p9);
-
-    Polyline *p10 = new Polyline;
-    p10->setPolyline(piece10.getPointsList(), 1);
-    p10->i = 10;
-    nestScene->addCustomPolylineItem(p10);
-
+        Polyline *p9 = new Polyline;
+        p9->setPolyline(piece9.getPointsList(), 1);
+        p9->i = 9;
+        nestScene->addCustomPolylineItem(p9);
+    }
 }
 
 void Nest::onActionNestDirectionHorizontal()
@@ -2451,18 +2444,18 @@ void Nest::onActionSheetAutoDuplicate()
     qDebug() << "自动重复当前材料";
     nestScene->clearCustomItem();
     QVector<QPointF> points;
-    points.append(QPointF(0,0));
-    points.append(QPointF(0,100));
-    points.append(QPointF(50,150));
-    points.append(QPointF(50,120));
-    points.append(QPointF(25,75));
-    points.append(QPointF(25,0));
-    points.append(QPointF(0,0));
 //    points.append(QPointF(0,0));
 //    points.append(QPointF(0,100));
 //    points.append(QPointF(50,150));
+//    points.append(QPointF(50,120));
+//    points.append(QPointF(25,75));
 //    points.append(QPointF(25,0));
 //    points.append(QPointF(0,0));
+    points.append(QPointF(0,0));
+    points.append(QPointF(0,100));
+    points.append(QPointF(50,150));
+    points.append(QPointF(25,0));
+    points.append(QPointF(0,0));
 
     Piece piece(points);
     piece.rotate(piece.getMinBoundingRect().center(), piece.getAngle());
@@ -2470,8 +2463,8 @@ void Nest::onActionSheetAutoDuplicate()
     int i = counter++%180;
     qreal pieceHeight = piece.getMinBoundingRect().height();  // 切割件高度
     qreal step, X, H;
-    qreal delta=40;
-    //for(qreal delta=0; delta<pieceHeight; delta+=pieceHeight/100){
+    //qreal delta= counter++%(int)(pieceHeight-1);
+    for(qreal delta=-pieceHeight; delta<pieceHeight; delta+=pieceHeight/100){
         Piece p = piece;  // 复制，零件1
         p.moveTo(QPointF(0, 0));  // 移动至原点，非必须
         p.rotate(p.getPosition(), i);  // 旋转
@@ -2486,20 +2479,23 @@ void Nest::onActionSheetAutoDuplicate()
         qreal d2 = calVerToCrossMaxMinDiff(p.getPointsList(), offset, delta, moveLeft);
 
         qDebug() << "h: " << h << ", d1 " << d1 << ", d2 " << d2;
+        if(d2 < 0){
+            continue;
+        }
         qreal d = d1 > d2 ? d1 : d2;  // 取二者最大值
         qreal hd = h * d;
         qDebug() << "hd: " << hd;
         step = d;
         X = offset - moveLeft;
         H = delta;
-//        if(hd < minArea){  // 寻找最小值，并记录最小值时各变量的值
-//            minArea = hd;
-//            // al = i;
-//            step = d;
-//            X = offset - moveLeft;
-//            H = delta;
-//        }
-//    }
+        if(hd < minArea){  // 寻找最小值，并记录最小值时各变量的值
+            minArea = hd;
+            // al = i;
+            step = d;
+            X = offset - moveLeft;
+            H = delta;
+        }
+    }
     qDebug() << X << "  " << H;
     Piece piece8 = piece;
     QPointF pos8(200, 200);
@@ -2516,16 +2512,25 @@ void Nest::onActionSheetAutoDuplicate()
     p8->setPolyline(piece8.getPointsList(), 1);
     p8->i = 8;
     nestScene->addCustomPolylineItem(p8);
+//    Rect *rect8 = new Rect;
+//    rect8->setRect(piece8.getMinBoundingRect());
+//    nestScene->addCustomRectItem(rect8);
 
     Polyline *p9 = new Polyline;
     p9->setPolyline(piece9.getPointsList(), 1);
     p9->i = 9;
     nestScene->addCustomPolylineItem(p9);
+//    Rect *rect9 = new Rect;
+//    rect9->setRect(piece9.getMinBoundingRect());
+//    nestScene->addCustomRectItem(rect9);
 
     Polyline *p10 = new Polyline;
     p10->setPolyline(piece10.getPointsList(), 1);
     p10->i = 10;
     nestScene->addCustomPolylineItem(p10);
+//    Rect *rect10 = new Rect;
+//    rect10->setRect(piece10.getMinBoundingRect());
+//    nestScene->addCustomRectItem(rect10);
 }
 
 void Nest::onActionSheetPrevious()

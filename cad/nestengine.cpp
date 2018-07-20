@@ -7,7 +7,7 @@ NestEngine::NestEngine(QObject *parent) :
     autoRepeatLastSheet(false),
     compactStep(1),
     compactAccuracy(0.1),
-    nestType(SigleRow),
+    nestType(SingleRow),
     mixingTyes(NoMixing),
     adaptiveSpacingTypes(NoAdaptiveSpacing),
     orientations(AllOrientationNest),
@@ -28,7 +28,7 @@ NestEngine::NestEngine(QObject *parent, const QVector<Piece> pieceList, QVector<
     autoRepeatLastSheet(false),
     compactStep(5),
     compactAccuracy(1),
-    nestType(SigleRow),
+    nestType(SingleRow),
     mixingTyes(NoMixing),
     adaptiveSpacingTypes(NoAdaptiveSpacing),
     orientations(AllOrientationNest),
@@ -452,29 +452,6 @@ void NestEngine::initNestEngineConfig(Sheet::SheetType sheetType, NestEngineConf
     }
 }
 
-void NestEngine::packAlg()
-{
-    // 如果没有设置同型体，则直接对排样零件列表排样
-    if(sameTypeNestPieceIndexListMap.size() < 1){
-        QVector<int> indexList;
-        for(int j=0; j<nestPieceList.length(); j++){
-            indexList.append(nestPieceList[j].index);
-        }
-        packPieces(indexList);
-        return;
-    }
-
-    for(int i=0; i<sameTypeNestPieceIndexListMap.size(); i++){
-        // 获取编号为i的同型体零件列表
-        QVector<int> sameTypeNestPieceList= sameTypeNestPieceIndexListMap[i];
-        QVector<int> indexList;
-        for(int j=0; j<sameTypeNestPieceList.length(); j++){
-            indexList.append(sameTypeNestPieceList[j]);
-        }
-        packPieces(indexList);
-    }
-}
-
 /**
  * @brief NestEngine::signalRowNest 最优单排计算函数
  * @param piece 零件
@@ -662,8 +639,8 @@ qreal NestEngine::singleRowNestWithVerAlg(Piece piece, qreal &alpha, qreal &step
  * @param piece  零件
  * @param alpha  旋转角度
  * @param step  送料步距
- * @param H  错开高度
  * @param X  错开零件x方向偏移
+ * @param H  错开高度
  * @param n  错开量精度，默认为100
  * @return
  */
@@ -671,21 +648,25 @@ qreal NestEngine::doubleRowNestWithVerAlg(Piece piece, qreal &alpha, qreal &step
 {
     qreal minZ = LONG_MAX;  // 目标值，希望其最小
     for(int i=0; i<=180; i++){
+        Piece p = piece;  // 复制，零件1
+        p.moveTo(QPointF(0, 0));  // 移动至原点，非必须
+        p.rotate(p.getPosition(), i);  // 旋转
+
+        QVector<QPointF> points = p.getPointsList();  // 获取旋转之后的点集
         qreal pieceHeight = piece.getMinBoundingRect().height();  // 切割件高度
+
         for(qreal delta=-pieceHeight; delta<pieceHeight; delta+=pieceHeight/n){
-            Piece p = piece;  // 复制，零件1
-            p.moveTo(QPointF(0, 0));  // 移动至原点，非必须
-            p.rotate(p.getPosition(), i);  // 旋转
-            qreal h = p.getMinBoundingRect().height() + delta;  // 获取旋转之后的高度，注意要加上错开量
+            qreal h = pieceHeight + qAbs(delta);  // 获取旋转之后的高度，注意要加上错开量
             // 计算步距
-            QVector<QPointF> points = p.getPointsList();
             qreal d1 = calVerToOppSideXDis(points);  // 计算各顶点到对边距离的最大值
 
             // 计算各顶点到错开零件各边最大值与最小值的差
             qreal offset = p.getMinBoundingRect().width();  // 将零件移动至外包矩形相切处
             qreal moveLeft;
             qreal d2 = calVerToCrossMaxMinDiff(points, offset, delta, moveLeft);
-
+            if(d2 < 0){  // 如果差值小于0，则代表无交点
+                continue;
+            }
             qreal d = d1 > d2 ? d1 : d2;  // 取二者最大值
             qreal hd = h * d;
             if(hd < minZ){  // 寻找最小值，并记录最小值时各变量的值
@@ -721,7 +702,7 @@ qreal NestEngine::oppositeSingleRowNestWithVerAlg(Piece piece, qreal &alpha, qre
         qreal h = p.getMinBoundingRect().height();  // 获取旋转之后的高度
         // 直接计算步距
         QVector<QPointF> points = p.getPointsList();
-        qreal d = calVerToLeftXDis(points);  // 计算
+        qreal d = calVerToLeftXDis(points);  // 计算各顶点到外包矩形最左侧的距离与关于(yMin+yMax)/2对称位置水平距离之和的最大值
         qreal hd = h * d;
         if(hd < minZ){  // 寻找最小值，并记录最小值时各变量的值
             // 计算旋转中心点
@@ -757,17 +738,16 @@ qreal NestEngine::oppositeSingleRowNestWithVerAlg(Piece piece, qreal &alpha, qre
 qreal NestEngine::oppositeDoubleRowNestWithVerAlg(Piece piece, qreal &alpha, qreal &step, QPointF &offset, qreal &H, const qreal n)
 {
     qreal minZ = LONG_MAX;  // 目标值，希望其最小
-    qreal pieceHeight = piece.getMinBoundingRect().height();  // 切割件高度
-    qreal pieceWidth = piece.getMinBoundingRect().width();  // 切割件宽度
-    qreal L = pieceHeight > pieceWidth ? pieceHeight : pieceWidth;  // 选择两者较长的一个作为上界
-    for(qreal delta=0; delta<L; delta+=L/n){
-        for(int i=0; i<=180; i++){
-            Piece p = piece;  // 复制，零件1
-            p.moveTo(QPointF(0, 0));  // 移动至原点，非必须
-            p.rotate(p.getPosition(), i);  // 旋转
-            qreal h = p.getMinBoundingRect().height() + delta;  // 获取旋转之后的高度，注意要加上错开量
+    for(int i=0; i<=180; i++){
+        Piece p = piece;  // 复制，零件1
+        p.moveTo(QPointF(0, 0));  // 移动至原点，非必须
+        p.rotate(p.getPosition(), i);  // 旋转
+        qreal pieceHeight = piece.getMinBoundingRect().height();  // 切割件高度
+        for(qreal delta=0; delta<pieceHeight; delta+=pieceHeight/n){
+            qreal h = pieceHeight + delta;  // 获取旋转之后的高度，注意要加上错开量
             // 直接计算步距
             QVector<QPointF> points = p.getPointsList();
+            //
             qreal d = calVerToLeftXDis(points, delta);  // 计算步距
             qreal hd = h * d;
             if(hd < minZ){  // 寻找最小值，并记录最小值时各变量的值
@@ -791,6 +771,202 @@ qreal NestEngine::oppositeDoubleRowNestWithVerAlg(Piece piece, qreal &alpha, qre
     qDebug() << "最小Z: " << minZ << ", alpha: " << alpha << ", step: " << step << ", offset: " << offset;
     qreal rate = 2 * piece.getArea() / minZ;
     return rate;
+}
+
+/**
+ * @brief NestEngine::getBestNestType  获取最佳排版
+ * @param piece  待排零件
+ * @param alpha  旋转角度
+ * @param step  送料步距
+ * @param pOffset 双排零件较基准零件位置的偏移量
+ * @param rOffset 旋转中心较基准零件位置的偏移量
+ * @return
+ */
+NestEngine::NestType NestEngine::getBestNestType(const Piece &piece, qreal &alpha, qreal &step, QPointF &pOffset, QPointF &rOffset)
+{
+    NestType type;  // 最佳排版方式
+    qreal rateMax = 0;  // 最佳利用率
+    qreal a, s, x, h;
+    QPointF o;
+    qreal rate1 = singleRowNestWithVerAlg(piece, a, s);  // 普通单排方式
+    if(rate1 > rateMax){
+        rateMax = rate1;
+        alpha = a;
+        step = s;
+        pOffset = QPointF(0, 0);
+        rOffset = QPointF(0, 0);
+        type = NestType::SingleRow;
+    }
+    qreal rate2 = doubleRowNestWithVerAlg(piece, a, s, x, h);  // 普通双排方式
+    if(rate2 > rateMax){
+        rateMax = rate2;
+        alpha = a;
+        step = s;
+        pOffset = QPointF(x, h);
+        rOffset = QPointF(0, 0);
+        type = NestType::DoubleRow;
+    }
+    qreal rate3 = oppositeSingleRowNestWithVerAlg(piece, a, s, o); // 对头单排方式
+    if(rate3 > rateMax){
+        rateMax = rate3;
+        alpha = a;
+        step = s;
+        pOffset = QPointF(0, 0);
+        rOffset = o;
+        type = NestType::OppositeSingleRow;
+    }
+    qreal rate4 = oppositeDoubleRowNestWithVerAlg(piece, a, s, o, h);  // 对头双排方式
+    if(rate4 > rateMax){
+        rateMax = rate4;
+        alpha = a;
+        step = s;
+        pOffset = QPointF(0, h);
+        rOffset = o;
+        type = NestType::OppositeDoubleRow;
+    }
+    return type;
+}
+
+void NestEngine::packDiscontinuously()
+{
+    // 如果没有设置同型体，则直接对排样零件列表排样
+    if(sameTypeNestPieceIndexListMap.size() < 1){
+        QVector<int> indexList;
+        for(int j=0; j<nestPieceList.length(); j++){
+            indexList.append(nestPieceList[j].index);
+        }
+        packPieces(indexList);
+        return;
+    }
+
+    for(int i=0; i<sameTypeNestPieceIndexListMap.size(); i++){
+        // 获取编号为i的同型体零件列表
+        QVector<int> sameTypeNestPieceList= sameTypeNestPieceIndexListMap[i];
+        QVector<int> indexList;
+        for(int j=0; j<sameTypeNestPieceList.length(); j++){
+            indexList.append(sameTypeNestPieceList[j]);
+        }
+        packPieces(indexList);
+    }
+}
+
+void NestEngine::packContinuously()
+{
+    /**
+      连续排版算法
+      算法描述：
+      Step0: 遍历零件类型ID，确定每种类型零件的最佳排版方法。
+             选择材料利用率较高的一种连续排版方法（普单、普双、对单、对双中的一种），
+             确定送料步距step，以及所占材料高度h。并且，初始化每个类型零件的剩余个数。
+      Step1: 判断未排零件列表，如果为空，则结束；否则转到Step2。
+      Step2: 初始化排放位置。先确定该零件的初始位置p1(x1, y1)，不超出材料排版范围即可。转到Step3。
+      Step3: 用Step1确定的方法进行连续排版，每排完一个便需要判断零件右侧是否超出材料排版范围。
+             如果超出材料范围且未使用尾只优化，则转到Step4；否则，转到Step5。
+      Step4: 换行。首先，确定一个初始位置p2(x2=x1, y2=y1+h)，然后向上靠接，双排时要两两判断。
+             靠接距离为下一行零件各顶点与上一行零件垂直方向上的距离的最小值。转到Step6。
+      Step5: 判断该行材料剩余宽度，如果该尺寸零件对应的最小外包矩形的短边都无容纳，则尝试放置最小码数的切割件；
+             如果可以容纳，则通过旋转放置该尺寸零件。转到Step4。
+      Step6: 确定下一行的位置后，要判断是否超过材料下边界。这里要注意是否使用了尾行优化，允许任意角度。
+             如果超过了材料边界且未使用尾行优化，则转到Step7；否则转到Step8。
+      Step7: 添加新材料，转到Step1。
+      Step8: 先判断剩余材料高度，如果该尺寸零件对应的最小外包矩形的短边都无法放下，则尝试放置最小码数的切割件；
+             如果可以容纳，则通过旋转、合并进行排版，同样根据四种排版方法的性能，只是多了一个限制条件，及材料高度。
+     */
+//    // 按面积从大到小排序
+//    QMap<int, int> transformMap;
+//    pieceList = getSortedPieceListByArea(pieceList, transformMap);
+//    int sameLen = sameTypePieceList.length();
+//    if(sameLen != 0){
+//        for(int i=0; i<sameLen; i++){
+//            QVector<int> &pieceIDList = sameTypePieceList[i].pieceIDList;
+//            for(int j=0; j<pieceIDList.length(); j++){
+//                int oldID = pieceIDList[j];
+//                int newID = transformMap[oldID];
+//                pieceIDList[j] = newID;
+//            }
+//        }
+//    }
+
+    // 初始化未排版零件列表
+    for(int i=0; i<nestPieceList.length(); i++){
+        unnestedPieceIndexlist.append(nestPieceList[i].index);
+    }
+
+    // 按照零件类型确定最佳排版方式
+    for(int i=0; i<pieceList.length(); i++){
+        Piece piece = pieceList[i];
+        qreal alpha, step;
+        QPointF pOffset, rOffset;
+        NestType type = getBestNestType(piece, alpha, step, pOffset, rOffset);
+
+        // 保存每个零件的最佳排版信息
+        if(!pieceBestNestTypeMap.contains(i)){
+            pieceBestNestTypeMap.insert(i, BestNestType());
+        }
+        BestNestType bestNestType(i, type, alpha, step, pOffset, rOffset);
+        pieceBestNestTypeMap[i] = bestNestType;
+    }
+
+    // 排版，按照材料进行排版，排满一张后再排下一张
+    int sheetID = 0;
+
+    while(unnestedPieceIndexlist.isEmpty()){
+        int counter = 0;  // 排放零件的计数器
+        int currentIndex = unnestedPieceIndexlist[counter++];  // 获取未排零件的第一个零件
+        int currentType = nestPieceList[currentIndex].typeID;  // 获取该零件的类型号
+        BestNestType bestNestType = pieceBestNestTypeMap[currentType];  // 获取该类型零件的最佳排版方式
+
+        // 先排放该零件至合适位置
+        Piece piece = pieceList[currentType];  // 复制该零件
+        piece.moveTo(QPointF(0, 0));  // 将零件移至坐标原点
+        piece.rotate(piece.getPosition(), bestNestType.alpha);  // 按最佳方式旋转该零件
+        QPointF offset = sheetList[sheetID].layoutRect().topLeft()
+                - piece.getMinBoundingRect().topLeft();  // 确定该零件至材料左上角的偏移
+
+        QPointF pos;
+        switch (bestNestType.nestType) {
+        case SingleRow:
+            pos = piece.getPosition() + offset;  // 单排时直接将左上角移动到材料可排区域的左上角
+            break;
+        default:
+            break;
+        }
+
+        PieceIndexRange pieceIndexRange = nestPieceIndexRangeMap[currentType];  // 获取该零件的序号范围
+        int maxIndex = pieceIndexRange.maxIndex;  // 获取该类型零件的最大值
+
+        int nextIndex = unnestedPieceIndexlist[counter++];  // 获取下一个零件
+        qreal width = 0.0f;
+        while(nextIndex <= maxIndex){   // 获取下一零件，循环条件为该类型零件
+            nestPieceList[currentIndex].sheetID = sheetID;  // 记录排放材料id
+            nestPieceList[currentIndex].position = pos;  // 记录排放位置
+            nestPieceList[currentIndex].alpha = bestNestType.alpha;  // 记录旋转角度
+            width += piece.getMinBoundingRect().width();
+            if(false){  // 判断是否超出材料右边界
+                if((mixingTyes & NestEngine::TailPieceMixing) == NestEngine::NoMixing){  // 如果没有设置尾只优化
+                    // 换行
+                }
+                else{
+                    // 在同型体内寻找较小
+                }
+            }
+
+            nestPieceList[nextIndex].sheetID = sheetID;  // 记录下一零件排放材料id
+            nestPieceList[nextIndex].position = pos + bestNestType.pOffset;  // 记录下一零件排放位置
+            nestPieceList[nextIndex].alpha = bestNestType.alpha;  // 记录下一零件旋转角度
+
+            if(autoRepeatLastSheet){  // 如果材料不够了，必须退出，继续大循环
+                Sheet sheet = sheetList[sheetID];
+                sheetList.append(sheet);
+                initQuadTreeMap(sheetID+1);  // 初始化该张材料的四叉树
+                emit autoRepeatedLastSheet(sheet);  // 排版结束后发送 重复了最后一张材料
+                break;
+            }
+
+            currentIndex = nextIndex;  // 更新当前零件index
+            nextIndex = unnestedPieceIndexlist[counter++];  // 更新下一零件index
+        }
+    }
 }
 
 void NestEngine::packPieces(QVector<int> indexList)
@@ -830,5 +1006,5 @@ bool NestEngine::collidesWithOtherPieces(int sheetID, Piece piece)
 void NestEngine::onNestStart()
 {
     initNestPieceList();  // 初始化排样零件
-    packAlg();  // 进行排版
+    packDiscontinuously();  // 进行排版
 }

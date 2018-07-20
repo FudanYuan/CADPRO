@@ -132,7 +132,7 @@ QRectF calculatePolygonBoundingRect(QVector<QPointF> pList)
     qreal minY = pList[0].ry();
     qreal maxX = pList[0].rx();
     qreal maxY = pList[0].ry();
-    for(int i=1; i<len-1; i++){
+    for(int i=1; i<len; i++){
         if(pList[i].rx() < minX){
             minX = pList[i].rx();
         }
