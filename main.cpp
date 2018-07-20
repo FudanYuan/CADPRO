@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
 
     gettimeofday(&tpend,NULL);
     timeuse=(1000000*(tpend.tv_sec-tpstart.tv_sec) + tpend.tv_usec-tpstart.tv_usec)/1000000.0;
-    qDebug()<< "程序运行时间：" << timeuse << "s";
+    qDebug()<< QString("程序运行时间：").toStdString().c_str() << timeuse << "s";
 
     return a.exec();
 

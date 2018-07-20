@@ -1,4 +1,4 @@
-#include "piece.h"
+﻿#include "piece.h"
 
 Piece::Piece() :
     pointsList(QVector<QPointF>()),
@@ -8,11 +8,13 @@ Piece::Piece() :
     squareness(0),
     centerPoint(QPointF()),
     count(0),
-    precision(6)
+    precision(6),
+    transpose(false)
 {
 }
 
-Piece::Piece(Polyline *p, int n, short i)
+Piece::Piece(Polyline *p, int n, short i) :
+    transpose(false)
 {
     QVector<QPointF> points = p->getPoints();
     if(points.length() < 3){
@@ -29,7 +31,8 @@ Piece::Piece(Polyline *p, int n, short i)
     precision = i;
 }
 
-Piece::Piece(QVector<QPointF> points, int n, short i)
+Piece::Piece(QVector<QPointF> points, int n, short i) :
+    transpose(false)
 {
     if(points.length() < 3){
         return;
@@ -100,6 +103,16 @@ QRectF Piece::getMinBoundingRect() const
     return rectPrecision(minBoundingRect, precision);
 }
 
+QPointF Piece::getPosition() const
+{
+    return pointPrecision(minBoundingRect.center(), precision);
+}
+
+void Piece::setAngle(const int angle)
+{
+    this->angle = angle;
+}
+
 qreal Piece::getAngle() const
 {
     return qrealPrecision(angle, precision);
@@ -115,7 +128,7 @@ QPointF Piece::getCenterPoint() const
     return pointPrecision(centerPoint, precision);
 }
 
-void Piece::setCount(int c)
+void Piece::setCount(const int c)
 {
     count = c;
 }
@@ -123,7 +136,7 @@ void Piece::setCount(int c)
 int Piece::getCount() const
 {
     // return count;
-    return 1;
+    return 10;
 }
 
 QVector<QPointF> Piece::getOffset()
@@ -135,7 +148,7 @@ QVector<QPointF> Piece::getOffset()
     return offsetList;
 }
 
-void Piece::setPrecision(short i)
+void Piece::setPrecision(const short i)
 {
     precision = i;
 }
@@ -148,6 +161,16 @@ short Piece::getPrecision() const
 bool Piece::isHorizontal() const
 {
     return minBoundingRect.width() > minBoundingRect.height();
+}
+
+void Piece::setTranspose(const bool transpose)
+{
+    this->transpose = transpose;
+}
+
+bool Piece::isTranspose() const
+{
+    return this->transpose;
 }
 
 QPointF Piece::refLineCenterToMinBoundRectCenter() const
@@ -376,9 +399,9 @@ bool Piece::collidesWithPiece(Piece piece, const Piece::CollisionsMode mode)
      * 2. 如果两矩形框重叠，再去进一步判断两多边形是否重叠
      */
     QRectF minBoundingRect1 = piece.getMinBoundingRect();
-    // qDebug() << minBoundingRect << "  " << minBoundingRect1;
+    //qDebug() << minBoundingRect << "  " << minBoundingRect1;
     if(boundingRectSeperate(minBoundingRect, minBoundingRect1)){
-        // qDebug() << "边缘矩形不碰撞，结束判断";
+        //qDebug() << "边缘矩形不碰撞，结束判断";
         return false;
     }
     // 如果模式为边缘矩形的碰撞，则返回
@@ -388,4 +411,85 @@ bool Piece::collidesWithPiece(Piece piece, const Piece::CollisionsMode mode)
     }
     CollisionDectect collisionDectect(pointsList, piece.getPointsList());
     return collisionDectect.collision();
+}
+
+qreal Piece::compactToOnHD(Piece p, qreal compactStep, qreal compactAccuracy)
+{
+    // 水平方向靠接
+    qreal stepX = compactStep;  // 默认移动的单位距离
+    QPointF pos = getPosition();  // 获取零件质心,该点为零件初始位置
+    QPointF posOld = pos;  // 记录之前的位置
+    //qDebug() << "初始位置: " << pos;
+    while(stepX > compactAccuracy){
+        QPointF posTemp = pos;
+        QPointF forwardPos(posTemp.rx()-stepX, posTemp.ry());  // 水平方向移动
+        //qDebug() << "移动至：" << forwardPos;
+        moveTo(forwardPos);  // 将零件移至新位置
+        if(collidesWithPiece(p)){
+            // 往右移
+            stepX /= 2;
+            continue;
+        }
+        pos.setX(pos.rx() - stepX);
+    }
+    qreal step = posOld.rx() - pos.rx();
+    return step;
+}
+
+qreal Piece::compactToOnVD(Piece p, qreal compactStep, qreal compactAccuracy)
+{
+    // 重力方向靠接
+    qreal stepY = compactStep;  // 默认移动的单位距离
+    QPointF pos = getPosition();  // 获取零件质心,该点为零件初始位置
+    QPointF posOld = pos;  // 记录之前的位置
+    //qDebug() << "初始位置: " << pos;
+    while(stepY > compactAccuracy){
+        QPointF posTemp = pos;
+        QPointF forwardPos(posTemp.rx(), posTemp.ry()-stepY);  // 重力反方向移动
+        //qDebug() << "移动至：" << forwardPos;
+        moveTo(forwardPos);  // 将零件移至前进位置
+        if(collidesWithPiece(p)){
+            // 往下移
+            stepY /= 2;
+            continue;
+        }
+        pos.setY(pos.ry() - stepY);
+    }
+    qreal step = posOld.ry() - pos.ry();
+    return step;
+}
+
+QPointF Piece::compactToOnAlpha(Piece p, qreal alpha, qreal compactStep, qreal compactAccuracy)
+{
+    // alpha方向靠接
+    qreal step = compactStep;  // 默认移动的单位距离
+    QPointF pos = getPosition();  // 获取零件质心,该点为零件初始位置
+    QPointF posOld = pos;  // 记录之前的位置
+    qDebug() << "初始位置: " << pos;
+    while(step > compactAccuracy){
+        if(pos.ry() < p.getMinBoundingRect().top() - p.getMinBoundingRect().height()
+                || pos.rx() < p.getMinBoundingRect().right() - p.getMinBoundingRect().width()){
+            break;
+        }
+        qreal stepX = qAbs(step * qCos(alpha));  // 水平方向偏移量
+        qreal stepY = step * qSin(alpha);  // 垂直方向偏移量
+
+        qDebug() << "step: " << step;
+        qDebug() << "stepX: " << stepX;
+        qDebug() << "stepY: " << stepY;
+        QPointF posTemp = pos;
+        QPointF forwardPos(posTemp.rx()-stepX, posTemp.ry()-stepY);  // 水平方向移动
+        qDebug() << "移动至：" << forwardPos;
+        moveTo(forwardPos);  // 将零件移至新位置
+        if(collidesWithPiece(p)){
+            // 往右移
+            qDebug() << "碰撞";
+            step /= 2;
+            continue;
+        }
+        pos.setX(pos.rx() - stepX);
+        pos.setY(pos.ry() - stepY);
+    }
+    qDebug() << "返回偏移：" << posOld - pos;
+    return posOld - pos;
 }

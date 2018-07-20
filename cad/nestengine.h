@@ -40,6 +40,16 @@ public:
             nested(false)
         {}
 
+        NestPiece(int i, int t, qreal a) :
+            index(i),
+            typeID(t),
+            sheetID(-1),
+            position(QPointF(-INT_MAX, -INT_MAX)),
+            referenceLine(QLineF()),
+            alpha(a),
+            nested(false)
+        {}
+
         int index;  // 在整个零件列表中的序号
         int typeID;  // 零件类型ID
         int sheetID;  // 材料ID
@@ -104,10 +114,9 @@ public:
      * 排版方式
      */
     enum NestType{
-        SigleRow,  // 单排
+        SigleRow,  // 单排,默认为单排
         DoubleRow,  // 双排
-        PairWiseSigleRow,  // 对头单排
-        PairWiseDoubleRow,  // 对头双排
+        PairwiseDoubleRow,  // 对头双排
     };
 
     /**
@@ -221,6 +230,19 @@ public:
     void initNestEngineConfig(Sheet::SheetType sheetType, NestEngineConfigure *proConfig);  // 初始化排版引擎配置
 
     void packAlg();  // 排版算法
+
+    void singleRowNest(Piece piece, qreal &alpha, qreal &stepX, qreal &width, qreal &height);  // 最优单排
+    void doubleRowNest(Piece piece, const int n, qreal &alpha, qreal &stepX, QPointF &cOffset, qreal &width, qreal &height);  // 最优双排
+    void pairwiseDoubleRowNest(Piece piece, qreal &alpha, QPointF &cOffset, qreal &width, qreal &height);  // 最优对头双排
+
+    /**
+     * 4中单零件排样策略，返回材料利用率
+     */
+    qreal singleRowNestWithVerAlg(Piece piece, qreal &alpha, qreal &step);  // 单排，使用顶点算法
+    qreal doubleRowNestWithVerAlg(Piece piece, qreal &alpha, qreal &step, qreal &X, qreal &H, const qreal n=100);  // 双排，使用顶点算法
+    qreal oppositeSingleRowNestWithVerAlg(Piece piece, qreal &alpha, qreal &step, QPointF &offset);  // 对头单排，使用顶点算法
+    qreal oppositeDoubleRowNestWithVerAlg(Piece piece, qreal &alpha, qreal &step, QPointF &offset, qreal &H, const qreal n=100);  // 对头双排，使用顶点算法
+
     virtual void packPieces(QVector<int> indexList);  //  排版算法
     virtual bool packOnePiece(Piece piece, NestEngine::NestPiece &nestPiece);  // 排放单个零件
     virtual bool packOnePieceOnSheet(Piece piece, int sheetID, NestEngine::NestPiece &nestPiece);  // 在给定材料上排放单个零件

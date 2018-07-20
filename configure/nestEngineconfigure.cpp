@@ -1,4 +1,4 @@
-#include "nestengineconfigure.h"
+ï»¿#include "nestengineconfigure.h"
 #include <QMessageBox>
 
 #include <QXmlStreamReader>
@@ -169,7 +169,7 @@ void NestEngineConfigure::WriteConfigureXml(QMap<int,QList<QList<int>>> & writed
             }
             break;
         }
-        case 1://ÑùÌõ
+        case 1://æ ·æ¡
         {
             for(int i=0; i< writedata[1].length();i++){
                 w.writeStartElement("Strip");
@@ -180,7 +180,7 @@ void NestEngineConfigure::WriteConfigureXml(QMap<int,QList<QList<int>>> & writed
                 w.writeEndElement();
             }
             break;}
-        case 2://¾í×°
+        case 2://å·è£…
         {
 
             for(int i=0; i< writedata[2].length();i++){

@@ -1,4 +1,4 @@
-#include "collisiondectect.h"
+﻿#include "collisiondectect.h"
 #include "common.h"
 #include <qmath.h>
 
@@ -211,7 +211,7 @@ bool CollisionDectect::collision()
         return false;
     }
 
-    // qDebug() << "collision: ";
+    //qDebug() << "collision: ";
     // 判断两图形的类型
     ConcavePolygon concavePoly1(pList1);
     ConcavePolygon concavePoly2(pList2);
@@ -219,15 +219,15 @@ bool CollisionDectect::collision()
     bool isConcavePoly1 = concavePoly1.isConcavePolygon(pList1);
     bool isConcavePoly2 = concavePoly2.isConcavePolygon(pList2);
 
-    // qDebug() << endl << "new test";
+    //qDebug() << endl << "new test";
     // 如果两多边形都不为凹多边形
     if(!isConcavePoly1 && !isConcavePoly2){
-        // qDebug() << "两多边形都不为凹多边形" ;
+        //qDebug() << "all not concavePoly" ;
         return convexPolygonCollision(pList1, pList2, isCircle1, isCircle2);
     }
     // 如果两多边形都为凹多边形
     if(isConcavePoly1 && isConcavePoly2){
-        // qDebug() << "两多边形都为凹多边形" ;
+        //qDebug() << "all concavePoly" ;
         QMap<int, QVector<QPointF>> splitRes1 = concavePoly1.onSeparateConcavePoly(pList1);
         QMap<int, QVector<QPointF>> splitRes2 = concavePoly2.onSeparateConcavePoly(pList2);
         for(int i=0; i<splitRes1.size(); i++){
@@ -241,11 +241,10 @@ bool CollisionDectect::collision()
     }
     // 如果两多边形不全为凹多边形
     if(isConcavePoly1){
-        // qDebug() << "第一个图形为凹多边形" ;
-        // qDebug() << "";
+        //qDebug() << "first is concavePoly" ;
+        //qDebug() << "";
         ConcavePolygon concavePoly1(pList1);
         QMap<int, QVector<QPointF>> splitRes1 = concavePoly1.onSeparateConcavePoly(pList1);
-        return false; /////// debug
         for(int i=0; i<splitRes1.size(); i++){
             if(convexPolygonCollision(splitRes1[i], pList2)){
                 return true;
@@ -254,7 +253,7 @@ bool CollisionDectect::collision()
         return false;
     }
     if(isConcavePoly2){
-        // qDebug() << "第二个图形为凹多边形" ;
+        //qDebug() << "second is concavePoly" ;
         ConcavePolygon concavePoly2(pList2);
         QMap<int, QVector<QPointF>> splitRes2 = concavePoly2.onSeparateConcavePoly(pList2);
         for(int i=0; i<splitRes2.size(); i++){
@@ -275,28 +274,28 @@ bool CollisionDectect::convexPolygonCollision(QVector<QPointF> pList1, QVector<Q
 
     // 如果两个图形都是圆，则直接进行圆的碰撞检测
     if(isCircle1 && isCircle2){
-        // qDebug() << "两个图形都是圆";
+        //qDebug() << "all circles";
         return circleHit(pList1, pList2);
     }
 
     // 如果至少有一个不是圆，则需要利用分离轴进行碰撞检测
     QVector<QPointF> separatingAxis;
     if(!isCircle1){
-        // qDebug() << "第一个图形不是圆";
+        //qDebug() << "first is not circle";
         separatingAxis = getSeparatingAxis(pList1, separatingAxis);
     }
     if(!isCircle2){
-        // qDebug() << "第二个图形不是圆";
+        //qDebug() << "second is not circle";
         separatingAxis = getSeparatingAxis(pList2, separatingAxis);
     }
-    // qDebug() << "分离轴情况：";
+    //qDebug() << "separating Axis: ";
     for(int i=0; i<separatingAxis.length(); i++){
-        // qDebug() << separatingAxis[i];
+        //qDebug() << separatingAxis[i];
     }
-    // qDebug() << "";
+    //qDebug() << "";
     QPointF extreme1, extreme2;
     for(int i=0; i<separatingAxis.length(); i++){
-        // qDebug() << "投影轴为#" << i << "：" << separatingAxis[i];
+        //qDebug() << "separating Axis is #" << i << "：" << separatingAxis[i];
         if(isCircle1){
             extreme1 = getCircleProjection(pList1, separatingAxis[i]);
         } else{

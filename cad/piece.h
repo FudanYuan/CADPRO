@@ -1,4 +1,4 @@
-#ifndef PIECE_H
+﻿#ifndef PIECE_H
 #define PIECE_H
 
 #include <QObject>
@@ -32,19 +32,26 @@ public:
     QVector<QLineF> getReferenceLinesList();
     qreal getArea() const;
     QRectF getMinBoundingRect() const;
+    QPointF getPosition() const;
+
+    void setAngle(const int angle);
     qreal getAngle() const;
+
     qreal getSquareness() const;
     QPointF getCenterPoint() const;
 
-    void setCount(int c);
+    void setCount(const int c);
     int getCount() const;
 
     QVector<QPointF> getOffset();  // 获取偏移量
 
-    void setPrecision(short i);
+    void setPrecision(const short i);
     short getPrecision() const;
 
     bool isHorizontal() const;  // 如果包络矩形的宽>高，则认为是横置的，否则，认为是竖置
+
+    void setTranspose(const bool transpose);  // 设置切割件是否转置
+    bool isTranspose() const;  // 获取切割件是否转置
 
     QPointF refLineCenterToMinBoundRectCenter() const;  // 参考线中心与最小矩形的相对关系
 
@@ -61,7 +68,9 @@ public:
     bool onBoundary(const QPointF &point);  // 判断点是否在零件的边上
     bool containsInSheet(const Sheet &sheet);  // 判断该零件是否在材料内部
     bool collidesWithPiece(Piece piece, const CollisionsMode mode = ShapeCollisionMode);  // 判断该零件是否与给定零件碰撞
-
+    qreal compactToOnHD(Piece p, qreal compactStep, qreal compactAccuracy);  // 向零件水平靠接
+    qreal compactToOnVD(Piece p, qreal compactStep, qreal compactAccuracy);  // 向零件垂直靠接
+    QPointF compactToOnAlpha(Piece p, qreal alpha, qreal compactStep, qreal compactAccuracy);  // 向零件alpha方向靠接
 private:
     QVector<QPointF> pointsList;  // 多边形点集
     QVector<QLineF> referenceLines;  // 参考线集合
@@ -72,6 +81,7 @@ private:
     QPointF centerPoint;  // 零件的质心
     int count;  // 零件个数
     short precision;  // 小数保留位数
+    bool transpose;  // 是否转置，即一开始就旋转90'
 };
 
 #endif // PIECE_H

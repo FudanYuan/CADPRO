@@ -282,6 +282,234 @@ bool pointOnPolygonBoundary(QVector<QPointF> pList, const QPointF &point)
     return false;
 }
 
+/**
+ * @brief calVerToOppSideXDis  计算多边形各顶点到其对边的最大距离，用来求送料步距
+ * @param pList  点的集合
+ * @return  最大距离
+ */
+qreal calVerToOppSideXDis(QVector<QPointF> pList){
+    qreal disMax = LONG_MIN;
+    QVector<qreal> disMatrix;
+    int length = pList.length();  // 获取点列表长度
+    // 将x，y坐标分别保存至容器中，方便使用
+    QVector<qreal> xList;
+    QVector<qreal> yList;
+    foreach (QPointF point, pList) {
+        xList.append(point.rx());
+        yList.append(point.ry());
+    }
+    int i = 0;
+    while(i<length){
+        int j=0;
+        while(j<length-1){
+            if((yList[i] <= yList[j]
+                && yList[i] > yList[j+1])
+                    || (yList[i] <= yList[j+1]
+                        && yList[i] > yList[j])){
+                qreal x1 = (xList[j+1]-xList[j])
+                        / (yList[j+1]-yList[j])
+                        * (yList[i]-yList[j])
+                        + xList[j];
+                qreal dis = qAbs(x1 - xList[i]);
+                disMatrix.append(dis);
+                if(dis > disMax){
+                    disMax = dis;
+                }
+            }
+            j++;
+        }
+        i++;
+    }
+    return qrealPrecision(disMax, PRECISION);
+}
+
+/**
+ * @brief calVerToCrossMaxMinDiff  计算各顶点到错开零件各边最大值与最小值的差，用以左移零件
+ * @param pList  零件点集
+ * @param step  移动步距
+ * @param H  错开距离
+ * @param left  左移距离
+ * @return  最大值与最小值的差
+ */
+qreal calVerToCrossMaxMinDiff(QVector<QPointF> pList, const qreal step, const qreal H, qreal &left)
+{
+    qreal disMax = 0;
+    qreal disMin = LONG_MAX;
+    QVector<qreal> disMatrix;
+    int length = pList.length();  // 获取点列表长度
+    // 将多边形原始及右移之后的x，y坐标分别保存至容器中
+    QVector<qreal> xListOrigin;
+    QVector<qreal> yListOrigin;
+    QVector<qreal> xListMove;
+    QVector<qreal> yListMove;
+    foreach (QPointF point, pList) {
+        xListOrigin.append(point.rx());
+        yListOrigin.append(point.ry());
+        xListMove.append(point.rx()+step);
+        yListMove.append(point.ry()+H);
+    }
+    /*
+     * 优化方法，可降低时间复杂度
+    qreal yMaxMove = LONG_MIN;  // 移动后y最大值
+    qreal yMinMove = LONG_MAX;  // 移动后y最小值
+    qreal yMaxMoveX, yMinMoveX;  // y最大值、y最小值对应的x值
+    foreach (QPointF point, pList) {
+        xListOrigin.append(point.rx());
+        yListOrigin.append(point.ry());
+        xListMove.append(point.rx()+step);
+        yListMove.append(point.ry()+H);
+        if(point.ry()+H > yMaxMove){
+            yMaxMove = point.ry()+H;
+            yMaxMoveX = point.rx()+step;
+        }
+        if(point.ry()+H < yMinMove){
+            yMinMove = point.ry()+H;
+            yMinMoveX = point.rx()+step;
+        }
+    }
+
+    qDebug() << "yMax " << yMaxMove << ", yMin " << yMinMove;
+    qDebug() << "yMaxX " << yMaxMoveX << ", yMinX " << yMinMoveX;
+
+    // 确定内外顶点集合，
+    // 由上下顶点相连，组成连线L，
+    // 在L左边为内顶点，在L右边为右顶点
+    // 可通过判断同y值时x坐标大小来实现
+    // xi < x0，则为左顶点，否则为右顶点
+    QVector<int> insideVer;  // 内顶点集合
+    QVector<int> outsideVer;  // 外顶点集合
+    for(int i=0; i<length; i++){
+        qreal xi = xListMove[i];  // 获取第i个顶点x值
+        qreal yi = xListMove[i];  // 获取第i个顶点y值
+        qreal x0 = (yMaxMoveX-yMinMoveX)
+                / (yMaxMove-yMinMove)
+                * (yi-yMaxMove)
+                + yMaxMoveX;
+        if(xi <= x0){
+            insideVer.append(xi);
+        }
+        if(xi > x0){
+            outsideVer.append(xi);
+        }
+    }
+    */
+
+    int i = 0;
+    while(i<length){
+        int j=0;
+        while(j<length-1){
+            if((yListOrigin[i] <= yListMove[j]
+                && yListOrigin[i] > yListMove[j+1])
+                    || (yListOrigin[i] <= yListMove[j+1]
+                        && yListOrigin[i] > yListMove[j])){
+                qreal x1 = (xListMove[j+1]-xListMove[j])
+                        / (yListMove[j+1]-yListMove[j])
+                        * (yListOrigin[i]-yListMove[j])
+                        + xListMove[j];
+                qreal dis1 = qAbs(x1 - xListOrigin[i]);
+                dis1 = qrealPrecision(dis1, PRECISION);
+                disMatrix.append(dis1);
+                if(dis1 > disMax){
+                    disMax = dis1;
+                }
+                if(dis1 < disMin){
+                    disMin = dis1;
+                }
+            }
+            if((yListMove[i] <= yListOrigin[j]
+                && yListMove[i] > yListOrigin[j+1])
+                    || (yListMove[i] <= yListOrigin[j+1]
+                        && yListMove[i] > yListOrigin[j])){
+                qreal x2 = (xListOrigin[j+1]-xListOrigin[j])
+                        / (yListOrigin[j+1]-yListOrigin[j])
+                        * (yListMove[i]-yListOrigin[j])
+                        + xListOrigin[j];
+                qreal dis2 = qAbs(x2 - xListMove[i]);
+                dis2 = qrealPrecision(dis2, PRECISION);
+                qreal k1 = (yListOrigin[j+1]-yListOrigin[j]) / (xListOrigin[j+1]-xListOrigin[j]);
+                qreal k2 = (yListOrigin[j+1]-yListMove[j]) / (xListOrigin[j+1]-x2);
+                disMatrix.append(dis2);
+                if(dis2 > disMax){
+                    disMax = dis2;
+                }
+                if(dis2 < disMin){
+                    disMin = dis2;
+                }
+            }
+            j++;
+        }
+        i++;
+    }
+//    qDebug() << "disMax: " << disMax;
+//    qDebug() << "disMin: " << disMin;
+//    foreach (qreal d, disMatrix) {
+//        qDebug() << "d: " << d;
+//    }
+    left = qrealPrecision(disMin, PRECISION);  // 左移距离为最小距离
+    return qrealPrecision(disMax-disMin, PRECISION);
+}
+
+/**
+ * @brief calVerToLeftXDis 计算多边形各顶点到该多边形外包矩形最左边的水平距离
+ * @param pList  点列表
+ * @param H  错开，默认为0
+ * @return
+ */
+qreal calVerToLeftXDis(QVector<QPointF> pList, const qreal H)
+{
+    // 计算多边形的外包矩形
+    QRectF minBoundingRect = rectPrecision(calculatePolygonBoundingRect(pList), PRECISION);
+    qreal xMin = minBoundingRect.left();  // xMin
+    qreal yMin = minBoundingRect.bottom();  // yMin
+    qreal yMax = minBoundingRect.top();  // yMax
+
+    qreal disMax = 0;
+    QVector<qreal> disMatrix;
+    int length = pList.length();  // 获取点列表长度
+    // 将x，y坐标分别保存至容器中，方便使用
+    QVector<qreal> xList;
+    QVector<qreal> yList;
+    foreach (QPointF point, pList) {
+        xList.append(point.rx());
+        yList.append(point.ry());
+    }
+    int i = 0;
+    while(i<length){
+        qreal dis1 = xList[i] - xMin;  // 顶点到左边界的距离
+        qreal y0 = yMax + yMin + H - yList[i];  // 该顶点关于y中心的对称点的y坐标
+
+        // 下面找出纵坐标为y0时的x坐标
+        qreal dis2Max = 0;  // 平行相交最大距离
+        int j=0;
+        while(j<length-1){
+            if((y0 <= yList[j]
+                && y0 > yList[j+1])
+                    || (y0 <= yList[j+1]
+                        && y0 > yList[j])){
+                qreal x0 = (xList[j+1]-xList[j])
+                        / (yList[j+1]-yList[j])
+                        * (y0-yList[j])
+                        + xList[j];
+                qreal dis2 = qAbs(x0 - xMin);  // 计算距离
+                if(dis2 > dis2Max){
+                    dis2Max = dis2;
+                }
+            }
+            j++;
+        }
+        disMatrix.append(dis1+dis2Max);
+        if(dis1+dis2Max > disMax){
+            disMax = dis1+dis2Max;
+        }
+        i++;
+    }
+//    qDebug() << "disMax: " << disMax;
+//    foreach (qreal d, disMatrix) {
+//        qDebug() << "d: " << d;
+//    }
+    return qrealPrecision(disMax, PRECISION);
+}
+
 double calculatePolygonArea(QVector<QPointF> points){
     double area=0;
     if(points.length()==2){

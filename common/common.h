@@ -44,6 +44,9 @@ bool boundingRectSeperate(const QRectF rect1, const QRectF rect2);  // 判断两
 bool boundingRectContain(const QRectF rect1, const QRectF rect2);  // 判断两矩形是否包含，rect1包含rect2
 bool pointContainsInPolygon(QVector<QPointF> pList, const QPointF &point);  // 多边形包含某点
 bool pointOnPolygonBoundary(QVector<QPointF> pList, const QPointF &point);  // 点在多边形边上
+qreal calVerToOppSideXDis(QVector<QPointF> pList);  // 计算多边形顶点到对边的水平距离，返回最大值
+qreal calVerToCrossMaxMinDiff(QVector<QPointF> pList, const qreal step, const qreal H, qreal &left);  // 计算各顶点到错开零件各边最大值与最小值的差
+qreal calVerToLeftXDis(QVector<QPointF> pList, const qreal H=0);  // 计算多边形各顶点到该多边形外包矩形最左边的水平距离
 double calculatePolygonArea(QVector<QPointF> points);//多边形面积
 bool calculatePolygonDirection(QVector<QPointF> points);//多边形方向顺时针为true，逆时针为false
 QPointF calculatePolygonGravityCenter(QVector<QPointF> mPoints);//求多边形重心

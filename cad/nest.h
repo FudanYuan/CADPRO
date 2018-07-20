@@ -22,6 +22,7 @@
 #include "nestengineconfiguredialog.h"
 #include "piece.h"
 #include <QDebug>
+#include <QTimer>
 
 namespace Ui {
 class Nest;
@@ -162,6 +163,10 @@ public:
     void setSceneStyle(Scene *scene, SceneType type, NestConfigure *config);  // 设置图层样式
 private:
     QString fName;  // debug 文件名称
+    int counter;  // debug 计数器
+    QTimer *timer;  // debug
+    qreal minArea;  // debug，最小面积
+    qreal al;
     Ui::Nest *ui;
     NestConfigure *config;  // 排版配置
     View *nestView;  // 排版视图
