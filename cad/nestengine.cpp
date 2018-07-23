@@ -932,11 +932,13 @@ void NestEngine::packContinuously()
             break;
         }
 
-        PieceIndexRange pieceIndexRange = nestPieceIndexRangeMap[currentType];  // 获取该零件的序号范围
+        PieceIndexRange pieceIndexRange = nestPieceIndexRangeMap[currentType];  // 获取同类型零件的序号范围
         int maxIndex = pieceIndexRange.maxIndex;  // 获取该类型零件的最大值
 
         int nextIndex = unnestedPieceIndexlist[counter++];  // 获取下一个零件
         qreal width = 0.0f;
+        qreal sheetWidth = sheetList[sheetID].layoutRect().width();  // 获取材料宽度
+
         while(nextIndex <= maxIndex){   // 获取下一零件，循环条件为该类型零件
             nestPieceList[currentIndex].sheetID = sheetID;  // 记录排放材料id
             nestPieceList[currentIndex].position = pos;  // 记录排放位置
@@ -955,7 +957,7 @@ void NestEngine::packContinuously()
             nestPieceList[nextIndex].position = pos + bestNestType.pOffset;  // 记录下一零件排放位置
             nestPieceList[nextIndex].alpha = bestNestType.alpha;  // 记录下一零件旋转角度
 
-            if(autoRepeatLastSheet){  // 如果材料不够了，必须退出，继续大循环
+            if(false && autoRepeatLastSheet){  // 如果材料不够了，必须退出，继续大循环
                 Sheet sheet = sheetList[sheetID];
                 sheetList.append(sheet);
                 initQuadTreeMap(sheetID+1);  // 初始化该张材料的四叉树
