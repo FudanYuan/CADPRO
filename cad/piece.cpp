@@ -4,6 +4,7 @@ Piece::Piece() :
     pointsList(QVector<QPointF>()),
     area(0),
     minBoundingRect(QRectF()),
+    boundingRect(QRectF()),
     angle(0),
     squareness(0),
     centerPoint(QPointF()),
@@ -24,7 +25,8 @@ Piece::Piece(Polyline *p, int n, short i) :
     // referenceLine = linesListPrecision(p->getReferenceLines(), i);  // 读入参考线
     area = calculatePolygonArea(pointsList);  // 计算多边形面积
     qreal minBoundingRectArea = calculatePloygonMinBoundingRectArea(pointsList, angle, minBoundingRect);
-    minBoundingRect = rectPrecision(minBoundingRect, i);  // 边缘矩形，保留i位小数位
+    minBoundingRect = rectPrecision(minBoundingRect, i);  // 最小矩形，保留i位小数位
+    boundingRect = rectPrecision(calculatePolygonBoundingRect(pointsList), i);  // 计算包络矩形，保留i位小数
     squareness = qrealPrecision(area / minBoundingRectArea, i);  // 计算方正度，保留i位小数位
     centerPoint = pointPrecision(calculatePolygonGravityCenter(pointsList), i); // 计算多边形的质心，保留i位小数位
     count = n;
@@ -41,6 +43,7 @@ Piece::Piece(QVector<QPointF> points, int n, short i) :
     area = calculatePolygonArea(pointsList);  // 计算多边形面积
     qreal minBoundingRectArea = calculatePloygonMinBoundingRectArea(pointsList, angle, minBoundingRect);
     minBoundingRect = rectPrecision(minBoundingRect, i);  // 边缘矩形，保留i位小数位
+    boundingRect = rectPrecision(calculatePolygonBoundingRect(pointsList), i);  // 计算包络矩形，保留i位小数
     squareness = qrealPrecision(area / minBoundingRectArea, i);  // 计算方正度，保留i位小数位
     centerPoint = pointPrecision(calculatePolygonGravityCenter(pointsList), i); // 计算多边形的质心，保留i位小数位
     count = n;
@@ -103,9 +106,14 @@ QRectF Piece::getMinBoundingRect() const
     return rectPrecision(minBoundingRect, precision);
 }
 
+QRectF Piece::getBoundingRect() const
+{
+    return rectPrecision(boundingRect, precision);
+}
+
 QPointF Piece::getPosition() const
 {
-    return pointPrecision(minBoundingRect.center(), precision);
+    return pointPrecision(boundingRect.center(), precision);
 }
 
 void Piece::setAngle(const int angle)
@@ -206,6 +214,7 @@ void Piece::moveTo(const QPointF position)
     referenceLines = newLinesList;  // 更新参考线集
     centerPoint += offset; // 更新多边形质心
     minBoundingRect.moveCenter(position);  // 更新最小包络矩形
+    boundingRect.moveCenter(position);  // 更新外包矩形
 }
 
 void Piece::moveToByReferenceLine(const QPointF position)
@@ -241,6 +250,7 @@ void Piece::moveToByReferenceLine(const QPointF position)
     referenceLines = newLinesList;  // 更新参考线集
     centerPoint += offset; // 更新多边形质心
     minBoundingRect.moveCenter(position);  // 更新最小包络矩形
+    boundingRect.moveCenter(position);  // 更新外包矩形
 }
 
 void Piece::rotate(const QPointF cPoint, const qreal alpha)
@@ -283,13 +293,12 @@ void Piece::rotate(const QPointF cPoint, const qreal alpha)
     referenceLines = newLinesList;  // 更新参考线集
 
     centerPoint = transformRotate(cPoint, centerPoint, alpha); // 更新多边形质心
-    minBoundingRect = rectPrecision(calculatePolygonBoundingRect(pointsList), precision);  // 更新最小包络矩形
+    boundingRect = rectPrecision(calculatePolygonBoundingRect(pointsList), precision);  // 更新最小包络矩形
     // 如果旋转中心为外包矩形的中心，且旋转之后的外包矩形的中心点与旋转中心点不同，一定要进行再移动，这一步非常关键
-    if(flag && minBoundingRect.center() != cPointPcs){
+    if(flag && boundingRect.center() != cPointPcs){
         moveTo(cPointPcs);
     }
-    squareness = area / (minBoundingRect.width() * minBoundingRect.height());  // 计算方正度
-    angle += alpha;  // 该图形对应最小矩形顺时针转angle度
+    angle = alpha;  // 该图形对应最小矩形顺时针转angle度
 }
 
 void Piece::rotateByReferenceLine(const QPointF cPoint, bool flag)
@@ -339,9 +348,8 @@ void Piece::rotateByReferenceLine(const QPointF cPoint, bool flag)
     referenceLines = newLinesList;  // 更新参考线集
 
     centerPoint = transformRotate(cPoint, centerPoint, theta); // 更新多边形质心
-    minBoundingRect = rectPrecision(calculatePolygonBoundingRect(pointsList), precision);  // 更新最小包络矩形
-    squareness = area / (minBoundingRect.width() * minBoundingRect.height());  // 计算方正度
-    angle += theta;  // 该图形对应最小矩形顺时针转angle度
+    boundingRect = rectPrecision(calculatePolygonBoundingRect(pointsList), precision);  // 更新包络矩形
+    angle = theta;  // 该图形对应最小矩形顺时针转angle度
     qDebug() << "angle: " << angle;
 }
 
@@ -357,7 +365,7 @@ bool Piece::hasRelationToPoint(const QPointF &point)
 Piece::PointRealtionToPiece Piece::relationToPoint(const QPointF &point)
 {
     QPointF cPointPcs = pointPrecision(point, precision);  // 保留i位小数位
-    if(!inMinBoundingRect(cPointPcs)){
+    if(!inBoundingRect(cPointPcs)){
         //qDebug() << "不在包络矩形内";
         return Outside;
     }
@@ -373,11 +381,11 @@ Piece::PointRealtionToPiece Piece::relationToPoint(const QPointF &point)
     return Outside;
 }
 
-bool Piece::inMinBoundingRect(const QPointF &point)
+bool Piece::inBoundingRect(const QPointF &point)
 {
     QPointF cPointPcs = pointPrecision(point, precision);  // 保留i位小数位
     qreal minX, minY, maxX, maxY;
-    getRectBoundValue(minBoundingRect, minX, minY, maxX, maxY);
+    getRectBoundValue(boundingRect, minX, minY, maxX, maxY);
     qreal x = cPointPcs.x();
     qreal y = cPointPcs.y();
     if(x < minX || x > maxX || y < minY || y > maxY){
@@ -402,7 +410,7 @@ bool Piece::containsInSheet(const Sheet &sheet)
 {
     // 获取材料的排版区域
     QRectF layoutRect = sheet.layoutRect();
-    return boundingRectContain(layoutRect, getMinBoundingRect());
+    return boundingRectContain(layoutRect, getBoundingRect());
 }
 
 bool Piece::collidesWithPiece(Piece piece, const Piece::CollisionsMode mode)
@@ -412,9 +420,9 @@ bool Piece::collidesWithPiece(Piece piece, const Piece::CollisionsMode mode)
      * 1. 首先判断两多边形的外包矩形是否重叠，如果不重叠，则两多边形一定不会重叠
      * 2. 如果两矩形框重叠，再去进一步判断两多边形是否重叠
      */
-    QRectF minBoundingRect1 = piece.getMinBoundingRect();
-    //qDebug() << minBoundingRect << "  " << minBoundingRect1;
-    if(boundingRectSeperate(minBoundingRect, minBoundingRect1)){
+    QRectF boundingRect1 = piece.getBoundingRect();
+    //qDebug() << minBoundingRect << "  " << boundingRect1;
+    if(boundingRectSeperate(getBoundingRect(), boundingRect1)){
         //qDebug() << "边缘矩形不碰撞，结束判断";
         return false;
     }
@@ -481,8 +489,8 @@ QPointF Piece::compactToOnAlpha(Piece p, qreal alpha, qreal compactStep, qreal c
     QPointF posOld = pos;  // 记录之前的位置
     qDebug() << "初始位置: " << pos;
     while(step > compactAccuracy){
-        if(pos.ry() < p.getMinBoundingRect().top() - p.getMinBoundingRect().height()
-                || pos.rx() < p.getMinBoundingRect().right() - p.getMinBoundingRect().width()){
+        if(pos.ry() < p.getBoundingRect().top() - p.getBoundingRect().height()
+                || pos.rx() < p.getBoundingRect().right() - p.getBoundingRect().width()){
             break;
         }
         qreal stepX = qAbs(step * qCos(alpha));  // 水平方向偏移量

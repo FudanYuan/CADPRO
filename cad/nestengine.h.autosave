@@ -282,7 +282,7 @@ public:
     qreal doubleRowNestWithVerAlg(Piece piece, qreal &alpha, qreal &step, qreal &X, qreal &H, const qreal n=100);  // 双排，使用顶点算法
     qreal oppositeSingleRowNestWithVerAlg(Piece piece, qreal &alpha, qreal &step, QPointF &offset);  // 对头单排，使用顶点算法
     qreal oppositeDoubleRowNestWithVerAlg(Piece piece, qreal &alpha, qreal &step, QPointF &offset, qreal &H, const qreal n=100);  // 对头双排，使用顶点算法
-    NestType getBestNestType(const Piece &piece, qreal &alpha, qreal &step, QPointF &pOffset, QRectF &boundingRect);  // 获取零件的最佳排版方式
+    NestType getBestNestType(const Piece &piece, qreal &alpha, qreal &step, QPointF &pOffset, QPointF &boundingRectCenter);  // 获取零件的最佳排版方式
 
     void packDiscontinuously();  // 排版算法
     void packContinuously();  // 连续排版

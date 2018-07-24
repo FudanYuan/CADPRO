@@ -458,10 +458,10 @@ qreal calVerToCrossMaxMinDiff(QVector<QPointF> pList, const qreal step, const qr
 qreal calVerToLeftXDis(QVector<QPointF> pList, const qreal H)
 {
     // 计算多边形的外包矩形
-    QRectF minBoundingRect = rectPrecision(calculatePolygonBoundingRect(pList), PRECISION);
-    qreal xMin = minBoundingRect.left();  // xMin
-    qreal yMin = minBoundingRect.bottom();  // yMin
-    qreal yMax = minBoundingRect.top();  // yMax
+    QRectF boundingRect = rectPrecision(calculatePolygonBoundingRect(pList), PRECISION);
+    qreal xMin = boundingRect.left();  // xMin
+    qreal yMin = boundingRect.bottom();  // yMin
+    qreal yMax = boundingRect.top();  // yMax
 
     qreal disMax = 0;
     QVector<qreal> disMatrix;
@@ -576,18 +576,16 @@ bool isConcaveConvex(QPointF ppoint,QPointF cpoint,QPointF npoint,bool direction
     }
 }
 
-double calculatePloygonMinBoundingRectArea(QVector<QPointF> &points, qreal &alpha, QRectF &minBoundingRect){
+double calculatePloygonMinBoundingRectArea(QVector<QPointF> points, qreal &alpha, QRectF &minBoundingRect){
     QPointF maxp,minp,centerpont = QPointF(0,0); //calculatePolygonGravityCenter(points);
     QVector<QPointF> listpoint;
     qreal angles[points.length()];
     double area,areas[points.length()];
     int minid,w,h;
-    //qDebug()<<"中心点"<<centerpont;
     for(int i=0;i<points.length();i++){
         QLineF line0(points[i], QPointF(points[i].rx() + 10, points[i].ry()));
         QLineF line1(points[i], points[(i+1)%points.length()]);
         qreal angle = line0.angleTo(line1);
-        //qDebug()<<"角度"<<angle;
 
         QVector<QPointF> cpoints;
         for(int j=0;j<points.length();j++){
@@ -623,12 +621,12 @@ double calculatePloygonMinBoundingRectArea(QVector<QPointF> &points, qreal &alph
         }
     }
     alpha=angles[minid];
-    QVector<QPointF> cpoints;
-    for(int j=0;j<points.length();j++){
-        cpoints.append(transformRotate(centerpont, points[j], -alpha));
-    }
-    points.clear();
-    points.append(cpoints);
+//    QVector<QPointF> cpoints;
+//    for(int j=0;j<points.length();j++){
+//        cpoints.append(transformRotate(centerpont, points[j], -alpha));
+//    }
+//    points.clear();
+//    points.append(cpoints);
     w=abs(listpoint[minid*2].rx()-listpoint[minid*2+1].rx());
     h=abs(listpoint[minid*2].ry()-listpoint[minid*2+1].ry());
     minBoundingRect.setRect(listpoint[minid*2+1].rx(), listpoint[minid*2+1].ry(),w,h);

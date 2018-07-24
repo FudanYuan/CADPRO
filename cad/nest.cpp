@@ -1655,7 +1655,7 @@ void Nest::onNestFinished(QVector<NestEngine::NestPiece> nestPieceList)
             Piece piece = *pieceList[typeID];  // 切割件对象
             qreal area = piece.getArea();  // 切割件面积
             piece.moveTo(pos); // 移动
-            piece.rotate(piece.getMinBoundingRect().center(), angle);  // 旋转
+            piece.rotate(piece.getBoundingRect().center(), angle);  // 旋转
 
             QVector<QPointF> offsetPoints;
             foreach (QPointF point, piece.getPointsList()) {
@@ -1957,9 +1957,9 @@ void Nest::onActionNestSideLeft()
     qDebug() << "左靠边";
 #ifdef DEBUG
     addProject();
-    fName = "F:/Projects/build-CADPRO-Desktop_Qt_5_10_0_MinGW_32bit-Debug/toNest2.dxf";
+    fName = "/Users/Jeremy/Desktop/toNest2.dxf";
     onActionTreeProjectAddScene();
-    fName = "F:/Projects/build-CADPRO-Desktop_Qt_5_10_0_MinGW_32bit-Debug/toNest.dxf";
+    fName = "/Users/Jeremy/Desktop/toNest.dxf";
     onActionTreeProjectAddScene();
 #endif
 }
@@ -2033,8 +2033,8 @@ void Nest::onActionNestSideTop()
     points.append(QPointF(0,0));
 
     Piece piece(points);
-    qreal pieceWidth = piece.getMinBoundingRect().width();  // 获取零件外包矩形宽度
-    qreal pieceHeight = piece.getMinBoundingRect().height();  // 获取零件外包矩形高度
+    qreal pieceWidth = piece.getBoundingRect().width();  // 获取零件外包矩形宽度
+    qreal pieceHeight = piece.getBoundingRect().height();  // 获取零件外包矩形高度
     qreal d = qSqrt(pieceWidth*pieceWidth + pieceHeight*pieceHeight);  // 获取外包矩形对角线距离
 
     qreal alpha = counter++%180;  // 旋转角度
@@ -2054,8 +2054,8 @@ void Nest::onActionNestSideTop()
     piece3.moveTo(pos3 + nestScene->getOffset());  // 将影子零件移动至(d, 0)处,以保证在旋转过程中,两零件不会碰撞
     piece3.rotate(pos3 + nestScene->getOffset(), alpha);
 
-    qreal h = piece1.getMinBoundingRect().height();  // 获取外包矩形的高度
-    qreal w = piece1.getMinBoundingRect().width();  // 获取外包矩形的宽度
+    qreal h = piece1.getBoundingRect().height();  // 获取外包矩形的高度
+    qreal w = piece1.getBoundingRect().width();  // 获取外包矩形的宽度
 
     qreal v = d/10;
     QPointF cOffset;
@@ -2134,7 +2134,7 @@ void Nest::onActionNestSideBottom()
     points.append(QPointF(25,0));
     points.append(QPointF(0,0));
     Piece piece(points);
-    piece.rotate(piece.getMinBoundingRect().center(), piece.getAngle());
+//    piece.rotate(piece.getBoundingRect().center(), piece.getAngle());
 
     qreal alpha, step;
     PackPointNestEngine *nestEngine = new PackPointNestEngine;
@@ -2275,8 +2275,8 @@ void Nest::onActionNestSideDirectionVertical()
     p4->i = 4;
     nestScene->addCustomPolylineItem(p4);
 #if 0
-    qreal pieceWidth = piece.getMinBoundingRect().width();  // 获取零件外包矩形宽度
-    qreal pieceHeight = piece.getMinBoundingRect().height();  // 获取零件外包矩形高度
+    qreal pieceWidth = piece.getBoundingRect().width();  // 获取零件外包矩形宽度
+    qreal pieceHeight = piece.getBoundingRect().height();  // 获取零件外包矩形高度
     //counter = 0;
     qreal i = counter++%180;
     qDebug() << "旋转:" << i;
@@ -2458,23 +2458,23 @@ void Nest::onActionSheetAutoDuplicate()
     points.append(QPointF(0,0));
 
     Piece piece(points);
-    piece.rotate(piece.getMinBoundingRect().center(), piece.getAngle());
+    piece.rotate(piece.getBoundingRect().center(), piece.getAngle());
 
     int i = counter++%180;
-    qreal pieceHeight = piece.getMinBoundingRect().height();  // 切割件高度
+    qreal pieceHeight = piece.getBoundingRect().height();  // 切割件高度
     qreal step, X, H;
     //qreal delta= counter++%(int)(pieceHeight-1);
     for(qreal delta=-pieceHeight; delta<pieceHeight; delta+=pieceHeight/100){
         Piece p = piece;  // 复制，零件1
         p.moveTo(QPointF(0, 0));  // 移动至原点，非必须
         p.rotate(p.getPosition(), i);  // 旋转
-        qreal h = p.getMinBoundingRect().height() + qAbs(delta);  // 获取旋转之后的高度，注意要加上错开量
+        qreal h = p.getBoundingRect().height() + qAbs(delta);  // 获取旋转之后的高度，注意要加上错开量
 
         // 计算步距
         qreal d1 = calVerToOppSideXDis(p.getPointsList());  // 计算各顶点到对边距离的最大值
 
         // 计算各顶点到错开零件各边最大值与最小值的差
-        qreal offset = p.getMinBoundingRect().width();  // 将零件移动至外包矩形相切处
+        qreal offset = p.getBoundingRect().width();  // 将零件移动至外包矩形相切处
         qreal moveLeft;
         qreal d2 = calVerToCrossMaxMinDiff(p.getPointsList(), offset, delta, moveLeft);
 
@@ -2513,7 +2513,7 @@ void Nest::onActionSheetAutoDuplicate()
     p8->i = 8;
     nestScene->addCustomPolylineItem(p8);
 //    Rect *rect8 = new Rect;
-//    rect8->setRect(piece8.getMinBoundingRect());
+//    rect8->setRect(piece8.getBoundingRect());
 //    nestScene->addCustomRectItem(rect8);
 
     Polyline *p9 = new Polyline;
@@ -2521,7 +2521,7 @@ void Nest::onActionSheetAutoDuplicate()
     p9->i = 9;
     nestScene->addCustomPolylineItem(p9);
 //    Rect *rect9 = new Rect;
-//    rect9->setRect(piece9.getMinBoundingRect());
+//    rect9->setRect(piece9.getBoundingRect());
 //    nestScene->addCustomRectItem(rect9);
 
     Polyline *p10 = new Polyline;
@@ -2529,7 +2529,7 @@ void Nest::onActionSheetAutoDuplicate()
     p10->i = 10;
     nestScene->addCustomPolylineItem(p10);
 //    Rect *rect10 = new Rect;
-//    rect10->setRect(piece10.getMinBoundingRect());
+//    rect10->setRect(piece10.getBoundingRect());
 //    nestScene->addCustomRectItem(rect10);
 }
 

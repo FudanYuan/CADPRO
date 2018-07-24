@@ -51,7 +51,7 @@ double calculatePolygonArea(QVector<QPointF> points);//多边形面积
 bool calculatePolygonDirection(QVector<QPointF> points);//多边形方向顺时针为true，逆时针为false
 QPointF calculatePolygonGravityCenter(QVector<QPointF> mPoints);//求多边形重心
 bool isConcaveConvex(QPointF ppoint, QPointF cpoint, QPointF npoint, bool direction);//多边形三个点凹凸性,凸为true
-double calculatePloygonMinBoundingRectArea(QVector<QPointF> &points, qreal &alpha, QRectF &minBoundingRect);//多边形最小包络矩形面积
+double calculatePloygonMinBoundingRectArea(QVector<QPointF> points, qreal &alpha, QRectF &minBoundingRect);//多边形最小包络矩形面积
 
 // 画特殊图形
 void drawCrossPoint(QPainter* painter, QPointF point, int offset, crossType type);  // 画交叉点
