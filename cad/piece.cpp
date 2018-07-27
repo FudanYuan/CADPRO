@@ -143,8 +143,8 @@ void Piece::setCount(const int c)
 
 int Piece::getCount() const
 {
-    // return count;
-    return 10;
+    return count;
+    //return 10;
 }
 
 QVector<QPointF> Piece::getOffset()
@@ -441,11 +441,11 @@ qreal Piece::compactToOnHD(Piece p, qreal compactStep, qreal compactAccuracy)
     qreal stepX = compactStep;  // 默认移动的单位距离
     QPointF pos = getPosition();  // 获取零件质心,该点为零件初始位置
     QPointF posOld = pos;  // 记录之前的位置
-    //qDebug() << "初始位置: " << pos;
+    //qDebug() << "origin pos: " << pos;
     while(stepX > compactAccuracy){
         QPointF posTemp = pos;
         QPointF forwardPos(posTemp.rx()-stepX, posTemp.ry());  // 水平方向移动
-        //qDebug() << "移动至：" << forwardPos;
+        //qDebug() << "move to" << forwardPos;
         moveTo(forwardPos);  // 将零件移至新位置
         if(collidesWithPiece(p)){
             // 往右移

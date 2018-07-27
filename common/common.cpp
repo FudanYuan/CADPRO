@@ -426,8 +426,6 @@ qreal calVerToCrossMaxMinDiff(QVector<QPointF> pList, const qreal step, const qr
                         + xListOrigin[j];
                 qreal dis2 = qAbs(x2 - xListMove[i]);
                 dis2 = qrealPrecision(dis2, PRECISION);
-                qreal k1 = (yListOrigin[j+1]-yListOrigin[j]) / (xListOrigin[j+1]-xListOrigin[j]);
-                qreal k2 = (yListOrigin[j+1]-yListMove[j]) / (xListOrigin[j+1]-x2);
                 disMatrix.append(dis2);
                 if(dis2 > disMax){
                     disMax = dis2;
@@ -510,6 +508,76 @@ qreal calVerToLeftXDis(QVector<QPointF> pList, const qreal H)
     return qrealPrecision(disMax, PRECISION);
 }
 
+/**
+ * @brief cal2PolygonMaxMinDiff  计算两多边形点到对应边最大值最小值的差
+ * @param pList1 第一个多变形点集
+ * @param pList2  第二个多边形点集
+ * @return
+ */
+qreal cal2PolygonMaxMinDiff(QVector<QPointF> pList1, QVector<QPointF> pList2){
+    qreal disMax = 0;
+    qreal disMin = LONG_MAX;
+    QVector<qreal> disMatrix;
+    int length1 = pList1.length();  // 获取多边形1点列表长度
+    int length2 = pList2.length();  // 获取多边形2点列表长度
+    QVector<qreal> xList1;
+    QVector<qreal> yList1;
+    QVector<qreal> xList2;
+    QVector<qreal> yList2;
+    foreach (QPointF point, pList1) {
+        xList1.append(point.rx());
+        yList1.append(point.ry());
+    }
+    foreach (QPointF point, pList2) {
+        xList2.append(point.rx());
+        yList2.append(point.ry());
+    }
+    int i = 0;
+    while(i<length1){
+        int j=0;
+        while(j<length2-1){
+            if((yList1[i] <= yList2[j]
+                && yList1[i] > yList2[j+1])
+                    || (yList1[i] <= yList2[j+1]
+                        && yList1[i] > yList2[j])){
+                qreal x1 = (xList2[j+1]-xList2[j])
+                        / (yList2[j+1]-yList2[j])
+                        * (yList1[i]-yList2[j])
+                        + xList2[j];
+                qreal dis1 = qAbs(x1 - xList1[i]);
+                dis1 = qrealPrecision(dis1, PRECISION);
+                disMatrix.append(dis1);
+                if(dis1 > disMax){
+                    disMax = dis1;
+                }
+                if(dis1 < disMin){
+                    disMin = dis1;
+                }
+            }
+            if((yList2[i] <= yList1[j]
+                && yList2[i] > yList1[j+1])
+                    || (yList2[i] <= yList1[j+1]
+                        && yList2[i] > yList1[j])){
+                qreal x2 = (xList1[j+1]-xList1[j])
+                        / (yList1[j+1]-yList1[j])
+                        * (yList2[i]-yList1[j])
+                        + xList1[j];
+                qreal dis2 = qAbs(x2 - xList2[i]);
+                dis2 = qrealPrecision(dis2, PRECISION);
+                disMatrix.append(dis2);
+                if(dis2 > disMax){
+                    disMax = dis2;
+                }
+                if(dis2 < disMin){
+                    disMin = dis2;
+                }
+            }
+            j++;
+        }
+        i++;
+    }
+    return qrealPrecision(disMax-disMin, PRECISION);
+}
 double calculatePolygonArea(QVector<QPointF> points){
     double area=0;
     if(points.length()==2){

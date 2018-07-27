@@ -37,10 +37,11 @@ SOURCES += \
     cad/nest.cpp \
     cad/project.cpp \
     cad/sheet.cpp \
-    cad/rectnestengine.cpp \
-    cad/packpointnestengine.cpp \
     cad/piece.cpp \
     cad/nestengine.cpp \
+    cad/rectnestengine.cpp \
+    cad/packpointnestengine.cpp \
+    cad/continuenestengine.cpp \
     common/common.cpp \
     common/painter.cpp \
     common/customdocktitlebar.cpp \
@@ -81,15 +82,17 @@ SOURCES += \
     configure/nestengineconfiguredialog.cpp \
     configure/nestengineconfigure.cpp \
 
+
 HEADERS += \
     cad/project.h \
     cad/sketch.h \
     cad/nest.h \
     cad/sheet.h \
-    cad/rectnestengine.h \
-    cad/packpointnestengine.h \
     cad/piece.h \
     cad/nestengine.h \
+    cad/rectnestengine.h \
+    cad/packpointnestengine.h \
+    cad/continuenestengine.h \
     common/debug.h \
     common/common.h \
     common/painter.h \
@@ -144,7 +147,7 @@ HEADERS += \
     configure/nestconfigure.h \
     configure/nestconfiguredialog.h \
     configure/nestengineconfiguredialog.h \
-    configure/nestengineconfigure.h \
+    configure/nestengineconfigure.h
 
 FORMS += \
     cad/sketch.ui \

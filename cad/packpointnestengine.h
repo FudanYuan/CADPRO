@@ -1,4 +1,4 @@
-#ifndef PACKPOINTNESTENGINE_H
+﻿#ifndef PACKPOINTNESTENGINE_H
 #define PACKPOINTNESTENGINE_H
 
 #include "nestengine.h"
@@ -76,8 +76,9 @@ public:
         QVector<int> coverdList;  // 覆盖列表
     };
 
-    PackPointNestEngine();
-    PackPointNestEngine(const QVector<Piece> pieceList, const QVector<Sheet> sheetList, qreal PPD, int RN=1);
+    explicit PackPointNestEngine(QObject *parent);
+    explicit PackPointNestEngine(QObject *parent, const QVector<Piece> pieceList, const QVector<Sheet> sheetList, qreal PPD, int RN=1);
+    explicit PackPointNestEngine(QObject *parent, const QVector<Piece> pieceList, const QVector<Sheet> sheetList, QVector<SameTypePiece> sameTypePieceList, qreal PPD, int RN=1);
     ~PackPointNestEngine();
 
     void initPackPoint(QVector<Sheet> sheetList, qreal PPD);  // 初始化排样点

@@ -1,4 +1,4 @@
-#include "rectnestengine.h"
+﻿#include "rectnestengine.h"
 
 /*
  * RectNestEngine: 矩形排版引擎
@@ -9,7 +9,6 @@ RectNestEngine::RectNestEngine()
 
 RectNestEngine::~RectNestEngine()
 {
-
 }
 
 void RectNestEngine::quickSort(QList<RectNestEngine::EmptyRectArea> &s, int l, int r)

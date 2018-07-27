@@ -47,6 +47,7 @@ bool pointOnPolygonBoundary(QVector<QPointF> pList, const QPointF &point);  // �
 qreal calVerToOppSideXDis(QVector<QPointF> pList);  // 计算多边形顶点到对边的水平距离，返回最大值
 qreal calVerToCrossMaxMinDiff(QVector<QPointF> pList, const qreal step, const qreal H, qreal &left);  // 计算各顶点到错开零件各边最大值与最小值的差
 qreal calVerToLeftXDis(QVector<QPointF> pList, const qreal H=0);  // 计算多边形各顶点到该多边形外包矩形最左边的水平距离
+qreal cal2PolygonMaxMinDiff(QVector<QPointF> pList1, QVector<QPointF> pList2);  // 计算两多边形点到对应边最大值最小值的差
 double calculatePolygonArea(QVector<QPointF> points);//多边形面积
 bool calculatePolygonDirection(QVector<QPointF> points);//多边形方向顺时针为true，逆时针为false
 QPointF calculatePolygonGravityCenter(QVector<QPointF> mPoints);//求多边形重心

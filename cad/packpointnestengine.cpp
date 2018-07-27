@@ -1,7 +1,7 @@
 ﻿#include "packpointnestengine.h"
 
-PackPointNestEngine::PackPointNestEngine() :
-    NestEngine(NULL),
+PackPointNestEngine::PackPointNestEngine(QObject *parent) :
+    NestEngine(parent),
     PPD(5),
     RN(4),
     minHeight(LONG_MAX)
@@ -9,8 +9,25 @@ PackPointNestEngine::PackPointNestEngine() :
     setNestEngineType(NestEngine::PackPointNest);
 }
 
-PackPointNestEngine::PackPointNestEngine(const QVector<Piece> pieceList, const QVector<Sheet> sheetList, qreal PPD, int RN) :
-    NestEngine(NULL, pieceList, sheetList),
+PackPointNestEngine::PackPointNestEngine(QObject *parent,
+                                         const QVector<Piece> pieceList,
+                                         const QVector<Sheet> sheetList, qreal PPD, int RN) :
+    NestEngine(parent, pieceList, sheetList),
+    minHeight(LONG_MAX)
+{
+    setNestEngineType(NestEngine::PackPointNest);
+    this->PPD = PPD;
+    this->RN = RN;
+    initPackPoint(sheetList, PPD);
+}
+
+PackPointNestEngine::PackPointNestEngine(QObject *parent,
+                                         const QVector<Piece> pieceList,
+                                         const QVector<Sheet> sheetList,
+                                         QVector<NestEngine::SameTypePiece> sameTypePieceList,
+                                         qreal PPD,
+                                         int RN) :
+    NestEngine(parent, pieceList, sheetList, sameTypePieceList),
     minHeight(LONG_MAX)
 {
     setNestEngineType(NestEngine::PackPointNest);
@@ -122,7 +139,7 @@ void PackPointNestEngine::updatePackPointOneSheet(int sheetID, Piece piece)
     //qDebug() << "更新排样点";
 
     // 获取该零件的最小包络矩形
-    QRectF minBoundingRect = piece.getMinBoundingRect();
+    QRectF minBoundingRect = piece.getBoundingRect();
     // 首先根据包络矩形，判断出排样点大致范围
     // 获取边界
     qreal minX, minY, maxX, maxY;
@@ -233,9 +250,6 @@ void PackPointNestEngine::packPieces(QVector<int> indexList)
         }
     }
     counter += nestedPieceIndexlist.length();
-//    qDebug() << "已排版：" << counter << ", "
-//             << "未排版：" << unnestedPieceIndexlist.length() << ", "
-//             << "共" << counter + unnestedPieceIndexlist.length();
 
     int remainNum = unnestedPieceIndexlist.length();  // 剩余个数
     // 如果没有剩余零件，则排版结束
@@ -276,7 +290,7 @@ bool PackPointNestEngine::packOnePiece(Piece piece, NestEngine::NestPiece &nestP
      * 2. 如果零件属于再排版，即在第一次排版中没有找到合适位置，
      *    那么可直接让其进入最后一张材料进行排版
      */
-    // 零件在排版，直接进入最后一张材料
+    // 零件已尝试过排版，直接进入最后一张材料
     if(nestPiece.sheetID != -1 && !nestPiece.nested){
         return packOnePieceOnSheet(piece, nestPiece.sheetID+1, nestPiece);
     }
@@ -322,7 +336,7 @@ bool PackPointNestEngine::packOnePieceOnSheet(Piece piece, int sheetID, NestEngi
         nestSheetPieceMap[sheetID].append(nestPiece.index);
 
         // 将该对象加入四叉树中
-        Object *obj = new Object(nestPiece.index, piece.getMinBoundingRect());
+        Object *obj = new Object(nestPiece.index, piece.getBoundingRect());
         QuadTreeNode<Object> *quadTree = quadTreeMap[sheetID];
         quadTree->insert(obj);
 #ifndef DEBUG
@@ -333,7 +347,7 @@ bool PackPointNestEngine::packOnePieceOnSheet(Piece piece, int sheetID, NestEngi
         }
 #endif
         qDebug() << "加入四叉树：ID："<< nestPiece.index;
-        qDebug() << "包络矩形：" << piece.getMinBoundingRect();
+        qDebug() << "包络矩形：" << piece.getBoundingRect();
         qDebug() << "排放位置: " << nestPiece.position;
         qDebug() << "旋转度数：" << nestPiece.alpha;
         qDebug() << "";
@@ -350,7 +364,7 @@ bool PackPointNestEngine::packOnePieceOnSheet(Piece piece, int sheetID, NestEngi
  */
 bool PackPointNestEngine::packOnePieceAttempt(Piece piece, int sheetID, NestEngine::NestPiece &nestPiece, QList<int> packPointList, int maxRotateAngle, int RN)
 {
-    qDebug() << "排放零件:#" << nestPiece.index;
+    qDebug() << "排放零件:#" << nestPiece.index << ", 材料类型: " << nestPiece.typeID;
     //qDebug() << "材料ID：" << sheetID;
     if(sheetID > sheetList.length()){  // 判断编号是否越界
         return false;
@@ -414,10 +428,10 @@ bool PackPointNestEngine::packOnePieceAttempt(Piece piece, int sheetID, NestEngi
                 pieceTmp.rotate(pos, alpha);  // 绕参考点旋转alpha度
             }
             qreal height = pieceTmp.getCenterPoint().ry();  // 得到零件形心
-            //qDebug() << "尝试位置: #" << j << " - " << pieceTmp.getMinBoundingRect().center();
+            //qDebug() << "尝试位置: #" << j << " - " << pieceTmp.getBoundingRect().center();
             //qDebug() << ", 旋转角度: " << alpha << "  ";
             //qDebug() << "alpha - " << int(alpha) << " = " << alpha - int(alpha);
-            //qDebug() << "零件的包络矩形：" << pieceTmp.getMinBoundingRect();
+            //qDebug() << "零件的包络矩形：" << pieceTmp.getBoundingRect();
             //qDebug() << "此时质心为：" << pieceTmp.getCenterPoint();
             //qDebug() << "最小高度为：" << height;
             //qDebug() << "minHeight: " << minHeight;
@@ -457,8 +471,8 @@ bool PackPointNestEngine::packOnePieceAttempt(Piece piece, int sheetID, NestEngi
                 //qDebug() << "最小高度 " << minHeight;
                 // 如果未设置上界，则进行设置
                 if(!upperFlag){
-                    qreal width = pieceTmp.getMinBoundingRect().width();
-                    qreal height = pieceTmp.getMinBoundingRect().height();
+                    qreal width = pieceTmp.getBoundingRect().width();
+                    qreal height = pieceTmp.getBoundingRect().height();
                     int deltaRows = (width + height) / PPD + 1;  // 有效点的行数
                     int row = j / columns;  // 获取行号
                     upperIndex = row * columns + columns * deltaRows;  // 设置上界
@@ -511,7 +525,7 @@ bool PackPointNestEngine::compact(int sheetID, NestEngine::NestPiece &nestPiece)
         } else{
             //qDebug() << "包含在材料内";
         }
-        //qDebug() << "零件 *" << nestPiece.index << " 位置： " << piece.getMinBoundingRect().center() << " 旋转：" << nestPiece.alpha;
+        //qDebug() << "零件 *" << nestPiece.index << " 位置： " << piece.getBoundingRect().center() << " 旋转：" << nestPiece.alpha;
         if(collidesWithOtherPieces(sheetID, piece)){
             // 往右移
             //qDebug() << "碰撞";
@@ -566,8 +580,8 @@ bool PackPointNestEngine::compact(int sheetID, NestEngine::NestPiece &nestPiece)
      * 将材料视图向右上方移动
      */
     if(minHeightOpt && pos.rx() >= 0.8 * sheetList[sheetID].width){
-        qreal maxX = pos.rx() + piece.getMinBoundingRect().width();  // 右移的最大值
-        qreal maxY = pos.ry() + piece.getMinBoundingRect().height();  // 上移的最大值
+        qreal maxX = pos.rx() + piece.getBoundingRect().width();  // 右移的最大值
+        qreal maxY = pos.ry() + piece.getBoundingRect().height();  // 上移的最大值
         while(pos.rx() <= maxX && pos.ry() <= maxY){
             bool moveFlag = false;  // 移动标志
             stepX = compactStep;  // 设置移动步长
@@ -660,9 +674,9 @@ bool PackPointNestEngine::compact(int sheetID, NestEngine::NestPiece &nestPiece)
 bool PackPointNestEngine::collidesWithOtherPieces(int sheetID, Piece piece)
 {
     // 判断两两零件是否碰撞, 优化方案：使用四叉树进行管理
-    //qDebug() << "与对象: " << piece.getMinBoundingRect() << " 在同一象限的对象：";
+    //qDebug() << "与对象: " << piece.getBoundingRect() << " 在同一象限的对象：";
     std::list<Object *> resObjects =
-            quadTreeMap[sheetID]->retrieve(new Object(piece.getMinBoundingRect()));
+            quadTreeMap[sheetID]->retrieve(new Object(piece.getBoundingRect()));
     for(auto &t:resObjects){
         //qDebug()<< t->id << ' ' << t->x<<' '<<t->y<<' '<<t->width<<' '<<t->height;
         int id = t->id;

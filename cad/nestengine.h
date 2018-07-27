@@ -104,14 +104,23 @@ public:
         int maxIndex;  // 最大序号
     };
 
+    /**
+     * @brief The nestException enum
+     * 排版异常
+     */
+    enum NestException{
+        NoSheetError,  // 无材料
+        SheetSizeError,  // 材料大小
+    };
 
     /**
      * @brief The NestEngineType enum
      * 引擎类型
      */
     enum NestEngineType{
+        MinRectNest,
         PackPointNest,
-        MinRectNest
+        ContinueNest
     };
 
     /**
@@ -135,20 +144,22 @@ public:
             pieceID(-1),
             nestType(SingleRow),
             alpha(0.0f),
-            step(0.0f),
+            xStep(0.0f),
             pOffset(QPointF()),
-            rOffset(QPointF())
+            rCOffset(QPointF()),
+            yStep(0.0f)
         {
 
         }
 
-        BestNestType(int id, NestType type, qreal a, qreal s, QPointF po, QPointF ro) :
+        BestNestType(int id, NestType type, qreal a, qreal x, QPointF po, QPointF ro, qreal y) :
             pieceID(id),
             nestType(type),
             alpha(a),
-            step(s),
+            xStep(x),
             pOffset(po),
-            rOffset(ro)
+            rCOffset(ro),
+            yStep(y)
         {
 
         }
@@ -156,9 +167,10 @@ public:
         int pieceID;  // 零件Id
         NestType nestType;  // 排版方式
         qreal alpha;  // 旋转角度
-        qreal step;  // 送料步距
+        qreal xStep;  // x方向送料步距
         QPointF pOffset;  // 针对双排方式的位置偏移
-        QPointF rOffset;  // 针对对头方式的旋转中心的偏移
+        QPointF rCOffset;  // 组合外包矩形中心点偏移
+        qreal yStep;  // y方向送料步距
     };
 
     /**
@@ -268,24 +280,10 @@ public:
     QVector<Piece> getSortedPieceListByArea(QVector<Piece> pieceList, QMap<int, int> &transformMap);  // 按面积将多边形列表排序, 并可得到映射关系
     void initQuadTreeMap(int sheetID);  // 初始化四叉树Map
     void initNestPieceList();  // 初始化排版零件列表，默认按面积降序排序
-    void initsameTypeNestPieceIndexListMap();  // 初始化同型体排版零件列表Map
+    void initsameTypeNestPieceIndexMap();  // 初始化同型体排版零件列表Map
     void initNestEngineConfig(Sheet::SheetType sheetType, NestEngineConfigure *proConfig);  // 初始化排版引擎配置
 
-    void singleRowNest(Piece piece, qreal &alpha, qreal &stepX, qreal &width, qreal &height);  // 最优单排
-    void doubleRowNest(Piece piece, const int n, qreal &alpha, qreal &stepX, QPointF &cOffset, qreal &width, qreal &height);  // 最优双排
-    void pairwiseDoubleRowNest(Piece piece, qreal &alpha, QPointF &cOffset, qreal &width, qreal &height);  // 最优对头双排
-
-    /**
-     * 4中单零件排样策略，返回材料利用率
-     */
-    qreal singleRowNestWithVerAlg(Piece piece, qreal &alpha, qreal &step);  // 单排，使用顶点算法
-    qreal doubleRowNestWithVerAlg(Piece piece, qreal &alpha, qreal &step, qreal &X, qreal &H, const qreal n=100);  // 双排，使用顶点算法
-    qreal oppositeSingleRowNestWithVerAlg(Piece piece, qreal &alpha, qreal &step, QPointF &offset);  // 对头单排，使用顶点算法
-    qreal oppositeDoubleRowNestWithVerAlg(Piece piece, qreal &alpha, qreal &step, QPointF &offset, qreal &H, const qreal n=100);  // 对头双排，使用顶点算法
-    NestType getBestNestType(const Piece &piece, qreal &alpha, qreal &step, QPointF &pOffset, QRectF &boundingRect);  // 获取零件的最佳排版方式
-
-    void packDiscontinuously();  // 排版算法
-    void packContinuously();  // 连续排版
+    void packAlg();  // 排版算法
 
     virtual void packPieces(QVector<int> indexList);  //  排版算法
     virtual bool packOnePiece(Piece piece, NestEngine::NestPiece &nestPiece);  // 排放单个零件
@@ -295,9 +293,12 @@ public:
 
 signals:
     void nestFinished(QVector<NestEngine::NestPiece> nestPieceList);  // 排版完成信号
+    void nestException(NestException e);  // 排版错误
     void nestInterrupted(int remainNum);  // 排版中断
     void autoRepeatedLastSheet(Sheet sheet);  // 添加材料
     void progress(int count);  // 排版进程
+    void nestDebug(QPointF, QPointF);  // 测试用
+    void nestDebugRemainRect(QRectF);  // 测试用
 
 public slots:
     void onNestStart();  // 开始排版
@@ -308,7 +309,7 @@ protected:
     QVector<SameTypePiece> sameTypePieceList;  // 同型体零件
     QVector<NestPiece> nestPieceList;  // 排版零件列表
     QMap<int, PieceIndexRange> nestPieceIndexRangeMap;  // 排版零件的index范围 Map<零件id，排样零件序号范围>
-    QMap<int, QVector<int>> sameTypeNestPieceIndexListMap;  // 同型体排版零件index列表 Map<同型体id, 零件序号列表>
+    QMap<int, QVector<int>> sameTypeNestPieceIndexMap;  // 同型体排版零件index列表 Map<同型体id, 零件序号列表>
     QVector<int> nestedPieceIndexlist;  // 已排零件Index列表
     QVector<int> unnestedPieceIndexlist;  // 未排零件Index列表
     QMap<int, QVector<int>> nestSheetPieceMap;  // 排样材料-零件索引 Map<材料id, 零件序号列表>
