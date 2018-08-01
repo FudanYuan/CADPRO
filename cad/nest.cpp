@@ -1062,10 +1062,10 @@ bool Nest::initNestEngine()
 #ifdef DEBUG
     NestEngineConfigure::WholeSheetNest wholeNest;
     config->setWholeSheetNest(wholeNest);
-    qDebug() <<"whole";
-    qDebug() << "混合方式"<<config->getWholeSheetNest().wholemixing;
-    qDebug() <<"排版"<<config->getWholeSheetNest().wholeorientation;
-    qDebug() <<"旋转角度"<<config->getWholeSheetNest().wholedegree;
+//    qDebug() <<"whole";
+//    qDebug() << "混合方式"<<config->getWholeSheetNest().wholemixing;
+//    qDebug() <<"排版"<<config->getWholeSheetNest().wholeorientation;
+//    qDebug() <<"旋转角度"<<config->getWholeSheetNest().wholedegree;
     return true;
 #endif
 
@@ -1894,8 +1894,6 @@ void Nest::onActionNestStart()
     {
         QMessageBox::warning(this, tr("警告"), tr("正在排版，请稍候或结束该进程！"));
         return;
-        //nestThread = NULL;
-        //delete(nestThread);
     }
     qDebug() << "开始排版";
     if(!projectActive){  // 如果活动项目为空，则返回
@@ -1945,32 +1943,14 @@ void Nest::onActionNestStart()
         delete nestEngine;
     }
     //nestEngine = new PackPointNestEngine(this, pieceList, sheetList, 10, 1);
-    nestEngine = new ContinueNestEngine(this, pieceList, sheetList);
-    // debug start
-
-    QVector<NestEngine::SameTypePiece> sameTypePieceList;
-    NestEngine::SameTypePiece sameType;
-    sameType.typeID = 0;
-    sameType.pieceIDList.append(0);
-    sameType.pieceIDList.append(1);
-    sameTypePieceList.append(sameType);
-    nestEngine->setSameTypePieceList(sameTypePieceList);
-    nestEngine->initsameTypeNestPieceIndexMap();
-
-    // debug end
+    nestEngine = new ContinueNestEngine(NULL, pieceList, sheetList);
     nestEngine->setCompactStep(5);
     nestEngine->setCompactAccuracy(1);
     nestEngine->setCutStep(300);
     nestEngine->setAutoRepeatLastSheet(true);
     NestEngineConfigure *proConfig = proNestEngineConfigMap[pName];
     nestEngine->initNestEngineConfig(proSheetInfo->sheetType, proConfig);  // 初始化排版配置
-
-    // 创建线程
-    nestThread = new QThread();
-    nestEngine->moveToThread(nestThread);  // 将排版引擎移至线程
-    connect(nestThread, &QThread::finished, nestThread, &QObject::deleteLater);
-    connect(nestThread, &QThread::finished, nestEngine, &QObject::deleteLater);
-    connect(nestThread, &QThread::finished, this, &Nest::onNestThreadFinished);
+    nestEngine->getAllBestNestTypes(nestEngine->getPieceList());
     connect(this, &Nest::nestStart, nestEngine, &NestEngine::onNestStart);
     connect(nestEngine, &NestEngine::progress, this, &Nest::onNestProgressChanged);
     connect(nestEngine, &NestEngine::nestFinished, this, &Nest::onNestFinished);
@@ -1978,6 +1958,23 @@ void Nest::onActionNestStart()
     connect(nestEngine, &NestEngine::autoRepeatedLastSheet, this, &Nest::onAutoRepeatedLastSheet);
     connect(nestEngine, &NestEngine::nestDebug, this, &Nest::onNestDebug);
     connect(nestEngine, &NestEngine::nestDebugRemainRect, this, &Nest::onNestDebugRemainRect);
+
+    // debug start
+    QVector<NestEngine::SameTypePiece> sameTypePieceList;
+    NestEngine::SameTypePiece sameType;
+    sameType.typeID = 0;
+    sameType.pieceIDList.append(0);
+    sameType.pieceIDList.append(1);
+    sameTypePieceList.append(sameType);
+    nestEngine->setSameTypePieceList(sameTypePieceList);
+    // debug end
+
+    // 创建线程
+    nestThread = new QThread();
+    nestEngine->moveToThread(nestThread);  // 将排版引擎移至线程
+    connect(nestThread, &QThread::finished, nestThread, &QObject::deleteLater);
+    connect(nestThread, &QThread::finished, nestEngine, &QObject::deleteLater);
+    connect(nestThread, &QThread::finished, this, &Nest::onNestThreadFinished);
     emit nestStart();  // 发送排版信号
     nestThread->start();
 }

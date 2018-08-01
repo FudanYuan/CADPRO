@@ -19,19 +19,6 @@ public:
     explicit ContinueNestEngine(QObject *parent, const QVector<Piece> pieceList, const QVector<Sheet> sheetList, QVector<SameTypePiece> sameTypePieceList);
     ~ContinueNestEngine();
 
-    void singleRowNest(Piece piece, qreal &alpha, qreal &stepX, qreal &width, qreal &height);  // 最优单排
-    void doubleRowNest(Piece piece, const int n, qreal &alpha, qreal &stepX, QPointF &cOffset, qreal &width, qreal &height);  // 最优双排
-    void pairwiseDoubleRowNest(Piece piece, qreal &alpha, QPointF &cOffset, qreal &width, qreal &height);  // 最优对头双排
-
-    /**
-     * 4中单零件排样策略，返回材料利用率
-     */
-    qreal singleRowNestWithVerAlg(Piece piece, qreal &alpha, qreal &step, const int maxRotateAngle=180, const qreal maxHeight=LONG_MAX);  // 单排，使用顶点算法
-    qreal doubleRowNestWithVerAlg(Piece piece, qreal &alpha, qreal &step, qreal &X, qreal &H, const qreal n=100, const int maxRotateAngle=180, const qreal maxHeight=LONG_MAX);  // 双排，使用顶点算法
-    qreal oppositeSingleRowNestWithVerAlg(Piece piece, qreal &alpha, qreal &step, QPointF &offset, const int maxRotateAngle=180, const qreal maxHeight=LONG_MAX);  // 对头单排，使用顶点算法
-    qreal oppositeDoubleRowNestWithVerAlg(Piece piece, qreal &alpha, qreal &step, QPointF &offset, qreal &H, const qreal n=100, const int maxRotateAngle=180, const qreal maxHeight=LONG_MAX);  // 对头双排，使用顶点算法
-    NestType getPieceBestNestType(const Piece &piece, qreal &alpha, qreal &xStep, QPointF &pOffset, QPointF &rCOffset, qreal &yStep, const int maxRotateAngle=180, const qreal maxHeight=LONG_MAX);  // 获取零件的最佳排版方式
-    void getAllBestNestTypes(QVector<Piece> pieceList);  // 获取所有零件最佳排样方式
     bool packPieceByLayoutRect(const int sheetID,
                                const QRectF& layoutRect,
                                const int pieceType,
