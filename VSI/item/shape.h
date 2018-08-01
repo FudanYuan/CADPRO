@@ -70,7 +70,7 @@ public:
     bool getOverFlag() const;  // 获取结束标识
 
     void setSelected(bool selected);  // 设置选中
-    bool isSelected() const;  // 是否选中
+    bool isSelectedCus() const;  // 是否选中
 
     void setShowNode(bool showNode);  // 设置显示端点
     bool isShowNode() const;  // 是否显示端点

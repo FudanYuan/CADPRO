@@ -11,7 +11,7 @@ Shape::Shape() :
     moveable(false),
     selectable(false),
     overFlag(false),
-    selected(true),  // debug时为true
+    selected(false),  // debug时为true
     showNode(false),
     editable(false),
     editOverFlag(false),
@@ -130,7 +130,7 @@ void Shape::setSelected(bool selected)
     this->selected = selected;
 }
 
-bool Shape::isSelected() const
+bool Shape::isSelectedCus() const
 {
     return this->selected;
 }

@@ -215,6 +215,16 @@ qreal Polyline::getElevation()
     return this->elevation;
 }
 
+void Polyline::setAlpha(const qreal alpha)
+{
+    this->alpha = alpha;
+}
+
+qreal Polyline::getAlpha() const
+{
+    return this->alpha;
+}
+
 QRectF Polyline::getBoundingRect()
 {
     qreal top = LONG_MAX;
@@ -249,7 +259,7 @@ Polyline *Polyline::copy()
 void Polyline::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(selectable){
-        selected = true;
+        selected = !selected;
         qDebug() << "type: " << getShapeType();
         qDebug() << "id: " << getShapeId();
         setCursor(Qt::ClosedHandCursor);
@@ -319,6 +329,7 @@ void Polyline::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 
 void Polyline::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
+    return;
     if(selectable){
         qDebug() << "Polyline::hoverMoveEvent";
         setCursor(Qt::PointingHandCursor);

@@ -446,6 +446,9 @@ qreal Piece::compactToOnHD(Piece p, qreal compactStep, qreal compactAccuracy)
         QPointF posTemp = pos;
         QPointF forwardPos(posTemp.rx()-stepX, posTemp.ry());  // 水平方向移动
         //qDebug() << "move to" << forwardPos;
+        if(forwardPos.rx() < p.getPosition().rx()){
+            break;
+        }
         moveTo(forwardPos);  // 将零件移至新位置
         if(collidesWithPiece(p)){
             // 往右移

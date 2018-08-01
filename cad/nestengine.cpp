@@ -313,9 +313,9 @@ void NestEngine::initNestPieceList()
         QMap<int, int> transformMap;
         getSortedPieceListByArea(pieceList, transformMap);
 
-        foreach (int i, transformMap.keys()) {
-            qDebug() << "old i=" << i << ", now i=" << transformMap[i];
-        }
+//        foreach (int i, transformMap.keys()) {
+//            qDebug() << "old i=" << i << ", now i=" << transformMap[i];
+//        }
 
         int sameLen = sameTypePieceList.length();
         if(sameLen != 0){
@@ -414,14 +414,14 @@ void NestEngine::initsameTypeNestPieceIndexMap()
         }
     }
 
-    qDebug() << "result";
-    foreach (int index, sameTypeNestPieceIndexMap.keys()) {
-        qDebug() << "# " << index << " => [";
-        foreach (int id, sameTypeNestPieceIndexMap[index]) {
-            qDebug() << id << "  ";
-        }
-        qDebug() << "]";
-    }
+//    qDebug() << "result";
+//    foreach (int index, sameTypeNestPieceIndexMap.keys()) {
+//        qDebug() << "# " << index << " => [";
+//        foreach (int id, sameTypeNestPieceIndexMap[index]) {
+//            qDebug() << id << "  ";
+//        }
+//        qDebug() << "]";
+//    }
 }
 
 void NestEngine::initNestEngineConfig(Sheet::SheetType sheetType, NestEngineConfigure *proConfig)
@@ -469,11 +469,13 @@ void NestEngine::initNestEngineConfig(Sheet::SheetType sheetType, NestEngineConf
 
 void NestEngine::packAlg()
 {
-    QVector<int> indexList;
-    for(int j=0; j<nestPieceList.length(); j++){
-        indexList.append(nestPieceList[j].index);
+    if(!unnestedPieceIndexlist.isEmpty()){
+        qDebug() << "unnest index is not null!";
     }
-    packPieces(indexList);
+    for(int j=0; j<nestPieceList.length(); j++){
+        unnestedPieceIndexlist.append(nestPieceList[j].index);
+    }
+    packPieces(unnestedPieceIndexlist);
     return;
 
     // 以下内容可能要删除

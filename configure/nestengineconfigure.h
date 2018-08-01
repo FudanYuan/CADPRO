@@ -21,7 +21,7 @@ public:
     // 针对于整体材料的配置
     struct WholeSheetNest{
         WholeSheetNest() :
-            wholemixing(NestEngine::TailPieceMixing),
+            wholemixing(NestEngine::TailPieceMixing|NestEngine::TailLineMixing),  //
             wholeorientation(NestEngine::VerticalNest),
             wholedegree(180)
         {

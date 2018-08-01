@@ -42,6 +42,9 @@ public:
     void setElevation(qreal elevation);  // 设置高程
     qreal getElevation();  // 获取高程
 
+    void setAlpha(const qreal alpha);  //设置旋转角度
+    qreal getAlpha() const;  // 获取旋转角度
+
     QRectF getBoundingRect();  // 获取包围矩形
 
     Polyline *copy();

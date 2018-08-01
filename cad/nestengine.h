@@ -314,6 +314,7 @@ protected:
     QVector<int> unnestedPieceIndexlist;  // 未排零件Index列表
     QMap<int, QVector<int>> nestSheetPieceMap;  // 排样材料-零件索引 Map<材料id, 零件序号列表>
     QMap<int, BestNestType> pieceBestNestTypeMap;   // 记录零件-最佳排版方式 Map<零件id, 最佳排版方式>
+    //QMap<int, QMap<int, QList<int>>> sheetRowPieceMap;  // 记录材料-行-零件 Map<材料id, Map<行id, 零件id列表>>
     QMap<int, int> pieceMaxPackPointMap;  // 记录零件-最大排样点序号 Map<零件id, 排样点id>   /////迁移至packPointNestEngine
     QMap<int, QuadTreeNode<Object>*> quadTreeMap;  // 四叉树 Map<材料id，四叉树>
     bool autoRepeatLastSheet;  // 自动重复使用最后一张材料

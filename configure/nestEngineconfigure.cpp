@@ -15,7 +15,6 @@ QMap<int,QList<QList<int>>> NestEngineConfigure::LoadConfigureXml()
 {
     QFile file(NESTENGINECONFIGURE_XML);
     QMap<int,QList<QList<int>>> readcontent ;
-    QList<int> configureList;
     if (!file.open(QFile::ReadOnly | QFile::Text)) {
         qDebug()<<"Read NESTENGINECONFIGURE_XML Wrong ";
         return readcontent;

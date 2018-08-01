@@ -750,7 +750,7 @@ void Nest::updatePieceView()
     int index = proPieceInfoMap[pName]->curPieceID;
     if(index != -1){  // 如果切割件列表为空时，文本框中默认为1
         int count = proPieceInfoMap[pName]->pieceList[index]->getCount();
-        qDebug() << "保存个数为: " << count;
+        //qDebug() << "保存个数为: " << count;
         lineEdit->setText(QString::number(count));
     } else{
         lineEdit->setText("1");
@@ -1894,6 +1894,8 @@ void Nest::onActionNestStart()
     {
         QMessageBox::warning(this, tr("警告"), tr("正在排版，请稍候或结束该进程！"));
         return;
+        //nestThread = NULL;
+        //delete(nestThread);
     }
     qDebug() << "开始排版";
     if(!projectActive){  // 如果活动项目为空，则返回
@@ -1902,10 +1904,10 @@ void Nest::onActionNestStart()
     }
 
     QString pName = projectActive->getName();
-    qDebug() << "1: " << proPieceInfoMap.contains(pName);
-    qDebug() << "2: " << proSheetInfoMap.contains(pName);
-    qDebug() << "3: " << proSceneListMap.contains(pName);
-    qDebug() << "4: " << proNestEngineConfigMap.contains(pName);
+    //qDebug() << "1: " << proPieceInfoMap.contains(pName);
+    //qDebug() << "2: " << proSheetInfoMap.contains(pName);
+    //qDebug() << "3: " << proSceneListMap.contains(pName);
+    //qDebug() << "4: " << proNestEngineConfigMap.contains(pName);
     if(!proPieceInfoMap.contains(pName)
             || !proSheetInfoMap.contains(pName)
             || !proSceneListMap.contains(pName)
@@ -2010,7 +2012,7 @@ void Nest::onActionNestSideLeft()
 void Nest::onActionNestSideRight()
 {
     qDebug() << "右靠边";
-    // QVector<QPointF> points;
+     QVector<QPointF> points;
  //    points.append(QPointF(0,0));
  //    points.append(QPointF(0,100));
  //    points.append(QPointF(50,150));
@@ -2020,16 +2022,16 @@ void Nest::onActionNestSideRight()
  //    points.append(QPointF(0,0));
 
 
- //    points.append(QPointF(100,0));
- //    points.append(QPointF(100,100));
- //    points.append(QPointF(0,100));
- //    points.append(QPointF(0,200));
- //    points.append(QPointF(100,200));
- //    points.append(QPointF(175,175));
- //    points.append(QPointF(175,100));
- //    points.append(QPointF(200,100));
- //    points.append(QPointF(200,0));
- //    points.append(QPointF(100,0));
+     points.append(QPointF(100,0));
+     points.append(QPointF(100,100));
+     points.append(QPointF(0,100));
+     points.append(QPointF(0,200));
+     points.append(QPointF(100,200));
+     points.append(QPointF(175,175));
+     points.append(QPointF(175,100));
+     points.append(QPointF(200,100));
+     points.append(QPointF(200,0));
+     points.append(QPointF(100,0));
 
  //    points.append(QPointF(0,0));
  //    points.append(QPointF(0,100));
@@ -2038,7 +2040,7 @@ void Nest::onActionNestSideRight()
  //    points.append(QPointF(0,0));
  //    Piece piece(points);
  //    piece.rotate(piece.getBoundingRect().center(), piece.getAngle());
-
+/*
     QVector<NestEngine::SameTypePiece> sameTypePieceList;
     NestEngine::SameTypePiece sameType;
     sameType.typeID = 0;
@@ -2057,8 +2059,8 @@ void Nest::onActionNestSideRight()
     ContinueNestEngine *nestEngine = new ContinueNestEngine(this);
     nestEngine->setSameTypePieceList(sameTypePieceList);
     nestEngine->initsameTypeNestPieceIndexMap();
-
-#if 0
+*/
+#if 1
      QString name = projectActive->getName();
      Piece piece = *proPieceInfoMap[name]->pieceList.at(1);
 
@@ -2159,16 +2161,34 @@ void Nest::onActionNestSideRight()
 void Nest::onActionNestSideTop()
 {
     qDebug() << "顶靠边";
+    foreach(Polyline* p, nestScene->getPolylineList()){
+        p->setSelectable(true);
+    }
 }
 
 void Nest::onActionNestSideBottom()
 {
     qDebug() << "底靠边";
+    foreach(Polyline* p, nestScene->getPolylineList()){
+        p->setSelectable(false);
+    }
+    nestScene->setMoveable(true);
 }
 
 void Nest::onActionNestDirectionHorizontal()
 {
     qDebug() << "横向";
+    bool ok;
+    int alpha = QInputDialog::getInt(this, tr("设置旋转角度"),
+                                  tr("请旋转角度:"), 1, -180, 180, 1,
+                                  &ok);
+    if(ok){
+        foreach(Polyline* p, nestScene->getPolylineList()){
+            if(p->isSelectedCus()){
+                p->setAlpha(alpha);
+            }
+        }
+    }
 }
 
 void Nest::onActionNestSideDirectionVertical()
@@ -3056,7 +3076,7 @@ void Nest::onPieceNumChanged(const QString &num)
         tree_project_scene_active_item = tree_project_active_item->child(0);
     }
 
-    qDebug() << pName << " " << tree_project_scene_active_item->text(0);
+    //qDebug() << pName << " " << tree_project_scene_active_item->text(0);
     if(tree_project_scene_active_item->text(0) == tr("切割件列表-空")){
         QMessageBox::warning(this, tr("错误"), tr("当前项目切割件列表为空！"));
         return;
@@ -3065,12 +3085,12 @@ void Nest::onPieceNumChanged(const QString &num)
     int n = num.toInt();
     if(proPieceInfoMap.contains(pName)){
         proPieceInfoMap[pName]->curPieceID = index;
-        qDebug() << proPieceInfoMap[pName]->pieceList.length();
+        //qDebug() << proPieceInfoMap[pName]->pieceList.length();
         proPieceInfoMap[pName]->pieceList[index]->setCount(n);
-        qDebug() << proPieceInfoMap[pName]->pieceList[index]->getCount();
+        //qDebug() << proPieceInfoMap[pName]->pieceList[index]->getCount();
     }
 
-    qDebug() << index << " " << n << " " << pName;
+    //qDebug() << index << " " << n << " " << pName;
 }
 
 void Nest::onDockNestSizeChanged()
