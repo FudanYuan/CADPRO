@@ -23,7 +23,7 @@ public:
         WholeSheetNest() :
             wholemixing(NestEngine::TailPieceMixing|NestEngine::TailLineMixing),  //
             wholeorientation(NestEngine::VerticalNest),
-            wholedegree(180)
+            wholedegree(0)
         {
 
         }

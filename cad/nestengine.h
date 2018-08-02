@@ -174,6 +174,62 @@ public:
     };
 
     /**
+     * @brief The PairPieceStatus struct
+     * 组合零件状态
+     */
+    struct PairPieceStatus
+    {
+        PairPieceStatus():
+            pos1(QPointF()),
+            pos2(QPointF()),
+            pieceWidth(0.0f),
+            pieceHeight(0.0f),
+            alpha1(0.0f),
+            alpha2(0.0f),
+            xStep(0.0f),
+            yStep(0.0f),
+            pairCenter(QPointF()),
+            pairWidth(0.0f),
+            pairHeight(0.0f)
+        {
+
+        }
+
+        PairPieceStatus(QPointF p1, QPointF p2,
+                        qreal piW, qreal piH,
+                        int a1, int a2,
+                        qreal x, qreal y,
+                        QPointF c,
+                        qreal paW, qreal paH) :
+            pos1(p1),
+            pos2(p2),
+            pieceWidth(piW),
+            pieceHeight(piH),
+            alpha1(a1),
+            alpha2(a2),
+            xStep(x),
+            yStep(y),
+            pairCenter(c),
+            pairWidth(paW),
+            pairHeight(paH)
+        {
+
+        }
+
+        QPointF pos1;  // 零件1的位置
+        QPointF pos2;  // 零件2的位置
+        qreal pieceWidth;  // 单个零件的宽
+        qreal pieceHeight;  // 单个零件的高
+        qreal alpha1;  // 零件1旋转角度
+        qreal alpha2;  // 零件2旋转角度
+        qreal xStep;  // 送料x步距
+        qreal yStep;  // 送料y步距
+        QPointF pairCenter;  // 组合零件的中心
+        qreal pairWidth;  // 组合零件的宽
+        qreal pairHeight;  // 组合零件的高
+    };
+
+    /**
      * @brief The NestMixingType enum
      * 排版混合类型
      */

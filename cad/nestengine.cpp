@@ -221,7 +221,6 @@ qreal NestEngine::getCutStep()
 
 void NestEngine::setMaxRotateAngle(int angle)
 {
-    qDebug() << "angle: " << angle;
     maxRotateAngle = angle;
     if(maxRotateAngle != 0){
         rotatable = true;
@@ -436,7 +435,7 @@ void NestEngine::initNestEngineConfig(Sheet::SheetType sheetType, NestEngineConf
         setNestEngineStrategys(NestEngine::SizeDown);  // 设置排版策略
         setNestOrientations(wholeSheetNest.wholeorientation);  // 设置排版方向
         setNestMixingTypes(wholeSheetNest.wholemixing);  // 排版混合方式
-        setNestAdaptiveSpacingTypes(NestEngine::HorizontalAdaptiveSpacing);  // 默认横向自适应
+        //setNestAdaptiveSpacingTypes(NestEngine::HorizontalAdaptiveSpacing);  // 默认横向自适应
         qDebug() <<"whole";
         qDebug() << "混合方式"<<wholeSheetNest.wholemixing << "--" << mixingTyes;
         qDebug() <<"排版"<<wholeSheetNest.wholeorientation << "--" << orientations;
@@ -460,7 +459,7 @@ void NestEngine::initNestEngineConfig(Sheet::SheetType sheetType, NestEngineConf
         setNestEngineStrategys(NestEngine::SizeDown);  // 设置排版策略
         setNestOrientations(packageSheetNest.packageorientation);  // 设置排版方向
         setNestMixingTypes(packageSheetNest.packagemixing);  // 排版混合方式
-        setNestAdaptiveSpacingTypes(NestEngine::HorizontalAdaptiveSpacing);  // 默认横向自适应
+        //setNestAdaptiveSpacingTypes(NestEngine::HorizontalAdaptiveSpacing);  // 默认横向自适应
         qDebug() <<"package";
         qDebug() << "混合方式"<<packageSheetNest.packagemixing;
         qDebug() <<"排版"<<packageSheetNest.packageorientation;
@@ -841,7 +840,7 @@ NestEngine::NestType NestEngine::getPieceBestNestType(const Piece &piece, qreal 
     qreal a, s, x, h;
     QPointF o;
 
-#if 0
+#if 1
     qreal rate1 = singleRowNestWithVerAlg(piece, a, s, maxRotateAngle, maxHeight);  // 普通单排方式
     if(rate1 > rateMax){
         rateMax = rate1;
@@ -856,9 +855,7 @@ NestEngine::NestType NestEngine::getPieceBestNestType(const Piece &piece, qreal 
         p.rotate(p.getPosition(), alpha+90);  // 旋转
         yStep = calVerToOppSideXDis(p.getPointsList());
     }
-
-//    rCOffset = QPointF((2*piece.getPosition().rx()+pOffset.rx())/2, (2*piece.getPosition().ry()+pOffset.ry())/2);
-//    return type;
+#endif
 
     qreal rate2 = doubleRowNestWithVerAlg(piece, a, s, x, h, 100, maxRotateAngle, maxHeight);  // 普通双排方式
     if(rate2 > rateMax){
@@ -880,7 +877,8 @@ NestEngine::NestType NestEngine::getPieceBestNestType(const Piece &piece, qreal 
         qreal d2 = calVerToCrossMaxMinDiff(p.getPointsList(), offset, x, moveLeft);
         yStep = d1 > d2 ? d1 : d2;  // 取二者最大值
     }
-#endif
+
+#if 0
     qreal rate3 = oppositeSingleRowNestWithVerAlg(piece, a, s, o, maxRotateAngle, maxHeight); // 对头单排方式
     if(rate3 > rateMax){
         rateMax = rate3;
@@ -896,7 +894,7 @@ NestEngine::NestType NestEngine::getPieceBestNestType(const Piece &piece, qreal 
         p.rotate(p.getPosition(), alpha+90);  // 旋转
         yStep = calVerToOppSideXDis(p.getPointsList());
     }
-
+#endif
     qreal rate4 = oppositeDoubleRowNestWithVerAlg(piece, a, s, o, h, 100, maxRotateAngle, maxHeight);  // 对头双排方式
     if(rate4 > rateMax){
         rateMax = rate4;
