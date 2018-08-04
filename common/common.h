@@ -44,6 +44,10 @@ bool boundingRectSeperate(const QRectF rect1, const QRectF rect2);  // 判断两
 bool boundingRectContain(const QRectF rect1, const QRectF rect2);  // 判断两矩形是否包含，rect1包含rect2
 bool pointContainsInPolygon(QVector<QPointF> pList, const QPointF &point);  // 多边形包含某点
 bool pointOnPolygonBoundary(QVector<QPointF> pList, const QPointF &point);  // 点在多边形边上
+bool pointContainsInRect(const QRectF &rect, const QPointF &point);  // 判断点是否在矩形内
+qreal cross(QPointF &p1, QPointF &p2, QPointF &p3);  // 计算叉积
+bool getLineIntersection(const QLineF &l1, const QLineF &l2, QPointF &intersection);  // 计算两直线交点
+bool lineIntersectWithPolygon(QVector<QPointF> pList, const QLineF &line, QList<QPointF> &intersections);  // 求直线与多边形的交点坐标
 qreal calVerToOppSideXDis(QVector<QPointF> pList);  // 计算多边形顶点到对边的水平距离，返回最大值
 qreal calVerToCrossMaxMinDiff(QVector<QPointF> pList, const qreal step, const qreal H, qreal &left);  // 计算各顶点到错开零件各边最大值与最小值的差
 qreal calVerToLeftXDis(QVector<QPointF> pList, const qreal H=0);  // 计算多边形各顶点到该多边形外包矩形最左边的水平距离

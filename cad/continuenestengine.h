@@ -25,6 +25,7 @@ public:
     explicit ContinueNestEngine(QObject *parent, const QVector<Piece> pieceList, const QVector<Sheet> sheetList, QVector<SameTypePiece> sameTypePieceList);
     ~ContinueNestEngine();
 
+    PairPieceStatus initPairPieceStatus(const QRectF &layoutRect, Piece &piece, const BestNestType &bestNestType);  // 初始化状态
     bool packPieceByLayoutRect(const int sheetID,
                                const QRectF& layoutRect,
                                const int pieceType,
@@ -39,8 +40,7 @@ public:
                                QList<int> &nestedList, QList<int> &unnestedList,
                                const RectTypes rectType, bool wholeSheetFlag,
                                QRectF &layoutRect1,
-                               QRectF &layoutRect2);  // 按行排放零件
-    PairPieceStatus initPairPieceStatus(const QRectF &layoutRect, Piece &piece, const BestNestType &bestNestType);  // 初始化状态
+                               QRectF &layoutRect2);  // 按零件矩形排放零件
     void packPieces(QVector<int> indexList) Q_DECL_OVERRIDE;  // 排版算法
     bool packOnePiece(Piece piece, NestEngine::NestPiece &nestPiece) Q_DECL_OVERRIDE;  // 排放单个零件
     bool packOnePieceOnSheet(Piece piece, int sheetID, NestEngine::NestPiece &nestPiece) Q_DECL_OVERRIDE;  // 在给定材料上排放单个零件

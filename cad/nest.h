@@ -332,8 +332,10 @@ public slots:
     void onAutoRepeatedLastSheet(Sheet sheet);  // 响应排版自动重复了最后一张材料
     void onNestThreadFinished();
 
-    void onNestDebug(QPointF p1, QPointF p2);
-    void onNestDebugRemainRect(QRectF rect);
+    void onNestPieceUpdate(NestEngine::NestPiece nestPiece);
+    void onNestDebug(int sheetID, QPointF p1, QPointF p2);
+    void onNestDebugRemainRect(int sheetID, QRectF rect);
+    void onNestDebugLine(int sheetID, QLineF line);
 protected:
     void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;

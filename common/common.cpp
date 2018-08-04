@@ -282,6 +282,110 @@ bool pointOnPolygonBoundary(QVector<QPointF> pList, const QPointF &point)
     return false;
 }
 
+bool pointContainsInRect(const QRectF &rect, const QPointF &point)
+{
+    QVector<QPointF> pList;
+    pList.append(rect.topLeft());
+    pList.append(rect.topRight());
+    pList.append(rect.bottomRight());
+    pList.append(rect.bottomLeft());
+
+    return pointContainsInPolygon(pList, point) || pointOnPolygonBoundary(pList, point);
+}
+
+qreal cross(QPointF &p1, QPointF &p2, QPointF &p3){
+    qreal ret = (p2.rx() - p1.rx()) * (p3.ry() - p1.ry())
+            - (p3.rx() - p1.rx()) * (p2.ry() - p1.ry());
+    return ret;
+}
+
+bool getLineIntersection(const QLineF &l1, const QLineF &l2, QPointF &intersection)
+{
+    QPointF p0 = l1.p1();
+    QPointF p1 = l1.p2();
+    QPointF p2 = l2.p1();
+    QPointF p3 = l2.p2();
+    qreal p0_x = p0.rx();
+    qreal p0_y = p0.ry();
+    qreal p1_x = p1.rx();
+    qreal p1_y = p1.ry();
+    qreal p2_x = p2.rx();
+    qreal p2_y = p2.ry();
+    qreal p3_x = p3.rx();
+    qreal p3_y = p3.ry();
+    qreal s02_x, s02_y, s10_x, s10_y, s32_x, s32_y, s_numer, t_numer, denom, t;
+    s10_x = p1_x - p0_x;
+    s10_y = p1_y - p0_y;
+    s32_x = p3_x - p2_x;
+    s32_y = p3_y - p2_y;
+
+    denom = s10_x * s32_y - s32_x * s10_y;
+    if (denom == 0)//平行或共线
+        return false; // Collinear
+
+    bool denomPositive = denom > 0;
+
+    s02_x = p0_x - p2_x;
+    s02_y = p0_y - p2_y;
+    s_numer = s10_x * s02_y - s10_y * s02_x;
+    if ((s_numer < 0) == denomPositive)//参数是大于等于0且小于等于1的，分子分母必须同号且分子小于等于分母
+        return false; // No collision
+
+    t_numer = s32_x * s02_y - s32_y * s02_x;
+    if ((t_numer < 0) == denomPositive)
+        return false; // No collision
+
+    if (((s_numer > denom) == denomPositive) || ((t_numer > denom) == denomPositive))
+        return false; // No collision
+
+    // Collision detected
+    t = t_numer / denom;
+    qreal px = p0_x + (t * s10_x);
+    qreal py = p0_y + (t * s10_y);
+    intersection.setX(px);
+    intersection.setY(py);
+    return 1;
+}
+
+bool lineIntersectWithPolygon(QVector<QPointF> pList, const QLineF &line, QList<QPointF> &intersections)
+{
+    // 首先，判断直线与多边形是否分离，即快速排斥
+    QRectF boundRect1 = calculatePolygonBoundingRect(pList);   // 计算多边形的外包矩形
+    if(line.x1() == line.x2()){  // 直线竖直
+        qreal xMin = qrealPrecision(boundRect1.left(), PRECISION);
+        qreal xMax = qrealPrecision(boundRect1.left(), PRECISION);
+        qreal x = qrealPrecision(line.x1(), PRECISION);
+        if(xMin > x || xMax < x){
+            return false;
+        }
+    }
+
+    if(line.y1() == line.y2()){  // 直线水平
+        qreal yMin = qrealPrecision(boundRect1.top(), PRECISION);
+        qreal yMax = qrealPrecision(boundRect1.bottom(), PRECISION);
+        qreal y = qrealPrecision(line.x1(), PRECISION);
+        if(yMin > y || yMax < y){
+            return false;
+        }
+    }
+    // 然后，进行跨立实验，求出交点坐标
+    int len = pList.length();
+    if(pList[0] == pList[len-1]){  // 如果首尾相等时，删除最后一个点
+        pList.removeAt(len-1);
+        len = len-1;
+    }
+    for (int i = 0; i < len; i++) {
+        QPointF p1 = pList[i];
+        QPointF p2 = pList[(i+1)%len];
+        QLineF line0(p1, p2);
+        QPointF intersection;  // 交点坐标
+        if(getLineIntersection(line0, line, intersection)){
+            intersections.append(intersection);
+        }
+    }
+    return true;
+}
+
 /**
  * @brief calVerToOppSideXDis  计算多边形各顶点到其对边的最大距离，用来求送料步距
  * @param pList  点的集合
@@ -578,6 +682,7 @@ qreal cal2PolygonMaxMinDiff(QVector<QPointF> pList1, QVector<QPointF> pList2){
     }
     return qrealPrecision(disMax-disMin, PRECISION);
 }
+
 double calculatePolygonArea(QVector<QPointF> points){
     double area=0;
     if(points.length()==2){

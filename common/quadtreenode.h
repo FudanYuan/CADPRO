@@ -1,4 +1,4 @@
-#ifndef QUADTREENODE_H
+﻿#ifndef QUADTREENODE_H
 #define QUADTREENODE_H
 
 #include <list>
@@ -482,6 +482,7 @@ public:
         }
         return lineList;
     }
+
 private:
     // 分割函数，如果象限内存储的物体数量超过了MAX_OBJECTS，则对这个节点进行划分
     void split(){

@@ -128,6 +128,7 @@ public:
      * 排版方式
      */
     enum NestType{
+        NoNestType,  // 无
         SingleRow,  // 单排,默认为单排
         DoubleRow,  // 双排
         OppositeSingleRow,  // 对头单排
@@ -190,7 +191,8 @@ public:
             yStep(0.0f),
             pairCenter(QPointF()),
             pairWidth(0.0f),
-            pairHeight(0.0f)
+            pairHeight(0.0f),
+            errorFlag(false)
         {
 
         }
@@ -227,6 +229,7 @@ public:
         QPointF pairCenter;  // 组合零件的中心
         qreal pairWidth;  // 组合零件的宽
         qreal pairHeight;  // 组合零件的高
+        bool errorFlag;  // 状态是否错误
     };
 
     /**
@@ -343,6 +346,7 @@ public:
     void doubleRowNest(Piece piece, const int n, qreal &alpha, qreal &stepX, QPointF &cOffset, qreal &width, qreal &height);  // 最优双排
     void pairwiseDoubleRowNest(Piece piece, qreal &alpha, QPointF &cOffset, qreal &width, qreal &height);  // 最优对头双排
 
+    qreal calRealBestXStepForOpp(const Piece &piece, const qreal alpha, const QPointF &offset) const;  // 对对头排版计算真实的送料步距
     /**
      * 4中单零件排样策略，返回材料利用率
      */
@@ -362,13 +366,15 @@ public:
     virtual bool collidesWithOtherPieces(int sheetID, Piece piece);  // 判断该零件是否与其他零件重叠
 
 signals:
+    void nestPieceUpdate(NestEngine::NestPiece nestPiece);  // 排版零件更新
     void nestFinished(QVector<NestEngine::NestPiece> nestPieceList);  // 排版完成信号
     void nestException(NestException e);  // 排版错误
     void nestInterrupted(int remainNum);  // 排版中断
     void autoRepeatedLastSheet(Sheet sheet);  // 添加材料
     void progress(int count);  // 排版进程
-    void nestDebug(QPointF, QPointF);  // 测试用
-    void nestDebugRemainRect(QRectF);  // 测试用
+    void nestDebug(int, QPointF, QPointF);  // 测试用
+    void nestDebugLine(int, QLineF);  // 测试用
+    void nestDebugRemainRect(int, QRectF);  // 测试用
 
 public slots:
     void onNestStart();  // 开始排版

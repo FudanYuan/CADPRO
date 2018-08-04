@@ -623,6 +623,24 @@ void NestEngine::pairwiseDoubleRowNest(Piece piece, qreal &alpha, QPointF &cOffs
     qDebug() << "min面积: " << minArea << ", alpha: " << alpha << ", cOffset: " << cOffset;
 }
 
+qreal NestEngine::calRealBestXStepForOpp(const Piece &piece, const qreal alpha, const QPointF &offset) const
+{
+    Piece p1 = piece;
+    p1.moveTo(QPointF(0, 0));
+    p1.rotate(p1.getPosition(), alpha);
+
+    Piece p2 = p1;
+    p2.rotate(p1.getPosition()+offset, 180);
+
+    QVector<QPointF> pList1 = p1.getPointsList();  // 零件1的点集
+    QVector<QPointF> pList2 = p2.getPointsList();  // 零件2的点集
+
+    qreal d1 = calVerToOppSideXDis(pList1);  // 直接计算步距
+    qreal d2 = cal2PolygonMaxMinDiff(pList1, pList2);  // 计算两多边形最大值与最小值的差
+    qreal step = d1 > d2 ? d1 : d2;  // 取较大值作为最佳送料步距
+    return step;
+}
+
 /**
  * @brief NestEngine::singleRowNestWithVerAlg 使用顶点算法的单排算法
  * @param piece  待排零件
@@ -635,6 +653,8 @@ void NestEngine::pairwiseDoubleRowNest(Piece piece, qreal &alpha, QPointF &cOffs
 qreal NestEngine::singleRowNestWithVerAlg(const Piece &piece, qreal &alpha, qreal &step,
                                           const int maxRotateAngle, const qreal maxHeight)
 {
+    // 初始化
+    alpha = step = 0.0f;
     qreal minZ = LONG_MAX;  // 目标值，希望其min
     for(int i=0; i<=maxRotateAngle; i++){  // 遍历180
         Piece p = piece;  // 复制该零件
@@ -653,7 +673,11 @@ qreal NestEngine::singleRowNestWithVerAlg(const Piece &piece, qreal &alpha, qrea
             step = d;
         }
     }
-    qreal rate = piece.getArea() / minZ;
+    // 如果目标值仍为LONG_MAX,直接返回0.0f
+    if(minZ == LONG_MAX){
+        return 0.0f;
+    }
+    qreal rate = minZ == piece.getArea() / minZ;
     qDebug() << "minZ: " << minZ << ", alpha: " << alpha << ", step: " << step << ", rate: " << rate;
     return rate;
 }
@@ -674,6 +698,8 @@ qreal NestEngine::doubleRowNestWithVerAlg(const Piece &piece, qreal &alpha,
                                                   qreal &step, qreal &X, qreal &H, const qreal n,
                                                   const int maxRotateAngle, const qreal maxHeight)
 {
+    // 初始化
+    alpha = step = X = H = 0.0f;
     qreal minZ = LONG_MAX;  // 目标值，希望其min
     for(int i=0; i<=maxRotateAngle; i++){
         Piece p = piece;  // 复制，零件1
@@ -681,8 +707,10 @@ qreal NestEngine::doubleRowNestWithVerAlg(const Piece &piece, qreal &alpha,
         p.rotate(p.getPosition(), i);  // 旋转
 
         QVector<QPointF> points = p.getPointsList();  // 获取旋转之后的点集
-        qreal pieceHeight = piece.getBoundingRect().height();  // 切割件高度
-
+        qreal pieceHeight = p.getBoundingRect().height();  // 切割件高度
+        if(pieceHeight > maxHeight){// 如果零件高度大于材料高度，直接进行下次循环
+            continue;
+        }
         for(qreal delta=0; delta<pieceHeight; delta+=pieceHeight/n){
             qreal h = pieceHeight + qAbs(delta);  // 获取旋转之后的高度，注意要加上错开量
             if(h>maxHeight){  // 如果旋转高度大于材料高度，直接进行下次循环
@@ -690,7 +718,6 @@ qreal NestEngine::doubleRowNestWithVerAlg(const Piece &piece, qreal &alpha,
             }
             // 计算步距
             qreal d1 = calVerToOppSideXDis(points);  // 计算各顶点到对边距离的最大值
-
             // 计算各顶点到错开零件各边最大值与min值的差
             qreal offset = p.getBoundingRect().width();  // 将零件移动至外包矩形相切处
             qreal moveLeft;
@@ -709,7 +736,10 @@ qreal NestEngine::doubleRowNestWithVerAlg(const Piece &piece, qreal &alpha,
             }
         }
     }
-
+    // 如果目标值仍为LONG_MAX,直接返回0.0f
+    if(minZ == LONG_MAX){
+        return 0.0f;
+    }
     qreal rate = 2 * piece.getArea() / minZ;
     qDebug() << "minZ: " << minZ << ", alpha: " << alpha << ", step: " << step << "X: " << X << ", H: " << H << ", rate: " << rate;
     return rate;
@@ -728,6 +758,9 @@ qreal NestEngine::doubleRowNestWithVerAlg(const Piece &piece, qreal &alpha,
 qreal NestEngine::oppositeSingleRowNestWithVerAlg(const Piece &piece, qreal &alpha, qreal &step,
                                                   QPointF &offset, const int maxRotateAngle, const qreal maxHeight)
 {
+    // 初始化
+    alpha = step = 0.0f;
+    offset = QPointF(0, 0);
     qreal minZ = LONG_MAX;  // 目标值，希望其min
     for(int i=0; i<=maxRotateAngle; i++){
         Piece p = piece;  // 复制，零件1
@@ -748,7 +781,7 @@ qreal NestEngine::oppositeSingleRowNestWithVerAlg(const Piece &piece, qreal &alp
             qreal yMax = p.getBoundingRect().top();  // yMax
             minZ = hd;
             alpha = i;
-            step = d;
+            step = d;  // 最佳送料步距其实不是这个d
             QPointF rotateCenter;  // 旋转中心
             rotateCenter.setX(xMin + d / 2);
             rotateCenter.setY((yMin + yMax) / 2);
@@ -757,6 +790,13 @@ qreal NestEngine::oppositeSingleRowNestWithVerAlg(const Piece &piece, qreal &alp
         }
     }
 
+    // 如果目标值仍为LONG_MAX,直接返回0.0f
+    if(minZ == LONG_MAX){
+        return 0.0f;
+    }
+    // 计算最佳送料步距
+    step = calRealBestXStepForOpp(piece, alpha, offset);
+    // 计算利用率
     qreal rate = 2 * piece.getArea() / minZ;
     qDebug() << "minZ: " << minZ << ", alpha: " << alpha << ", step: " << step << ", center: " << offset << ", rate: " << rate;
     return rate;
@@ -778,12 +818,18 @@ qreal NestEngine::oppositeDoubleRowNestWithVerAlg(const Piece &piece, qreal &alp
                                                   QPointF &offset, qreal &H, const qreal n,
                                                   int maxRotateAngle, qreal maxHeight)
 {
+    // 初始化
+    alpha = step = H = 0.0f;
+    offset = QPointF(0, 0);
     qreal minZ = LONG_MAX;  // 目标值，希望其min
     for(int i=0; i<=maxRotateAngle; i++){
         Piece p = piece;  // 复制，零件1
         p.moveTo(QPointF(0, 0));  // 移动至原点，非必须
         p.rotate(p.getPosition(), i);  // 旋转
-        qreal pieceHeight = piece.getBoundingRect().height();  // 切割件高度
+        qreal pieceHeight = p.getBoundingRect().height();  // 切割件高度
+        if(pieceHeight>maxHeight){// 如果零件高度大于材料高度，直接进行下次循环
+            continue;
+        }
         for(qreal delta=0; delta<pieceHeight; delta+=pieceHeight/n){
             qreal h = pieceHeight + delta;  // 获取旋转之后的高度，注意要加上错开量
             if(h>maxHeight){  // 如果旋转高度大于材料高度，直接进行下次循环
@@ -801,7 +847,7 @@ qreal NestEngine::oppositeDoubleRowNestWithVerAlg(const Piece &piece, qreal &alp
                 qreal yMax = p.getBoundingRect().top();  // yMax
                 minZ = hd;
                 alpha = i;
-                step = d;
+                step = d;  // 最佳送料步距其实不是这个d
                 H = delta;
                 QPointF rotateCenter;  // 旋转中心
                 rotateCenter.setX(xMin + d / 2);
@@ -812,6 +858,12 @@ qreal NestEngine::oppositeDoubleRowNestWithVerAlg(const Piece &piece, qreal &alp
         }
     }
 
+    if(minZ == LONG_MAX){
+        return 0.0f;
+    }
+    // 计算最佳送料步距
+    step = calRealBestXStepForOpp(piece, alpha, offset);
+    // 计算利用率
     qreal rate = 2 * piece.getArea() / minZ;
     qDebug() << "minZ: " << minZ << ", alpha: " << alpha << ", step: " << step << "H: " << H << ", offset: " << offset << ", rate: " << rate;
     return rate;
@@ -835,7 +887,7 @@ NestEngine::NestType NestEngine::getPieceBestNestType(const Piece &piece, qreal 
                                                               qreal &yStep, const int maxRotateAngle,
                                                               const qreal maxHeight)
 {
-    NestType type;  // 最佳排版方式
+    NestType type = NoNestType;  // 最佳排版方式
     qreal rateMax = 0;  // 最佳利用率
     qreal a, s, x, h;
     QPointF o;
@@ -856,7 +908,7 @@ NestEngine::NestType NestEngine::getPieceBestNestType(const Piece &piece, qreal 
         yStep = calVerToOppSideXDis(p.getPointsList());
     }
 #endif
-
+#if 0
     qreal rate2 = doubleRowNestWithVerAlg(piece, a, s, x, h, 100, maxRotateAngle, maxHeight);  // 普通双排方式
     if(rate2 > rateMax){
         rateMax = rate2;
@@ -877,7 +929,7 @@ NestEngine::NestType NestEngine::getPieceBestNestType(const Piece &piece, qreal 
         qreal d2 = calVerToCrossMaxMinDiff(p.getPointsList(), offset, x, moveLeft);
         yStep = d1 > d2 ? d1 : d2;  // 取二者最大值
     }
-
+#endif
 #if 0
     qreal rate3 = oppositeSingleRowNestWithVerAlg(piece, a, s, o, maxRotateAngle, maxHeight); // 对头单排方式
     if(rate3 > rateMax){
