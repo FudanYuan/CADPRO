@@ -353,7 +353,7 @@ bool lineIntersectWithPolygon(QVector<QPointF> pList, const QLineF &line, QList<
     QRectF boundRect1 = calculatePolygonBoundingRect(pList);   // 计算多边形的外包矩形
     if(line.x1() == line.x2()){  // 直线竖直
         qreal xMin = qrealPrecision(boundRect1.left(), PRECISION);
-        qreal xMax = qrealPrecision(boundRect1.left(), PRECISION);
+        qreal xMax = qrealPrecision(boundRect1.right(), PRECISION);
         qreal x = qrealPrecision(line.x1(), PRECISION);
         if(xMin > x || xMax < x){
             return false;

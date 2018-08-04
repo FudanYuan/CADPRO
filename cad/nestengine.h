@@ -153,6 +153,17 @@ public:
 
         }
 
+        BestNestType(int id, NestType type, qreal a, qreal x, QPointF po, QPointF ro) :
+            pieceID(id),
+            nestType(type),
+            alpha(a),
+            xStep(x),
+            pOffset(po),
+            rCOffset(ro)
+        {
+
+        }
+
         BestNestType(int id, NestType type, qreal a, qreal x, QPointF po, QPointF ro, qreal y) :
             pieceID(id),
             nestType(type),
@@ -346,15 +357,52 @@ public:
     void doubleRowNest(Piece piece, const int n, qreal &alpha, qreal &stepX, QPointF &cOffset, qreal &width, qreal &height);  // 最优双排
     void pairwiseDoubleRowNest(Piece piece, qreal &alpha, QPointF &cOffset, qreal &width, qreal &height);  // 最优对头双排
 
-    qreal calRealBestXStepForOpp(const Piece &piece, const qreal alpha, const QPointF &offset) const;  // 对对头排版计算真实的送料步距
+    qreal calRealBestXStep(const Piece &piece, const qreal alpha, const QPointF &offset, bool forOppFlag=true) const;  // 对对头排版计算真实的送料步距
     /**
      * 4中单零件排样策略，返回材料利用率
      */
-    qreal singleRowNestWithVerAlg(const Piece &piece, qreal &alpha, qreal &step, const int maxRotateAngle=180, const qreal maxHeight=LONG_MAX);  // 单排，使用顶点算法
-    qreal doubleRowNestWithVerAlg(const Piece &piece, qreal &alpha, qreal &step, qreal &X, qreal &H, const qreal n=100, const int maxRotateAngle=180, const qreal maxHeight=LONG_MAX);  // 双排，使用顶点算法
-    qreal oppositeSingleRowNestWithVerAlg(const Piece &piece, qreal &alpha, qreal &step, QPointF &offset, const int maxRotateAngle=180, const qreal maxHeight=LONG_MAX);  // 对头单排，使用顶点算法
-    qreal oppositeDoubleRowNestWithVerAlg(const Piece &piece, qreal &alpha, qreal &step, QPointF &offset, qreal &H, const qreal n=100, const int maxRotateAngle=180, const qreal maxHeight=LONG_MAX);  // 对头双排，使用顶点算法
-    NestType getPieceBestNestType(const Piece &piece, qreal &alpha, qreal &xStep, QPointF &pOffset, QPointF &rCOffset, qreal &yStep, const int maxRotateAngle=180, const qreal maxHeight=LONG_MAX);  // 获取零件的最佳排版方式
+    qreal singleRowNestWithVerAlg(const Piece &piece,
+                                  qreal &alpha,
+                                  qreal &step,
+                                  const int maxRotateAngle=180,
+                                  const qreal maxWidth=LONG_MAX,
+                                  const qreal maxHeight=LONG_MAX);  // 单排，使用顶点算法
+
+    qreal doubleRowNestWithVerAlg(const Piece &piece,
+                                  qreal &alpha,
+                                  qreal &step,
+                                  qreal &X,
+                                  qreal &H,
+                                  const qreal n=100,
+                                  const int maxRotateAngle=180,
+                                  const qreal maxWidth=LONG_MAX,
+                                  const qreal maxHeight=LONG_MAX);  // 双排，使用顶点算法
+
+    qreal oppositeSingleRowNestWithVerAlg(const Piece &piece, qreal &alpha,
+                                          qreal &step, QPointF &offset,
+                                          const int maxRotateAngle=180,
+                                          const qreal maxWidth=LONG_MAX,
+                                          const qreal maxHeight=LONG_MAX);  // 对头单排，使用顶点算法
+
+    qreal oppositeDoubleRowNestWithVerAlg(const Piece &piece,
+                                          qreal &alpha,
+                                          qreal &step,
+                                          QPointF &offset,
+                                          qreal &H,
+                                          const qreal n=100,
+                                          const int maxRotateAngle=180,
+                                          const qreal maxWidth=LONG_MAX,
+                                          const qreal maxHeight=LONG_MAX);  // 对头双排，使用顶点算法
+
+    NestType getPieceBestNestType(const Piece &piece,
+                                  qreal &alpha,
+                                  qreal &xStep,
+                                  QPointF &pOffset,
+                                  QPointF &rCOffset,
+                                  const int maxRotateAngle=180,
+                                  const qreal maxWidth=LONG_MAX,
+                                  const qreal maxHeight=LONG_MAX);  // 获取零件的最佳排版方式
+
     void getAllBestNestTypes(QVector<Piece> pieceList);  // 获取所有零件最佳排样方式
 
     void packAlg();  // 排版算法

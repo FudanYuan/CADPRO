@@ -17,7 +17,7 @@
 #include "continuenestengine.h"
 #include "nestengineconfiguredialog.h"
 #include <sys/time.h>
-
+#include "common.h"
 #include <QDebug>
 
 #define COUNT 20
@@ -34,9 +34,9 @@ long RectNestEngine::minRectsArea = LONG_MAX; // 矩形切割件面积
 
 Nest::Nest(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::Nest),
     counter(0),
-    minArea(LONG_MAX)
+    minArea(LONG_MAX),
+    ui(new Ui::Nest)
 {
     ui->setupUi(this);
     qRegisterMetaType<QVector<NestEngine::NestPiece>>("QVector<NestEngine::NestPiece>");
@@ -2069,11 +2069,11 @@ void Nest::onActionNestSideLeft()
     qDebug() << "左靠边";
 #ifdef DEBUG
     addProject();
-    fName = "F:/Projects/build-CADPRO-Desktop_Qt_5_10_0_MinGW_32bit-Debug/toNest4.dxf";
-    //fName = "/Users/Jeremy/Desktop/toNest2.dxf";
+    //fName = "F:/Projects/build-CADPRO-Desktop_Qt_5_10_0_MinGW_32bit-Debug/toNest4.dxf";
+    fName = "/Users/Jeremy/Desktop/toNest4.dxf";
     onActionTreeProjectAddScene();
-    //fName = "/Users/Jeremy/Desktop/toNest.dxf";
-    fName = "F:/Projects/build-CADPRO-Desktop_Qt_5_10_0_MinGW_32bit-Debug/toNest3.dxf";
+    fName = "/Users/Jeremy/Desktop/toNest3.dxf";
+    //fName = "F:/Projects/build-CADPRO-Desktop_Qt_5_10_0_MinGW_32bit-Debug/toNest3.dxf";
     onActionTreeProjectAddScene();
     //fName = "F:/Projects/build-CADPRO-Desktop_Qt_5_10_0_MinGW_32bit-Debug/toNest6.dxf";
     //onActionTreeProjectAddScene();
@@ -2137,7 +2137,7 @@ void Nest::onActionNestSideRight()
 
      qreal alpha, step;
      ContinueNestEngine *nestEngine = new ContinueNestEngine(this);
-     qreal rate = nestEngine->singleRowNestWithVerAlg(piece, alpha, step, 360, 190);
+     qreal rate = nestEngine->singleRowNestWithVerAlg(piece, alpha, step, 360, 1000, 190);
      qDebug() << "singleRowNestWithVerAlg rate: " << rate;
 
      Piece piece1 = piece;  // 构造影子零件
@@ -2159,7 +2159,7 @@ void Nest::onActionNestSideRight()
 
      qreal X;
      qreal H;
-     rate = nestEngine->doubleRowNestWithVerAlg(piece, alpha, step, X, H, 100, 360, 190);  //
+     rate = nestEngine->doubleRowNestWithVerAlg(piece, alpha, step, X, H, 100, 360, 1000, 190);  //
      qDebug() << "doubleRowNestWithVerAlg rate: " << rate;
      for(int i=0; i<2; i++){
          Piece piece8 = piece;  // 构造影子零件
@@ -2182,7 +2182,7 @@ void Nest::onActionNestSideRight()
      }
 
      QPointF center;
-     rate = nestEngine->oppositeSingleRowNestWithVerAlg(piece, alpha, step, center, 360, 190);  //
+     rate = nestEngine->oppositeSingleRowNestWithVerAlg(piece, alpha, step, center, 360, 1000, 190);  //
      qDebug() << "oppositeSingleRowNestWithVerAlg rate: " << rate;
      for(int i=0; i<2; i++){
          Piece piece5 = piece;  // 构造影子零件
@@ -2204,7 +2204,7 @@ void Nest::onActionNestSideRight()
          nestScene->addCustomPolylineItem(p6);
      }
 
-     rate = nestEngine->oppositeDoubleRowNestWithVerAlg(piece, alpha, step, center, H, 100, 360, 190);  //
+     rate = nestEngine->oppositeDoubleRowNestWithVerAlg(piece, alpha, step, center, H, 100, 360, 1000, 190);  //
      qDebug() << "oppositeDoubleRowNestWithVerAlg rate: " << rate;
 
      for(int i=0; i<2; i++){
@@ -2276,24 +2276,25 @@ void Nest::onActionNestSideDirectionVertical()
     points.append(QPointF(25,0));
     points.append(QPointF(0,0));
     Piece piece(points);
-    for(int i=0; i<6; i++){
+
+    QVector<Piece> pieceList;
+    for(int i=0; i<4; i++){
         Piece piece1 = piece;
+        pieceList.append(piece1);
         piece1.moveTo(QPointF(25+i*50, 75) + nestScene->getOffset());
         Polyline *p = new Polyline;
         p->setPolyline(piece1.getPointsList(), 1);
         p->i = i;
         nestScene->addCustomPolylineItem(p);
     }
-    return;
-    QLineF line(0, 0, 0, 150);
 
+    QLineF line(25, 0, 25, 150);
     QList<QPointF> intersections;
     if(lineIntersectWithPolygon(points, line, intersections)){
         for(auto point : intersections){
             qDebug() << "inter:  " << point;
         }
     }
-
 }
 
 void Nest::onActionSheetManager()
