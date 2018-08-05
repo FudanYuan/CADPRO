@@ -129,7 +129,7 @@ void Nest::initActions()
 
     action_file_print_setup = new QAction(tr("&打印设置"), this);
     action_file_print_setup->setStatusTip(tr("更改打印机和打印选项"));
-    action_file_print_setup->setDisabled(true);
+    action_file_print_setup->setDisabled(false);  // debug
     connect(action_file_print_setup, &QAction::triggered, this, &Nest::onActionFilePrintSetup);
 
     action_file_configuration = new QAction(tr("&配置"), this);
@@ -944,7 +944,7 @@ void Nest::initConnect()
 {
     timer = new QTimer();
     connect(this, &Nest::nestProjectChange, this, &Nest::onNestProjectChanged);
-    connect(timer, SIGNAL(timeout()), this, SLOT(onActionSheetAutoDuplicate()));
+    connect(timer, SIGNAL(timeout()), this, SLOT(onActionNestSideDirectionVertical()));
 }
 
 void Nest::addProject()
@@ -2069,14 +2069,14 @@ void Nest::onActionNestSideLeft()
     qDebug() << "左靠边";
 #ifdef DEBUG
     addProject();
-    //fName = "F:/Projects/build-CADPRO-Desktop_Qt_5_10_0_MinGW_32bit-Debug/toNest4.dxf";
-    fName = "/Users/Jeremy/Desktop/toNest4.dxf";
+    fName = "F:/Projects/build-CADPRO-Desktop_Qt_5_10_0_MinGW_32bit-Debug/toNest4.dxf";
+    //fName = "/Users/Jeremy/Desktop/toNest4.dxf";
     onActionTreeProjectAddScene();
-    fName = "/Users/Jeremy/Desktop/toNest3.dxf";
-    //fName = "F:/Projects/build-CADPRO-Desktop_Qt_5_10_0_MinGW_32bit-Debug/toNest3.dxf";
+    //fName = "/Users/Jeremy/Desktop/toNest3.dxf";
+    fName = "F:/Projects/build-CADPRO-Desktop_Qt_5_10_0_MinGW_32bit-Debug/toNest3.dxf";
     onActionTreeProjectAddScene();
-    //fName = "F:/Projects/build-CADPRO-Desktop_Qt_5_10_0_MinGW_32bit-Debug/toNest6.dxf";
-    //onActionTreeProjectAddScene();
+    fName = "F:/Projects/build-CADPRO-Desktop_Qt_5_10_0_MinGW_32bit-Debug/toNest6.dxf";
+    onActionTreeProjectAddScene();
 
 #endif
 }
@@ -2232,6 +2232,8 @@ void Nest::onActionNestSideRight()
 
 void Nest::onActionNestSideTop()
 {
+    timer->start(100);
+    return;
     qDebug() << "顶靠边";
     foreach(Polyline* p, nestScene->getPolylineList()){
         p->setSelectable(true);
@@ -2240,6 +2242,8 @@ void Nest::onActionNestSideTop()
 
 void Nest::onActionNestSideBottom()
 {
+    timer->stop();
+    return;
     qDebug() << "底靠边";
     foreach(Polyline* p, nestScene->getPolylineList()){
         p->setSelectable(false);
@@ -2252,14 +2256,15 @@ void Nest::onActionNestDirectionHorizontal()
     qDebug() << "横向";
     bool ok;
     int alpha = QInputDialog::getInt(this, tr("设置旋转角度"),
-                                  tr("请旋转角度:"), 1, -180, 180, 1,
+                                  tr("请旋转角度:"), 1, 0, 500, 1,
                                   &ok);
     if(ok){
-        foreach(Polyline* p, nestScene->getPolylineList()){
-            if(p->isSelectedCus()){
-                p->setAlpha(alpha);
-            }
-        }
+//        foreach(Polyline* p, nestScene->getPolylineList()){
+//            if(p->isSelectedCus()){
+//                p->setAlpha(alpha);
+//            }
+//        }
+        counter = alpha;
     }
 }
 
@@ -2267,6 +2272,7 @@ void Nest::onActionNestDirectionHorizontal()
 void Nest::onActionNestSideDirectionVertical()
 {
     qDebug() << "纵向";
+    nestScene->clearCustomItem();
     QVector<QPointF> points;
     points.append(QPointF(0,0));
     points.append(QPointF(0,100));
@@ -2275,7 +2281,69 @@ void Nest::onActionNestSideDirectionVertical()
     points.append(QPointF(25,75));
     points.append(QPointF(25,0));
     points.append(QPointF(0,0));
-    Piece piece(points);
+//    Piece piece(points);
+//    piece.rotate(piece.getPosition(), 135);
+
+    QString pName = projectActive->getName();
+    Piece piece = *proPieceInfoMap[pName]->pieceList[1];
+    piece.rotate(piece.getPosition(), 134);
+
+    Piece p1 = piece;
+    Piece p2 = piece;
+
+    p1.moveTo(p1.getPosition() + nestScene->getOffset());
+    p2.moveTo(QPointF(p2.getPosition().rx()-60, p2.getPosition().ry() + counter) + nestScene->getOffset());
+
+    ConcavePolygon concavePoly1(p1.getPointsList());
+    ConcavePolygon concavePoly2(p2.getPointsList());
+
+    QMap<int, QVector<QPointF>> splitRet1 = concavePoly1.onSeparateConcavePoly(p1.getPointsList());
+    QMap<int, QVector<QPointF>> splitRet2 = concavePoly2.onSeparateConcavePoly(p2.getPointsList());
+
+    foreach (int key, splitRet1.keys()) {
+        Piece pS(splitRet1[key]);
+        Polyline *poly1 = new Polyline;
+        poly1->setPolyline(pS.getPointsList());
+        poly1->i = key+10;
+        nestScene->addCustomPolylineItem(poly1);
+    }
+
+    foreach (int key, splitRet2.keys()) {
+        Piece pS(splitRet2[key]);
+        Polyline *poly1 = new Polyline;
+        poly1->setPolyline(pS.getPointsList());
+        poly1->i = key+20;
+        nestScene->addCustomPolylineItem(poly1);
+    }
+
+    CollisionDectect collisionDectect(p1.getPointsList(), p2.getPointsList());
+    QVector<QPointF> separatingAxis;
+    separatingAxis = collisionDectect.getSeparatingAxis(splitRet1[1], separatingAxis);
+    foreach (QPointF point, separatingAxis) {
+        Point *pos = new Point;
+        pos->setPoint(point*50 + nestScene->getOffset());
+        nestScene->addCustomPointItem(pos);
+    }
+
+    int c = 0;
+    for(int i=0; i<splitRet1.size(); i++){
+        for(int j=0; j<splitRet2.size(); j++){
+            qDebug() << "i = " << i << ", j = " << j;
+            if(collisionDectect.convexPolygonCollision(splitRet1[i], splitRet2[j])){
+                Polyline *poly1 = new Polyline;
+                poly1->setPolyline(splitRet1[i]);
+                poly1->i = c + 30;
+                nestScene->addCustomPolylineItem(poly1);
+
+                Polyline *poly2 = new Polyline;
+                poly2->setPolyline(splitRet2[j]);
+                poly2->i = c + 40;
+                nestScene->addCustomPolylineItem(poly2);
+                qDebug() << "碰撞";
+                c++;
+            }
+        }
+    }
 
     QVector<Piece> pieceList;
     for(int i=0; i<4; i++){

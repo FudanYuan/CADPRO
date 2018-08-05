@@ -336,6 +336,7 @@ public slots:
     void onNestDebug(int sheetID, QPointF p1, QPointF p2);
     void onNestDebugRemainRect(int sheetID, QRectF rect);
     void onNestDebugLine(int sheetID, QLineF line);
+
 protected:
     void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;

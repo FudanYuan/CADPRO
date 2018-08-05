@@ -41,10 +41,12 @@ public:
                                const RectTypes rectType, bool wholeSheetFlag,
                                QRectF &layoutRect1,
                                QRectF &layoutRect2);  // 按零件矩形排放零件
+
     void packPieces(QVector<int> indexList) Q_DECL_OVERRIDE;  // 排版算法
     bool packOnePiece(Piece piece, NestEngine::NestPiece &nestPiece) Q_DECL_OVERRIDE;  // 排放单个零件
     bool packOnePieceOnSheet(Piece piece, int sheetID, NestEngine::NestPiece &nestPiece) Q_DECL_OVERRIDE;  // 在给定材料上排放单个零件
     bool compact(int sheetID, NestPiece &nestPiece) Q_DECL_OVERRIDE;  // 紧凑算法
+    qreal compactOnVD(int sheetID, Piece piece);  // 垂直方向靠接
     bool collidesWithOtherPieces(int sheetID, Piece piece) Q_DECL_OVERRIDE;  // 判断该零件是否与其他零件碰撞
 
 private:

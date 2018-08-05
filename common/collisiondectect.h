@@ -1,4 +1,4 @@
-#ifndef COLLISIONDECTECT_H
+﻿#ifndef COLLISIONDECTECT_H
 #define COLLISIONDECTECT_H
 
 #include <QVector>
@@ -133,7 +133,7 @@ public:
     void _separateConcavePoly(QVector<QPointF> pList, QMap<int, QVector<QPointF>> &map, int startIndex);  // 分割多边形
     bool splitPolyByIntersection(QVector<QPointF> pList, int concaveIndex, IntersectionPoint intersectionPoint,
                             QVector<QPointF> &pLeftList, QVector<QPointF> &pRightList);  // 根据分割点分割
-    bool getSplitPointByVertexRegion(QVector<QPointF> pList, int concaveIndex, IntersectionPoint &intersectionPoint);  //
+    bool getSplitPointByVertexRegion(QVector<QPointF> pList, int concaveIndex, IntersectionPoint &intersectionPoint);  // 根据顶点区域确定分割点
     PolyDirection getMutiPtClockDir(QPointF p1, QPointF p2, QPointF p3);  // 获取三点的方向
     PolyDirection getMutiPtClockDirByIndex(QVector<QPointF> pList, int index);  // 获取多边形某一点的方向
     bool isAntiClockDir(QVector<QPointF> pList);  // 是否为逆时针

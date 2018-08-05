@@ -159,7 +159,8 @@ public:
             alpha(a),
             xStep(x),
             pOffset(po),
-            rCOffset(ro)
+            rCOffset(ro),
+            yStep(0.0f)
         {
 
         }
@@ -347,7 +348,7 @@ public:
     void setMinHeightOpt(bool flag);  // 设置是否自动重复使用最后一张材料
     bool getMinHeightOpt();  // 获取是否自动重复使用最后一张材料
 
-    QVector<Piece> getSortedPieceListByArea(QVector<Piece> pieceList, QMap<int, int> &transformMap);  // 按面积将多边形列表排序, 并可得到映射关系
+    void sortedPieceListByArea(QVector<Piece> pieceList, QMap<int, QVector<int>> &transformMap);  // 按面积将多边形列表排序, 并可得到映射关系
     void initQuadTreeMap(int sheetID);  // 初始化四叉树Map
     void initNestPieceList();  // 初始化排版零件列表，默认按面积降序排序
     void initsameTypeNestPieceIndexMap();  // 初始化同型体排版零件列表Map
@@ -432,7 +433,11 @@ protected:
     QVector<Sheet> sheetList;  // 材料列表
     QVector<SameTypePiece> sameTypePieceList;  // 同型体零件
     QVector<NestPiece> nestPieceList;  // 排版零件列表
-    QMap<int, PieceIndexRange> nestPieceIndexRangeMap;  // 排版零件的index范围 Map<零件id，排样零件序号范围>
+    QMap<int, QVector<int>> transformMap;  // 零件面积由小到大排序之后的索引与排序之前的索引转换关系
+                                           // Map<索引, <变换前的索引, 变换后的索引]>
+                                           // 当key为当前索引时，value[1]代表之前索引
+                                           // 当key为之前索引时，value[0]代表当前索引
+    QMap<int, PieceIndexRange> nestPieceIndexRangeMap;  // 排版零件的index范围 Map<零件id, 排样零件序号范围>
     QMap<int, QVector<int>> sameTypeNestPieceIndexMap;  // 同型体排版零件index列表 Map<同型体id, 零件序号列表>
     QVector<int> nestedPieceIndexlist;  // 已排零件Index列表
     QVector<int> unnestedPieceIndexlist;  // 未排零件Index列表
@@ -440,7 +445,7 @@ protected:
     QMap<int, BestNestType> pieceBestNestTypeMap;   // 记录零件-最佳排版方式 Map<零件id, 最佳排版方式>
     //QMap<int, QMap<int, QList<int>>> sheetRowPieceMap;  // 记录材料-行-零件 Map<材料id, Map<行id, 零件id列表>>
     QMap<int, int> pieceMaxPackPointMap;  // 记录零件-最大排样点序号 Map<零件id, 排样点id>   /////迁移至packPointNestEngine
-    QMap<int, QuadTreeNode<Object>*> quadTreeMap;  // 四叉树 Map<材料id，四叉树>
+    QMap<int, QuadTreeNode<Object>*> quadTreeMap;  // 四叉树 Map<材料id, 四叉树>
     bool autoRepeatLastSheet;  // 自动重复使用最后一张材料
     qreal compactStep;  // 靠接步长，单位为mm
     qreal compactAccuracy;  // 靠接精度，单位为mm

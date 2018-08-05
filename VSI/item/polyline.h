@@ -31,7 +31,7 @@ public:
 
     bool collidesWithItem(const QGraphicsItem *other, Qt::ItemSelectionMode mode = Qt::IntersectsItemShape) const Q_DECL_OVERRIDE;
 
-    void setPolyline(QVector<QPointF> pList, int flag, qreal ele=0, qreal angle=0, const QPointF off=QPointF());
+    void setPolyline(QVector<QPointF> pList, int flag=1, qreal ele=0, qreal angle=0, const QPointF off=QPointF());
 
     void setPoints(const QVector<QPointF> &value);
     QVector<QPointF> getPoints();  // 获取点

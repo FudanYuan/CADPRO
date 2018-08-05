@@ -43,7 +43,8 @@ NestEngine::NestEngine(QObject *parent,
 {
     this->pieceList = pieceList;
     this->sheetList = sheetList;
-
+    // 将零件按由大到小排序
+    sortedPieceListByArea(pieceList, transformMap);
     // 初始化每张材料的四叉树
     for(int i=0; i<sheetList.length(); i++){
         initQuadTreeMap(i);
@@ -242,7 +243,7 @@ bool NestEngine::getMinHeightOpt()
     return minHeightOpt;
 }
 
-QVector<Piece> NestEngine::getSortedPieceListByArea(QVector<Piece> pieceList, QMap<int, int> &transformMap)
+void NestEngine::sortedPieceListByArea(QVector<Piece> pieceList, QMap<int, QVector<int>> &transformMap)
 {
     // QMap 默认按key值升序排列
     QMap<qreal, QVector<int>> pieceAreaMap;
@@ -256,19 +257,17 @@ QVector<Piece> NestEngine::getSortedPieceListByArea(QVector<Piece> pieceList, QM
         pieceAreaMap[-area].append(i);
     }
 
-    // 获取排序后的零件列表
-    QVector<Piece> pieceListRet;
-
-    int count = 0;
+    int newID = 0;
     transformMap.clear();
     QMap<qreal, QVector<int>>::const_iterator i;
     for(i=pieceAreaMap.constBegin(); i!=pieceAreaMap.constEnd(); ++i){
-        foreach (int index, i.value()) {
-            pieceListRet.append(pieceList[index]);
-            transformMap.insert(count++, index);  // 记录变换前后的位置映射关系，变换前为index，变换后为count++
+        foreach (int oldID, i.value()) {
+            QVector<int> dic;
+            dic.append(newID);
+            dic.append(oldID);
+            transformMap.insert(newID++, dic);  // 记录变换前后的位置映射关系，变换后为newID，变换前为oldID
         }
     }
-    return pieceListRet;
 }
 
 void NestEngine::initQuadTreeMap(int sheetID)
@@ -312,33 +311,15 @@ void NestEngine::initNestPieceList()
         break;
     }
     case SizeDown: {
-        QMap<int, int> transformMap;
-        getSortedPieceListByArea(pieceList, transformMap);
-
-//        foreach (int i, transformMap.keys()) {
-//            qDebug() << "old i=" << i << ", now i=" << transformMap[i];
-//        }
-
-        int sameLen = sameTypePieceList.length();
-        if(sameLen != 0){
-            for(int i=0; i<sameLen; i++){
-                QVector<int> &pieceIDList = sameTypePieceList[i].pieceIDList;
-                for(int j=0; j<pieceIDList.length(); j++){
-                    int oldID = pieceIDList[j];
-                    int newID = transformMap[oldID];
-                    pieceIDList[j] = newID;
-                }
-            }
-        }
         for(int i=0; i<pieceList.length(); i++){
-            Piece piece = pieceList[transformMap[i]];
-            PieceIndexRange indexRange(transformMap[i], count, count+piece.getCount()-1);
-            nestPieceIndexRangeMap.insert(transformMap[i], indexRange);  // 初始化排版零件序号范围
+            Piece piece = pieceList[transformMap[i][1]];
+            PieceIndexRange indexRange(transformMap[i][1], count, count+piece.getCount()-1);
+            nestPieceIndexRangeMap.insert(transformMap[i][1], indexRange);  // 初始化排版零件序号范围
             for(int j=0; j<piece.getCount(); j++){
                 qreal transposeAngle = piece.isTranspose() ? 90 : 0;
-                nestPieceList.append(NestPiece(count++, transformMap[i], transposeAngle));
+                nestPieceList.append(NestPiece(count++, transformMap[i][1], transposeAngle));
             }
-            pieceMaxPackPointMap.insert(transformMap[i], 0);  // 初始化零件排样点最大值map
+            pieceMaxPackPointMap.insert(transformMap[i][1], 0);  // 初始化零件排样点最大值map
         }
         break;
     }
@@ -361,31 +342,18 @@ void NestEngine::initNestPieceList()
         break;
     }
     case AllStrategys: {
-        QMap<int, int> transformMap;
-        getSortedPieceListByArea(pieceList, transformMap);
-        int sameLen = sameTypePieceList.length();
-        if(sameLen != 0){
-            for(int i=0; i<sameLen; i++){
-                QVector<int> &pieceIDList = sameTypePieceList[i].pieceIDList;
-                for(int j=0; j<pieceIDList.length(); j++){
-                    int oldID = pieceIDList[j];
-                    int newID = transformMap[oldID];
-                    pieceIDList[j] = newID;
-                }
-            }
-        }
         for(int i=0; i<pieceList.length(); i++){
-            Piece piece = pieceList[transformMap[i]];
-            PieceIndexRange indexRange(transformMap[i], count, count+piece.getCount()-1);
-            nestPieceIndexRangeMap.insert(transformMap[i], indexRange);  // 初始化排版零件序号范围
+            Piece piece = pieceList[transformMap[i][1]];
+            PieceIndexRange indexRange(transformMap[i][1], count, count+piece.getCount()-1);
+            nestPieceIndexRangeMap.insert(transformMap[i][1], indexRange);  // 初始化排版零件序号范围
             for(int j=0; j<piece.getCount(); j++){
                 // 左右交替，即两个图形相差180*
-                NestPiece nestPiece(count++, transformMap[i]);
+                NestPiece nestPiece(count++, transformMap[i][1]);
                 qreal transposeAngle = piece.isTranspose() ? 90 : 0;
                 nestPiece.alpha = j % 2 == 0 ? 0 : 180 + transposeAngle;
                 nestPieceList.append(nestPiece);
             }
-            pieceMaxPackPointMap.insert(transformMap[i], 0);  // 初始化零件排样点最大值map
+            pieceMaxPackPointMap.insert(transformMap[i][1], 0);  // 初始化零件排样点最大值map
         }
         break;
     }
@@ -400,30 +368,37 @@ void NestEngine::initsameTypeNestPieceIndexMap()
     for(int i=0; i<sameTypePieceList.length(); i++){
         SameTypePiece sameTypePiece = sameTypePieceList[i];  // 获取同型体列表
         QVector<int> pieceIDList = sameTypePiece.pieceIDList;  // 获取该同型体编号下的零件列表
+
         for(int j=0; j<pieceIDList.length()-1; j++){
-            if(!sameTypeNestPieceIndexMap.contains(j)){
-                sameTypeNestPieceIndexMap.insert(j, QVector<int>());
+            int oldIndex1 = pieceIDList[j];  // 之前的索引值
+            int newIndex1 = transformMap[oldIndex1][0];  // 现在的索引值
+            if(!sameTypeNestPieceIndexMap.contains(oldIndex1)){
+                sameTypeNestPieceIndexMap.insert(oldIndex1, QVector<int>());
             }
-            int id1 = pieceIDList[j];
             for(int k=j+1; k<pieceIDList.length(); k++){
-                if(!sameTypeNestPieceIndexMap.contains(k)){
-                    sameTypeNestPieceIndexMap.insert(k, QVector<int>());
+                int oldIndex2 = pieceIDList[k];  // 之前的索引值
+                int newIndex2 = transformMap[oldIndex2][0];  // 现在的索引值
+                if(!sameTypeNestPieceIndexMap.contains(oldIndex2)){
+                    sameTypeNestPieceIndexMap.insert(oldIndex2, QVector<int>());
                 }
-                int id2 = pieceIDList[k];
-                sameTypeNestPieceIndexMap[id1].append(id2);
-                sameTypeNestPieceIndexMap[id2].append(id1);
+                if(newIndex2 < newIndex1){
+                    sameTypeNestPieceIndexMap[oldIndex1].append(oldIndex2);
+                } else{
+                    sameTypeNestPieceIndexMap[oldIndex2].append(oldIndex1);
+                }
             }
         }
     }
-
-//    qDebug() << "result";
-//    foreach (int index, sameTypeNestPieceIndexMap.keys()) {
-//        qDebug() << "# " << index << " => [";
-//        foreach (int id, sameTypeNestPieceIndexMap[index]) {
-//            qDebug() << id << "  ";
-//        }
-//        qDebug() << "]";
-//    }
+#ifdef DEBUG
+    qDebug() << "result";
+    foreach (int index, sameTypeNestPieceIndexMap.keys()) {
+        qDebug() << "# " << index << " => [";
+        foreach (int id, sameTypeNestPieceIndexMap[index]) {
+            qDebug() << id << "  ";
+        }
+        qDebug() << "]";
+    }
+#endif
 }
 
 void NestEngine::initNestEngineConfig(Sheet::SheetType sheetType, NestEngineConfigure *proConfig)
@@ -982,7 +957,6 @@ void NestEngine::getAllBestNestTypes(QVector<Piece> pieceList)
         Piece piece = pieceList[i];
         qreal alpha, xStep;
         QPointF pOffset, rCOffset;
-        qreal yStep = 0;
         NestType type = getPieceBestNestType(piece, alpha, xStep, pOffset, rCOffset, maxRotateAngle);
         qDebug() << "#" << i << ", bestNestType: " << (NestType)type;
 
@@ -990,7 +964,7 @@ void NestEngine::getAllBestNestTypes(QVector<Piece> pieceList)
         if(!pieceBestNestTypeMap.contains(i)){
             pieceBestNestTypeMap.insert(i, BestNestType());
         }
-        BestNestType bestNestType(i, type, alpha, xStep, pOffset, rCOffset, yStep);
+        BestNestType bestNestType(i, type, alpha, xStep, pOffset, rCOffset);
         pieceBestNestTypeMap[i] = bestNestType;
     }
 }

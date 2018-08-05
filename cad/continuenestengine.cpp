@@ -109,7 +109,6 @@ NestEngine::PairPieceStatus ContinueNestEngine::initPairPieceStatus(const QRectF
     return status;
 }
 
-
 bool ContinueNestEngine::packPieceByLayoutRect(const int sheetID,
                                                const QRectF& layoutRect,
                                                const int pieceType,
@@ -128,10 +127,6 @@ bool ContinueNestEngine::packPieceByLayoutRect(const int sheetID,
                                                QRectF &layoutRect1,
                                                QRectF &layoutRect2)
 {
-    qDebug() << endl << "index: " << pieceIndex;
-    qDebug() << "maxIndex: " << pieceMaxIndex;
-    qDebug() << "layoutRect: " << layoutRect;
-
     // 计算初始化状态
     qreal pieceWidth, pieceHeight, alpha1, alpha2, xStep;
     QPointF pos1, pos2;
@@ -141,7 +136,6 @@ bool ContinueNestEngine::packPieceByLayoutRect(const int sheetID,
         Piece piece = pieceList[pieceType];  // 复制零件
         status = initPairPieceStatus(layoutRect, piece, bestNestType);
     }
-
     // 判断最佳排版方式是否在排版矩形内，
     if(status.errorFlag){
         qDebug() << "errorFlag" << endl;
@@ -150,22 +144,23 @@ bool ContinueNestEngine::packPieceByLayoutRect(const int sheetID,
         Piece piece = pieceList[pieceType];  // 复制零件
         qreal alpha, xStep;
         QPointF pOffset, rCOffset;
+        qreal maxWidth = layoutRect.width();
         qreal maxHeight = layoutRect.height();
         NestType nestType = getPieceBestNestType(piece, alpha, xStep, pOffset,
-                                           rCOffset, 360, maxHeight);
+                                           rCOffset, 360, maxWidth, maxHeight);
         qDebug() << "best nest type: " << nestType;
         if(nestType == NoNestType){
             qDebug() << "can not pack";
-            return false;
+            //return false;
         }
         BestNestType bestNestType(pieceType, nestType, alpha, xStep,
                                   pOffset, rCOffset);  // 获取该类型零件在限制材料高度时最佳排版方式
         status = initPairPieceStatus(layoutRect, piece, bestNestType);
         if(status.errorFlag){
-            return false;
+            qDebug() << "should have return false!" << endl;
+            //return false;
         }
     }
-
     if((rectType & TailPiece) != NoRectType){
         qDebug() << "this is tail piece row";
 //        QPointF bottomLeft(status.pairCenter.rx() - 0.5 * status.pairWidth,
@@ -180,6 +175,9 @@ bool ContinueNestEngine::packPieceByLayoutRect(const int sheetID,
     }
     if((rectType & SecondRow) != NoRectType){
         qDebug() << "This is second row";
+        qDebug() << "status.yStep = " << status.yStep;
+#if 0
+        // 通过顶点计算y方向的
         if(status.yStep == 0){
             // 找出零件所在外包矩形所包含的零件列表
             QRectF testRect(layoutRect.left(),
@@ -261,7 +259,32 @@ bool ContinueNestEngine::packPieceByLayoutRect(const int sheetID,
             // 设置步长
             status.yStep = yStep;
         }
+#endif
 
+        // 通过靠接计算
+        qDebug() << "status.yStep == 0" << (status.yStep == 0);
+        if((int)status.yStep == 0){
+#if 1
+            // 首先将零件排放至矩形左上角，然后再向上靠接
+            Piece p1 = pieceList[pieceType];  // 复制零件->p1
+            p1.moveTo(status.pos1 + QPointF(0, status.pairHeight));
+            p1.rotate(p1.getPosition(), status.alpha1);
+
+            Piece p2 = pieceList[pieceType];  // 复制零件->p1
+            p2.moveTo(status.pos2 + QPointF(0, status.pairHeight));
+            p2.rotate(p2.getPosition(), status.alpha2);
+
+            qreal yStep1 = compactOnVD(sheetID, p1);
+            qreal yStep2 = compactOnVD(sheetID, p2);
+
+            qDebug() << "yStep1: " << yStep1 << ", " << "yStep2: " << yStep2;
+
+            qreal yStep = yStep1 < yStep2 ? yStep1 : yStep2;
+
+            status.yStep = status.pairHeight - yStep;
+#endif
+            //status.yStep = status.pairHeight;
+        }
         // 更新位置
         status.pos1 += QPointF(0, status.yStep);
         status.pos2 += QPointF(0, status.yStep);
@@ -306,25 +329,26 @@ bool ContinueNestEngine::packPieceByLayoutRect(const int sheetID,
         // 零件超出矩形右边缘
         if(x > xMax){
             qDebug() << "#" << pieceIndex << " over right";
-
             // 如果一个零件都放不下，那么该材料太小，需要重新设置材料大小
             if(columnCounter < 1){
-                //qDebug() << "this sheet is pretty not enough!";
-                //emit(nestException(SheetSizeError));  // 发送材料大小异常
+                qDebug() << "this sheet is pretty not enough!";
+                emit(nestException(SheetSizeError));  // 发送材料大小异常
                 return false;
             }
 
             // 如果矩形类型不为尾只 且 设置了尾只优化
-            if((mixingTyes & NestEngine::TailPieceMixing) != NestEngine::NoMixing){  //(rectType & TailPiece) == NoRectType &&
+            if((mixingTyes & NestEngine::TailPieceMixing) != NestEngine::NoMixing){
                 // 在同型体内寻找较小
                 qDebug() << "set tailPieceMix!" << endl << "searching the sameTypePiece ... " << endl;
                 // 判断是否设置了同型体列表
                 if(sameTypeNestPieceIndexMap.contains(pieceType)){
-                    QVector<int> typeIdList = sameTypeNestPieceIndexMap[pieceType];  // 获取该类型零件的同型体
+                    QVector<int> typeIdList;
+                    typeIdList.append(pieceType);  // 先在同种类型中尝试
+                    typeIdList.append(sameTypeNestPieceIndexMap[pieceType]);  // 然后再尝试该类型零件的同型体
                     foreach (int type, typeIdList) {  // 遍历该列表
                         // 尝试该零件是否能排下
                         int minIndexTmp = nestPieceIndexRangeMap[type].minIndex;  // 获取该类型零件的最小值
-                        int maxIndexTmp = nestPieceIndexRangeMap[type].maxIndex;  // 获取该类型零件的最小值
+                        int maxIndexTmp = nestPieceIndexRangeMap[type].maxIndex;  // 获取该类型零件的最大值
                         int chooseIndex = -1;  // 选择未排版的那个零件进行排放
                         for(int k = minIndexTmp; k <= maxIndexTmp; k++){
                             if(!nestPieceList[k].nested){
@@ -407,15 +431,9 @@ bool ContinueNestEngine::packPieceByLayoutRect(const int sheetID,
             spaceDelta = 0.0f;
             sameRowPieceList.clear();
 
-            qDebug() << endl << "whole sheet flag: " << wholeSheetFlag;
-            if(!wholeSheetFlag){  // 如果不是whole Sheet，直接退出
-                qDebug() << "break" << endl;
-                //break;
-            }
-
             // 更新排版矩形
             QRectF secondRowRect(layoutRect.left(), yCover, layoutRect.width(), layoutRect.bottom() - yCover);
-            //emit nestDebugRemainRect(secondRowRect);
+            emit nestDebugRemainRect(sheetID, secondRowRect);
             qDebug() << "second row Rect: " << secondRowRect;
             bool res = packPieceByLayoutRect(sheetID, secondRowRect, pieceType, pieceIndex, pieceMaxIndex,
                                              bestNestType, status, anchorPos, spaceDelta, sheetAvailable, sameRowPieceList,
@@ -429,6 +447,7 @@ bool ContinueNestEngine::packPieceByLayoutRect(const int sheetID,
             // 如果矩形类型不为尾行 且 设置了尾行优化
             if((mixingTyes & NestEngine::TailLineMixing) != NestEngine::NoMixing){  // (rectType & TailLine) == NoRectType &&
                 qDebug() << "tail line mixing" << endl;
+                qreal maxWidth = layoutRect.width();
                 qreal maxHeight = layoutRect.bottom()-yCover;  // 获取剩余材料最大高度
                 QRectF tailLineRect(layoutRect.left(), yCover, layoutRect.width(), maxHeight);  // 剩余排版矩形
                 emit nestDebugRemainRect(sheetID, tailLineRect);  //debug
@@ -443,7 +462,7 @@ bool ContinueNestEngine::packPieceByLayoutRect(const int sheetID,
                     qreal alphaTailLine, xStepTailLine;
                     QPointF pOffsetTailLine, rCOffsetTailLine;
                     NestType nestType = getPieceBestNestType(pTailLine, alphaTailLine, xStepTailLine, pOffsetTailLine,
-                                                       rCOffsetTailLine, 360, maxHeight);
+                                                       rCOffsetTailLine, 360, maxWidth, maxHeight);
                     qDebug() << "best nest type: " << nestType;
                     if(nestType == NoNestType){
                         qDebug() << "can not pack";
@@ -562,7 +581,7 @@ void ContinueNestEngine::packPieces(QVector<int> indexList)
                                          nestedList, unnestedList, rectType, true, layoutRect1, layoutRect2);
         if(!res){
             emit nestInterrupted(unnestedList.length());
-            emit nestFinished(nestPieceList);
+            //emit nestFinished(nestPieceList);
             return;
         }
         qDebug() << "sheet #" << sheetID << " has finished" << endl;
@@ -600,10 +619,14 @@ void ContinueNestEngine::packPieces(QVector<int> indexList)
             emit nestDebugRemainRect(sheetID, layoutRect);
             qreal top0 = layoutRect1.top()-status.yStep+status.pairHeight;
             qreal deltaHeight = top0 - layoutRect1.top();
-            layoutRect = QRectF(layoutRect1.left(),
-                                layoutRect1.top()-status.yStep+status.pairHeight,
-                                layoutRect1.width(),
-                                layoutRect1.height()-deltaHeight);
+            if(layoutRect1.height()-deltaHeight != 0){
+                layoutRect = QRectF(layoutRect1.left(),
+                                    layoutRect1.top()-status.yStep+status.pairHeight,
+                                    layoutRect1.width(),
+                                    layoutRect1.height()-deltaHeight);
+            } else{
+                layoutRect = layoutRect1;
+            }
             layoutRect1 = layoutRect;
             layoutRect2 = layoutRect;
             emit nestDebugRemainRect(sheetID, layoutRect);  // debug
@@ -647,11 +670,55 @@ bool ContinueNestEngine::compact(int sheetID, NestEngine::NestPiece &nestPiece)
     return true;
 }
 
+qreal ContinueNestEngine::compactOnVD(int sheetID, Piece piece)
+{
+    //qDebug() << "垂直方向靠接算法";
+    QPointF pos = piece.getPosition();
+    QPointF posOld = pos;  // 记录之前的位置
+    //qDebug() << "origin position: " << pos;
+    emit nestDebug(sheetID, pos, pos);
+    // 重力方向靠接
+    qreal stepY = compactStep;
+    while(stepY > compactAccuracy){
+        QPointF posTemp = pos;
+        QPointF forwardPos(posTemp.rx(), posTemp.ry()-stepY);  // 重力反方向移动
+        //qDebug() << "move to" << forwardPos;
+        piece.moveTo(forwardPos);  // 将零件移至前进位置
+        if(collidesWithOtherPieces(sheetID, piece)){
+            // 往下移
+            ///qDebug() << "collides with others";
+            stepY /= 2;
+            continue;
+        }
+        pos.setY(pos.ry() - stepY);
+    }
+    //qDebug() << "now position: " << pos;
+    qreal step = posOld.ry() - pos.ry();
+    return step;
+}
+
 bool ContinueNestEngine::collidesWithOtherPieces(int sheetID, Piece piece)
 {
-    Q_UNUSED(sheetID);
-    Q_UNUSED(piece);
-    return true;
+    // 判断两两零件是否碰撞, 优化方案：使用四叉树进行管理
+    //qDebug() << "与对象: " << piece.getBoundingRect() << " 在同一象限的对象：";
+    std::list<Object *> resObjects =
+            quadTreeMap[sheetID]->retrieve(new Object(piece.getBoundingRect()));
+    for(auto &t:resObjects){
+        //qDebug()<< t->id << ' ' << t->x<<' '<<t->y<<' '<<t->width<<' '<<t->height;
+        int id = t->id;
+        int typeID = nestPieceList[id].typeID;
+        Piece pieceNested = pieceList[typeID];
+        pieceNested.moveTo(nestPieceList[id].position);
+        pieceNested.rotate(nestPieceList[id].position, nestPieceList[id].alpha);
+        if(pieceNested.collidesWithPiece(piece)){
+            //qDebug() << "与 &" << nestPieceList[i].index << "，位置：" << nestPieceList[i].position;
+            //qDebug() << "";
+            return true;
+        }
+        collisionCount++;
+    }
+    //qDebug() << "";
+    return false;
 }
 
 QRectF ContinueNestEngine::getPairBoundingRect(QPointF &pos1, QPointF &pos2,

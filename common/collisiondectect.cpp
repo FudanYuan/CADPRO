@@ -96,17 +96,20 @@ bool CollisionDectect::boundHit(QVector<qreal> bound1, QVector<qreal> bound2)
 
 qreal CollisionDectect::dotProduct(QPointF v1, QPointF v2)
 {
-    return v1.rx() * v2.rx() + v1.ry() * v2.ry();
+    qreal ret = v1.rx() * v2.rx() + v1.ry() * v2.ry();
+    return qrealPrecision(ret, precision);
 }
 
 QPointF CollisionDectect::normalize(QPointF v)
 {
-    int n = qSqrt(v.rx() * v.rx() + v.ry() * v.ry());
-    if(n <= 0){
+    qreal n = qSqrt(v.rx() * v.rx() + v.ry() * v.ry());
+    if(n == 0){
         return v;
     }
-    v.setX(v.rx() / n);
-    v.setY(v.ry() / n);
+    qreal x = qrealPrecision(v.rx() / n, precision);
+    qreal y = qrealPrecision(v.ry() / n, precision);
+    v.setX(x);
+    v.setY(y);
     return v;
 }
 
@@ -121,53 +124,34 @@ QPointF CollisionDectect::perpendicular(QPointF v)
 QVector<QPointF> CollisionDectect::getSeparatingAxis(QVector<QPointF> pList, QVector<QPointF> separatingAxis)
 {
     int len = pList.length();
-    bool flag = false;
     QPointF nor, segment;
     for(int i=0; i<len; i++){
-        if(i >= len-1){
-            segment.setX(pList[0].rx() - pList[i].rx());
-            segment.setY(pList[0].ry() - pList[i].ry());
-        } else{
-            segment.setX(pList[i+1].rx() - pList[i].rx());
-            segment.setY(pList[i+1].ry() - pList[i].ry());
-        }
+        segment.setX(pList[(i+1)%len].rx() - pList[i].rx());
+        segment.setY(pList[(i+1)%len].ry() - pList[i].ry());
         nor = perpendicular(normalize(segment));
-        if(nor.rx() <= 0){
-            if(nor.rx() == 0){
-                if(nor.ry() < 0) {
-                    nor.setY(-nor.ry());
-                } else {
-                    nor.setX(-nor.rx());
-                    nor.setY(-nor.ry());
-                }
-            }
+        if(nor.rx() == 0 && nor.ry() == 0){  // 防止前后两点重复导致错误
+             continue;
         }
-        flag = true;
+        bool flag = false;  // 重复标志
         // 判断该分离轴是否重复，可用QMap<qreal, QVector<qreal>> 优化
         for(int j=0; j<separatingAxis.length(); j++){
-            if(separatingAxis[j].rx() != nor.rx()){
-                continue;
+            if((separatingAxis[j].rx() == nor.rx()
+                    && separatingAxis[j].ry() == nor.ry()) ||
+                    (separatingAxis[j].rx() == -nor.rx()
+                    && separatingAxis[j].ry() == -nor.ry())){
+                flag = true;
+                break;
             }
-            if(separatingAxis[j].ry() != nor.ry()){
-                continue;
-            }
-            flag = false;
-            break;
         }
-        if(!flag){
-            continue;
+        if(!flag){  // 当不重复时将向量加入分离轴数组
+            separatingAxis.append(nor);
         }
-        separatingAxis.append(nor);
     }
     return separatingAxis;
 }
 
 bool CollisionDectect::overlap(QPointF s1, QPointF s2)
 {
-    //qDebug() << "s1.rx: " << s1.rx() << ", s1.ry: " << s1.ry();
-    //qDebug() << "s2.rx: " << s2.rx() << ", s2.ry: " << s2.ry();
-    //qDebug() << (s1.rx() - s2.ry()) << (s1.rx() >= s2.ry());
-    //qDebug() << (s1.ry() - s2.rx()) << (s1.ry() <= s2.rx());
     qreal sx1 = qrealPrecision(s1.rx(), precision);
     qreal sy1 = qrealPrecision(s1.ry(), precision);
     qreal sx2 = qrealPrecision(s2.rx(), precision);
@@ -243,7 +227,6 @@ bool CollisionDectect::collision()
     if(isConcavePoly1){
         //qDebug() << "first is concavePoly" ;
         //qDebug() << "";
-        ConcavePolygon concavePoly1(pList1);
         QMap<int, QVector<QPointF>> splitRes1 = concavePoly1.onSeparateConcavePoly(pList1);
         for(int i=0; i<splitRes1.size(); i++){
             if(convexPolygonCollision(splitRes1[i], pList2)){
@@ -254,7 +237,6 @@ bool CollisionDectect::collision()
     }
     if(isConcavePoly2){
         //qDebug() << "second is concavePoly" ;
-        ConcavePolygon concavePoly2(pList2);
         QMap<int, QVector<QPointF>> splitRes2 = concavePoly2.onSeparateConcavePoly(pList2);
         for(int i=0; i<splitRes2.size(); i++){
             if(convexPolygonCollision(pList1, splitRes2[i])){
@@ -288,10 +270,10 @@ bool CollisionDectect::convexPolygonCollision(QVector<QPointF> pList1, QVector<Q
         //qDebug() << "second is not circle";
         separatingAxis = getSeparatingAxis(pList2, separatingAxis);
     }
-    //qDebug() << "separating Axis: ";
-    for(int i=0; i<separatingAxis.length(); i++){
-        //qDebug() << separatingAxis[i];
-    }
+    //qDebug() << "separating Axis: "  << separatingAxis.length();
+    //for(int i=0; i<separatingAxis.length(); i++){
+    //    qDebug() << separatingAxis[i];
+    //}
     //qDebug() << "";
     QPointF extreme1, extreme2;
     for(int i=0; i<separatingAxis.length(); i++){
@@ -421,6 +403,7 @@ void ConcavePolygon::_separateConcavePoly(QVector<QPointF> pList, QMap<int, QVec
         map.insert(map.size(), pList);
         return;
     }
+
     int nextConcaveIndex = getNextConcaveIndex(pList, startIndex);
     // qDebug() << "下一凹点：" << " #"  << nextConcaveIndex;
     if(nextConcaveIndex > 0 && nextConcaveIndex < len){
