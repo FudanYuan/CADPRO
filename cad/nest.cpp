@@ -2023,7 +2023,6 @@ void Nest::onActionNestStart()
     nestEngine->setAutoRepeatLastSheet(true);
     NestEngineConfigure *proConfig = proNestEngineConfigMap[pName];
     nestEngine->initNestEngineConfig(proSheetInfo->sheetType, proConfig);  // 初始化排版配置
-    nestEngine->getAllBestNestTypes(nestEngine->getPieceList());
     connect(this, &Nest::nestStart, nestEngine, &NestEngine::onNestStart);
     connect(nestEngine, &NestEngine::progress, this, &Nest::onNestProgressChanged);
     connect(nestEngine, &NestEngine::nestFinished, this, &Nest::onNestFinished);
@@ -2076,6 +2075,10 @@ void Nest::onActionNestSideLeft()
     fName = "F:/Projects/build-CADPRO-Desktop_Qt_5_10_0_MinGW_32bit-Debug/toNest3.dxf";
     onActionTreeProjectAddScene();
     fName = "F:/Projects/build-CADPRO-Desktop_Qt_5_10_0_MinGW_32bit-Debug/toNest6.dxf";
+    onActionTreeProjectAddScene();
+    fName = "F:/Projects/build-CADPRO-Desktop_Qt_5_10_0_MinGW_32bit-Debug/toNest.dxf";
+    onActionTreeProjectAddScene();
+    fName = "F:/Projects/build-CADPRO-Desktop_Qt_5_10_0_MinGW_32bit-Debug/toNest2.dxf";
     onActionTreeProjectAddScene();
 
 #endif

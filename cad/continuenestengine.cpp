@@ -102,7 +102,7 @@ NestEngine::PairPieceStatus ContinueNestEngine::initPairPieceStatus(const QRectF
     QRectF testRect = layoutRect;
     testRect.moveCenter(piece.getPosition());  // 移至原点
     // 判断矩形框内是否可以放下该矩形，如果不可以，则提前返回
-    if(!testRect.contains(boundingRect)){
+    if(!testRect.contains(pairBoundingRect)){
         status.errorFlag = true;
     }
 
@@ -283,7 +283,6 @@ bool ContinueNestEngine::packPieceByLayoutRect(const int sheetID,
 
             status.yStep = status.pairHeight - yStep;
 #endif
-            //status.yStep = status.pairHeight;
         }
         // 更新位置
         status.pos1 += QPointF(0, status.yStep);
@@ -399,6 +398,7 @@ bool ContinueNestEngine::packPieceByLayoutRect(const int sheetID,
                         PairPieceStatus status;
                         BestNestType bestNestType = pieceBestNestTypeMap[type];
                         QRectF layoutRect1, layoutRect2;
+                        bool sheetAvailable = true;
                         bool res = packPieceByLayoutRect(sheetID, tailPieceRect, type, chooseIndex, maxIndexTmp,
                                                          bestNestType, status, anchorPos, spaceDelta, sheetAvailable, sameRowPieceList,
                                                          nestedList, unnestedList, TailPiece|FirstRow, false, layoutRect1, layoutRect2);
@@ -481,7 +481,7 @@ bool ContinueNestEngine::packPieceByLayoutRect(const int sheetID,
             }
 
             // 材料不足并需要返回
-            sheetAvailable = false;
+            sheetAvailable = false;  // 这里有个bug，当当前尾行排放的零件类型排完时，材料不一定排完
             break;
         }
 
@@ -508,11 +508,12 @@ bool ContinueNestEngine::packPieceByLayoutRect(const int sheetID,
         pieceIndex++;  // 更新下一零件index
     }
 
-    if(sheetAvailable && wholeSheetFlag){  // 如果材料没用完
-        QPointF availablePos1 = QPointF(anchorPos.rx(), anchorPos.ry()-pieceHeight);
+    qDebug() << "sheetAvaliable: " << sheetAvailable << ",  wholeSheetFlag: " << wholeSheetFlag;
+    if(sheetAvailable && wholeSheetFlag){  // 如果材料没用完  //
+        QPointF availablePos1 = QPointF(anchorPos.rx(), anchorPos.ry()-status.pairHeight);
         QPointF availablePos2 = QPointF(layoutRect.left(), anchorPos.ry());
         layoutRect1 = QRectF(availablePos1.rx(), availablePos1.ry(),
-                             layoutRect.right() - availablePos1.rx(), pieceHeight);
+                             layoutRect.right() - availablePos1.rx(), status.pairHeight);
         layoutRect2 = QRectF(availablePos2.rx(), availablePos2.ry(),
                              layoutRect.width(), layoutRect.bottom() - availablePos2.ry());
         //emit nestDebugRemainRect(sheetID, layoutRect1);
@@ -676,7 +677,6 @@ qreal ContinueNestEngine::compactOnVD(int sheetID, Piece piece)
     QPointF pos = piece.getPosition();
     QPointF posOld = pos;  // 记录之前的位置
     //qDebug() << "origin position: " << pos;
-    emit nestDebug(sheetID, pos, pos);
     // 重力方向靠接
     qreal stepY = compactStep;
     while(stepY > compactAccuracy){

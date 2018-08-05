@@ -900,7 +900,7 @@ NestEngine::NestType NestEngine::getPieceBestNestType(const Piece &piece,
     qreal a, s, x, h;
     QPointF o;
 
-#if 1
+#if 0
     qreal rate1 = singleRowNestWithVerAlg(piece, a, s, maxRotateAngle, maxWidth, maxHeight);  // 普通单排方式
     if(rate1 > rateMax){
         rateMax = rate1;
@@ -911,7 +911,7 @@ NestEngine::NestType NestEngine::getPieceBestNestType(const Piece &piece,
     }
 #endif
 
-#if 1
+#if 0
     qreal rate2 = doubleRowNestWithVerAlg(piece, a, s, x, h, 100, maxRotateAngle, maxWidth, maxHeight);  // 普通双排方式
     if(rate2 > rateMax){
         rateMax = rate2;
@@ -1038,6 +1038,7 @@ bool NestEngine::collidesWithOtherPieces(int sheetID, Piece piece)
 
 void NestEngine::onNestStart()
 {
+    getAllBestNestTypes(pieceList);
     initNestPieceList();  // 初始化排样零件
     packAlg();  // 进行连续排版
 }
