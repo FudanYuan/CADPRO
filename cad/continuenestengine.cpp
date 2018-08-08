@@ -131,11 +131,12 @@ bool ContinueNestEngine::packPieceByLayoutRect(const int sheetID,
     qreal pieceWidth, pieceHeight, alpha1, alpha2, xStep;
     QPointF pos1, pos2;
 
-    if((rectType & FirstRow) != NoRectType){
-        qDebug() << "this is first row";
-        Piece piece = pieceList[pieceType];  // 复制零件
-        status = initPairPieceStatus(layoutRect, piece, bestNestType);
-    }
+    qDebug() << "this is a new row";
+    Piece piece = pieceList[pieceType];  // 复制零件
+    qreal yStep = status.yStep;
+    status = initPairPieceStatus(layoutRect, piece, bestNestType);  // 初始化排版状态
+    status.yStep = yStep;
+
     // 判断最佳排版方式是否在排版矩形内，
     if(status.errorFlag){
         qDebug() << "errorFlag" << endl;
@@ -161,6 +162,9 @@ bool ContinueNestEngine::packPieceByLayoutRect(const int sheetID,
             //return false;
         }
     }
+
+    if((rectType & FirstRow) != NoRectType){
+    }
     if((rectType & TailPiece) != NoRectType){
         qDebug() << "this is tail piece row";
 //        QPointF bottomLeft(status.pairCenter.rx() - 0.5 * status.pairWidth,
@@ -174,6 +178,7 @@ bool ContinueNestEngine::packPieceByLayoutRect(const int sheetID,
         // 向左靠接
     }
     if((rectType & SecondRow) != NoRectType){
+        // 判断是否可以放下该
         qDebug() << "This is second row";
         qDebug() << "status.yStep = " << status.yStep;
 #if 0
@@ -519,7 +524,7 @@ bool ContinueNestEngine::packPieceByLayoutRect(const int sheetID,
         //emit nestDebugRemainRect(sheetID, layoutRect1);
         //emit nestDebugRemainRect(sheetID, layoutRect2);
         //qDebug() << layoutRect << "  " << layoutRect1 << "  " << layoutRect2;
-        //emit(nestDebug(sheetID, availablePos1, availablePos2));
+        emit(nestDebug(sheetID, availablePos1, availablePos2));
     }
 
     // 如果所有材料都已排完，同行零件列表不为空，则默认按上一行的间隔进行自适应
@@ -551,8 +556,8 @@ void ContinueNestEngine::packPieces(QVector<int> indexList)
     int sheetID = 0;
     // 初始排版矩形区域
     QRectF layoutRect = sheetList[sheetID].layoutRect();
-    QRectF layoutRect1 = layoutRect;
-    QRectF layoutRect2 = layoutRect;
+    QRectF layoutRect1 = layoutRect;  // 同一行剩余矩形
+    QRectF layoutRect2 = layoutRect;  // 下一行剩余矩形
 
     PairPieceStatus status;  // 组合零件状态
     RectTypes rectType = FirstRow;  // 初始矩形类型
@@ -570,7 +575,7 @@ void ContinueNestEngine::packPieces(QVector<int> indexList)
         int type = nestPieceList[index].typeID;  // 获取该零件的类型号
         BestNestType bestNestType = pieceBestNestTypeMap[type];  // 获取该类型零件的最佳排版方式
 
-        bool sheetAvailable = true;  // 记录材料是否用完
+        bool sheetAvailable = true;  // 记录材料是否可用
         qreal spaceDelta = 0.0f;  // 自适应间隔增量
         QPointF anchorPos;  // 记录锚点位置，记录的是零件排放后外包矩形右下角位置
         QVector<int> sameRowPieceList;  // 记录同一行零件列表
@@ -582,14 +587,13 @@ void ContinueNestEngine::packPieces(QVector<int> indexList)
                                          nestedList, unnestedList, rectType, true, layoutRect1, layoutRect2);
         if(!res){
             emit nestInterrupted(unnestedList.length());
-            //emit nestFinished(nestPieceList);
-            return;
-        }
-        qDebug() << "sheet #" << sheetID << " has finished" << endl;
-        if(unnestedList.isEmpty()){
             break;
         }
-        if(!sheetAvailable){
+        if(unnestedList.isEmpty()){  // 如果待排列表为空，则提前结束
+            break;
+        }
+        if(!sheetAvailable){  // 如果材料不可用，则增加材料
+            qDebug() << "sheet #" << sheetID << " has finished" << endl;
             int sheetLength = sheetList.length();  // 获取材料列表长度
             if(sheetLength <= sheetID+1){  // 如果材料不足
                 if(autoRepeatLastSheet){  // 如果设置了自动重复最后一张材料
@@ -608,19 +612,19 @@ void ContinueNestEngine::packPieces(QVector<int> indexList)
                 }
             }
             rectType = FirstRow;  // 更新矩形类型
-        } else {  // 如果该矩形未排完，则
+        } else {  // 如果材料仍可用，则先在同行内剩余材料排放
             qDebug() << "sheet is still available";
             int index = unnestedList.first();  // 获取未排零件的第一个零件
-            qDebug() << "pack #" << index;
             int type = nestPieceList[index].typeID;  // 获取该零件的类型号
             BestNestType bestNestType = pieceBestNestTypeMap[type];  // 获取该类型零件的最佳排版方式
             int maxIndex = nestPieceIndexRangeMap[type].maxIndex;  // 获取该类型零件的最大值
-            QRectF layoutRectTmp = layoutRect2;
 
-            emit nestDebugRemainRect(sheetID, layoutRect);
-            qreal top0 = layoutRect1.top()-status.yStep+status.pairHeight;
-            qreal deltaHeight = top0 - layoutRect1.top();
-            if(layoutRect1.height()-deltaHeight != 0){
+            QRectF layoutRectTmp = layoutRect2;  // 记录下一行剩余材料
+            emit nestDebugRemainRect(sheetID, layoutRect1);  // debug
+
+            if(status.yStep != 0){  // 这里有bug
+                qreal top0 = layoutRect1.top()-status.yStep+status.pairHeight;
+                qreal deltaHeight = top0 - layoutRect1.top();
                 layoutRect = QRectF(layoutRect1.left(),
                                     layoutRect1.top()-status.yStep+status.pairHeight,
                                     layoutRect1.width(),

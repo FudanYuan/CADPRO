@@ -2068,17 +2068,28 @@ void Nest::onActionNestSideLeft()
     qDebug() << "左靠边";
 #ifdef DEBUG
     addProject();
-    fName = "F:/Projects/build-CADPRO-Desktop_Qt_5_10_0_MinGW_32bit-Debug/toNest4.dxf";
-    //fName = "/Users/Jeremy/Desktop/toNest4.dxf";
+    //fName = "F:/Projects/build-CADPRO-Desktop_Qt_5_10_0_MinGW_32bit-Debug/toNest4.dxf";
+    fName = "/Users/Jeremy/Desktop/toNest4.dxf";
     onActionTreeProjectAddScene();
-    //fName = "/Users/Jeremy/Desktop/toNest3.dxf";
-    fName = "F:/Projects/build-CADPRO-Desktop_Qt_5_10_0_MinGW_32bit-Debug/toNest3.dxf";
+
+    //fName = "F:/Projects/build-CADPRO-Desktop_Qt_5_10_0_MinGW_32bit-Debug/toNest3.dxf";
+    fName = "/Users/Jeremy/Desktop/toNest3.dxf";
     onActionTreeProjectAddScene();
-    fName = "F:/Projects/build-CADPRO-Desktop_Qt_5_10_0_MinGW_32bit-Debug/toNest6.dxf";
+
+    //fName = "F:/Projects/build-CADPRO-Desktop_Qt_5_10_0_MinGW_32bit-Debug/toNest5.dxf";
+    fName = "/Users/Jeremy/Desktop/toNest5.dxf";
     onActionTreeProjectAddScene();
-    fName = "F:/Projects/build-CADPRO-Desktop_Qt_5_10_0_MinGW_32bit-Debug/toNest.dxf";
+
+    //fName = "F:/Projects/build-CADPRO-Desktop_Qt_5_10_0_MinGW_32bit-Debug/toNest6.dxf";
+    fName = "/Users/Jeremy/Desktop/toNest6.dxf";
     onActionTreeProjectAddScene();
-    fName = "F:/Projects/build-CADPRO-Desktop_Qt_5_10_0_MinGW_32bit-Debug/toNest2.dxf";
+
+    //fName = "F:/Projects/build-CADPRO-Desktop_Qt_5_10_0_MinGW_32bit-Debug/toNest.dxf";
+    fName = "/Users/Jeremy/Desktop/toNest.dxf";
+    onActionTreeProjectAddScene();
+
+    //fName = "F:/Projects/build-CADPRO-Desktop_Qt_5_10_0_MinGW_32bit-Debug/toNest2.dxf";
+    fName = "/Users/Jeremy/Desktop/toNest2.dxf";
     onActionTreeProjectAddScene();
 
 #endif
@@ -2289,14 +2300,14 @@ void Nest::onActionNestSideDirectionVertical()
 
     QString pName = projectActive->getName();
     Piece piece = *proPieceInfoMap[pName]->pieceList[1];
-    piece.rotate(piece.getPosition(), 134);
+    piece.rotate(piece.getPosition(), 90);
 
     Piece p1 = piece;
     Piece p2 = piece;
 
     p1.moveTo(p1.getPosition() + nestScene->getOffset());
-    p2.moveTo(QPointF(p2.getPosition().rx()-60, p2.getPosition().ry() + counter) + nestScene->getOffset());
-
+    p2.moveTo(QPointF(p2.getPosition().rx()-75, p2.getPosition().ry() + counter++%150) + nestScene->getOffset());
+    p2.rotate(p2.getPosition(), 180);
     ConcavePolygon concavePoly1(p1.getPointsList());
     ConcavePolygon concavePoly2(p2.getPointsList());
 
@@ -2347,7 +2358,7 @@ void Nest::onActionNestSideDirectionVertical()
             }
         }
     }
-
+    return;
     QVector<Piece> pieceList;
     for(int i=0; i<4; i++){
         Piece piece1 = piece;
