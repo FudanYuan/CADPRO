@@ -1142,6 +1142,9 @@ Scene *Scene::copy()
     foreach (Polyline* p, polylineList) {
         s->addCustomPolylineItem(p->copy());
     }
+    foreach (Line* l, lineList) {
+        s->addCustomLineItem(l->copy());
+    }
     return s;
 }
 

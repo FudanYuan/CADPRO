@@ -80,6 +80,36 @@ public:
     };
 
     /**
+     * @brief The PairPiece struct
+     * 同双零件，指零件大小一致，形状互为镜像
+     */
+    struct PairPiece
+    {
+        PairPiece() :
+            pairID(-1),
+            size(-1),
+            leftID(-1),
+            rightID(-1)
+        {
+
+        }
+
+        PairPiece(int id, int s, int left, int right) :
+            pairID(id),
+            size(s),
+            leftID(left),
+            rightID(right)
+        {
+
+        }
+
+        int pairID;  // 同双ID
+        int size;  // 零件尺码
+        int leftID;  // 左支零件ID
+        int rightID;  // 右支零件ID
+    };
+
+    /**
      * @brief The IDRange struct
      * 零件组成排版零件后在列表中的序号范围
      */
@@ -88,20 +118,31 @@ public:
         PieceIndexRange() :
             pieceID(-1),
             minIndex(-1),
-            maxIndex(-1)
+            maxIndex(-1),
+            step(1)
         {
 
         }
         PieceIndexRange(int id, int min, int max) :
             pieceID(id),
             minIndex(min),
-            maxIndex(max)
+            maxIndex(max),
+            step(1)
+        {
+
+        }
+        PieceIndexRange(int id, int min, int max, int s) :
+            pieceID(id),
+            minIndex(min),
+            maxIndex(max),
+            step(s)
         {
 
         }
         int pieceID;  // 零件id
         int minIndex;  // 最小序号
         int maxIndex;  // 最大序号
+        int step;  // 步长
     };
 
     /**
@@ -110,7 +151,8 @@ public:
      */
     enum NestException{
         NoSheetError,  // 无材料
-        SheetSizeError,  // 材料大小
+        SheetSizeError,  // 材料大小错误
+        PiecePairError,  // 零件不成对
     };
 
     /**
@@ -187,16 +229,54 @@ public:
     };
 
     /**
+     * @brief The SinglePieceStatus struct
+     * 单个零件状态
+     */
+    struct SinglePieceStatus
+    {
+        SinglePieceStatus() :
+            pos(QPointF()),
+            pieceWidth(0.0f),
+            pieceHeight(0.0f),
+            alpha(0.0f),
+            errorFlag(false)
+        {
+
+        }
+
+        SinglePieceStatus(QPointF p,
+                          qreal pW,
+                          qreal pH,
+                          qreal a) :
+            pos(p),
+            pieceWidth(pW),
+            pieceHeight(pH),
+            alpha(a),
+            errorFlag(false)
+        {
+
+        }
+
+        QPointF pos;  // 零件的位置
+        qreal pieceWidth;  // 单个零件的宽
+        qreal pieceHeight;  // 单个零件的高
+        qreal alpha;  // 零件1旋转角度
+        bool errorFlag;  // 错误标志
+    };
+
+    /**
      * @brief The PairPieceStatus struct
      * 组合零件状态
      */
     struct PairPieceStatus
     {
-        PairPieceStatus():
+        PairPieceStatus() :
             pos1(QPointF()),
             pos2(QPointF()),
-            pieceWidth(0.0f),
-            pieceHeight(0.0f),
+            pieceWidth1(0.0f),
+            pieceHeight1(0.0f),
+            pieceWidth2(0.0f),
+            pieceHeight2(0.0f),
             alpha1(0.0f),
             alpha2(0.0f),
             xStep(0.0f),
@@ -210,30 +290,36 @@ public:
         }
 
         PairPieceStatus(QPointF p1, QPointF p2,
-                        qreal piW, qreal piH,
-                        int a1, int a2,
+                        qreal piW1, qreal piH1,
+                        qreal piW2, qreal piH2,
+                        qreal a1, qreal a2,
                         qreal x, qreal y,
                         QPointF c,
                         qreal paW, qreal paH) :
             pos1(p1),
             pos2(p2),
-            pieceWidth(piW),
-            pieceHeight(piH),
+            pieceWidth1(piW1),
+            pieceHeight1(piH1),
+            pieceWidth2(piW2),
+            pieceHeight2(piH2),
             alpha1(a1),
             alpha2(a2),
             xStep(x),
             yStep(y),
             pairCenter(c),
             pairWidth(paW),
-            pairHeight(paH)
+            pairHeight(paH),
+            errorFlag(false)
         {
 
         }
 
         QPointF pos1;  // 零件1的位置
         QPointF pos2;  // 零件2的位置
-        qreal pieceWidth;  // 单个零件的宽
-        qreal pieceHeight;  // 单个零件的高
+        qreal pieceWidth1;  // 单个零件的宽
+        qreal pieceHeight1;  // 单个零件的高
+        qreal pieceWidth2;  // 单个零件的宽
+        qreal pieceHeight2;  // 单个零件的高
         qreal alpha1;  // 零件1旋转角度
         qreal alpha2;  // 零件2旋转角度
         qreal xStep;  // 送料x步距
@@ -286,8 +372,8 @@ public:
      */
     enum NestEngineStrategy{
         NoStrategy = 0x00,  // 无策略
-        LeftRightTurn = 0x01, // 左右交替
-        SizeDown = 0x02,  // 尺码由大到小
+        SizeDown = 0x01,  // 尺码由大到小
+        LeftRightTurn = 0x02, // 左右交替
         ReferenceLine = 0x04, // 参考线排版
         AllStrategys = LeftRightTurn | SizeDown,  // 使用全部策略
         Reserved = 0xff,  // 预留
@@ -295,7 +381,7 @@ public:
     Q_DECLARE_FLAGS(NestEngineStrategys, NestEngineStrategy)
     Q_FLAG(NestEngineStrategys)
 
-    explicit NestEngine(QObject *parent);
+    explicit NestEngine(QObject *parent=0);
     explicit NestEngine(QObject *parent, const QVector<Piece> pieceList, QVector<Sheet> sheetList);
     explicit NestEngine(QObject *parent, const QVector<Piece> pieceList, QVector<Sheet> sheetList, QVector<SameTypePiece> sameTypePieceList);
     virtual ~NestEngine();
@@ -308,6 +394,9 @@ public:
 
     void setSameTypePieceList(QVector<SameTypePiece> sameTypePieceList);  // 设置同型体
     QVector<SameTypePiece> getSameTypePieceList();  // 获得同型体
+
+    void setPairPieceList(QVector<PairPiece> pairPieceList);  // 设置同双零件列表
+    QVector<PairPiece> getPairPieceList();  // 获得同双体
 
     QVector<NestPiece> getNestPieceList();  // 获取排样切割件列表
     QVector<int> getNestedPieceIndexlist();  // 获取已排样的切割件序号列表
@@ -351,7 +440,8 @@ public:
     void sortedPieceListByArea(QVector<Piece> pieceList, QMap<int, QVector<int>> &transformMap);  // 按面积将多边形列表排序, 并可得到映射关系
     void initQuadTreeMap(int sheetID);  // 初始化四叉树Map
     void initNestPieceList();  // 初始化排版零件列表，默认按面积降序排序
-    void initsameTypeNestPieceIndexMap();  // 初始化同型体排版零件列表Map
+    void initSameTypeNestPieceIndexMap();  // 初始化同型体排版零件列表Map
+    void initSamePairNestPieceIndexMap();  // 初始化同双体排版零件列表Map
     void initNestEngineConfig(Sheet::SheetType sheetType, NestEngineConfigure *proConfig);  // 初始化排版引擎配置
 
     void singleRowNest(Piece piece, qreal &alpha, qreal &stepX, qreal &width, qreal &height);  // 最优单排
@@ -406,6 +496,14 @@ public:
 
     void getAllBestNestTypes(QVector<Piece> pieceList);  // 获取所有零件最佳排样方式
 
+    qreal oppositeDoubleRowNestWithVerAlgForStrip(const QRectF &layoutRect,
+                                                  const Piece &piece1,
+                                                  const Piece &piece2,
+                                                  QPointF &pos1,
+                                                  QPointF &pos2,
+                                                  qreal &xStep,
+                                                  const bool flag, QRectF &boundRect1, QRectF &boundRect2, QRectF &pairBoundRect);
+
     void packAlg();  // 排版算法
 
     virtual void packPieces(QVector<int> indexList);  //  排版算法
@@ -432,6 +530,7 @@ protected:
     QVector<Piece> pieceList;  // 零件列表
     QVector<Sheet> sheetList;  // 材料列表
     QVector<SameTypePiece> sameTypePieceList;  // 同型体零件
+    QVector<PairPiece> pairPieceList;  // 同双零件
     QVector<NestPiece> nestPieceList;  // 排版零件列表
     QMap<int, QVector<int>> transformMap;  // 零件面积由小到大排序之后的索引与排序之前的索引转换关系
                                            // Map<索引, <变换前的索引, 变换后的索引]>
@@ -439,6 +538,7 @@ protected:
                                            // 当key为之前索引时，value[0]代表当前索引
     QMap<int, PieceIndexRange> nestPieceIndexRangeMap;  // 排版零件的index范围 Map<零件id, 排样零件序号范围>
     QMap<int, QVector<int>> sameTypeNestPieceIndexMap;  // 同型体排版零件index列表 Map<同型体id, 零件序号列表>
+    QMap<int, int> samePairNestPieceIndexMap;  // 同双体排版零件index列表 Map<零件id，其同双零件id>
     QVector<int> nestedPieceIndexlist;  // 已排零件Index列表
     QVector<int> unnestedPieceIndexlist;  // 未排零件Index列表
     QMap<int, QVector<int>> nestSheetPieceMap;  // 排样材料-零件索引 Map<材料id, 零件序号列表>
@@ -446,10 +546,11 @@ protected:
     //QMap<int, QMap<int, QList<int>>> sheetRowPieceMap;  // 记录材料-行-零件 Map<材料id, Map<行id, 零件id列表>>
     QMap<int, int> pieceMaxPackPointMap;  // 记录零件-最大排样点序号 Map<零件id, 排样点id>   /////迁移至packPointNestEngine
     QMap<int, QuadTreeNode<Object>*> quadTreeMap;  // 四叉树 Map<材料id, 四叉树>
+
+    bool isStripSheet;  // 条形板材料标志
     bool autoRepeatLastSheet;  // 自动重复使用最后一张材料
     qreal compactStep;  // 靠接步长，单位为mm
     qreal compactAccuracy;  // 靠接精度，单位为mm
-
     NestEngineType nestEngineType;  // 排版引擎类型
     NestType nestType;  // 排版方式
     NestMixingTypes mixingTyes;  // 混合方式
@@ -465,6 +566,9 @@ protected:
 
     // debug
     int counter;
+
+    QRectF getPairBoundingRect(QPointF &pos1, QPointF &pos2, const qreal pieceWidth, const qreal pieceHeight);  // 计算组合零件的外包矩形
+    QRectF getPairBoundingRect(QRectF &bRect1, QRectF &bRect2);  // 计算组合零件的外包矩形
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(NestEngine::NestMixingTypes)

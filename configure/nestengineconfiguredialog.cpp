@@ -172,25 +172,30 @@ void NestEngineConfigureDialog::onDialogButtonOkClicked()
         }
         break;
     case Strip:
-        // to do
         curStripConfig = new NestEngineConfigure::StripSheetNest();
-        if(sSheetTab->leftRightTurnCBox->isChecked() && sSheetTab->sizeDownCBox->isChecked()){
-            curStripConfig->strategy = NestEngine::AllStrategys;
-        }
-        else if(sSheetTab->leftRightTurnCBox->isChecked()){
+        // 排版策略
+        if(sSheetTab->leftRightTurnRB->isChecked()){
             curStripConfig->strategy = NestEngine::LeftRightTurn;
         }
-        else if(sSheetTab->sizeDownCBox->isChecked()){
+        else if(sSheetTab->sizeDownRB->isChecked()){
             curStripConfig->strategy = NestEngine::SizeDown;
         } else {
             curStripConfig->strategy = NestEngine::NoStrategy;
         }
+
+        // 排版横向自适应
         if(sSheetTab->HorizontalAdaptiveSpacing->isChecked())
         {
             curStripConfig->stripadaptive=NestEngine::HorizontalAdaptiveSpacing;
+        } else{
+            curStripConfig->stripadaptive=NestEngine::NoAdaptiveSpacing;
         }
-        else if(sSheetTab->TailPieceMixing->isChecked())
+
+        // 位置混合
+        if(sSheetTab->TailPieceMixing->isChecked())
         {
+            curStripConfig->stripmixing=NestEngine::TailPieceMixing;
+        } else{
             curStripConfig->stripmixing=NestEngine::NoMixing;
         }
         break;
@@ -318,13 +323,13 @@ void NestEngineConfigureDialog::onDialogButtonCancelClicked()
     case Strip:
         // to do
         curStripConfig = new NestEngineConfigure::StripSheetNest();
-        if(sSheetTab->leftRightTurnCBox->isChecked() && sSheetTab->sizeDownCBox->isChecked()){
+        if(sSheetTab->leftRightTurnRB->isChecked() && sSheetTab->sizeDownRB->isChecked()){
             curStripConfig->strategy = NestEngine::AllStrategys;
         }
-        else if(sSheetTab->leftRightTurnCBox->isChecked()){
+        else if(sSheetTab->leftRightTurnRB->isChecked()){
             curStripConfig->strategy = NestEngine::LeftRightTurn;
         }
-        else if(sSheetTab->sizeDownCBox->isChecked()){
+        else if(sSheetTab->sizeDownRB->isChecked()){
             curStripConfig->strategy = NestEngine::SizeDown;
         } else {
             curStripConfig->strategy = NestEngine::NoStrategy;
@@ -437,7 +442,7 @@ WholeSheetConfigTab::WholeSheetConfigTab(QWidget *parent,QList<QList<int>> dataL
     QLabel *label1 = new QLabel(tr("摆动角度"), this);
     degree =new QLineEdit;
     degree->setText(tr("0"));
-    degree->setValidator(new QIntValidator(0, 90, this));//限制只能输入数字0~90
+    degree->setValidator(new QIntValidator(0, 180, this));//限制只能输入数字0~90
     QLabel *label2 = new QLabel(tr("度"), this);
     HorizontalNest = new QRadioButton(tr("横向"), this);
     VerticalNest = new QRadioButton(tr("纵向"), this);
@@ -615,7 +620,6 @@ void WholeSheetConfigTab::onConfigureButtonClicked()
 void WholeSheetConfigTab::onEditButtonClicked()
 {
     //this->tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);//不可编辑
-
     this->button1->setEnabled(true);
     this->button3->setEnabled(false);
     this->button4->setEnabled(false);
@@ -626,16 +630,8 @@ void WholeSheetConfigTab::onDeleteButtonClicked()
     if(this->tableWidget->currentItem()!=NULL)
     {
         int row = this->tableWidget->currentItem()->row();
-        //this->dataMap->value(0).removeAt(row);
-        //this->setTableWidget();
-
         this->dataList.removeAt(row);
         emit wDataChanged(0,this->dataList);
-
-
-
-
-        //bug是不能一开始就删除第一个！！！
         this->tableWidget->removeRow(row);
     }
 
@@ -644,19 +640,11 @@ void WholeSheetConfigTab::onDeleteButtonClicked()
     this->button3->setEnabled(false);
     //所有选项不可编辑
     this->degree->setText(QString("%1").arg(0));
-
-
     this->HorizontalNest->setChecked(false);
-
     this->VerticalNest->setChecked(false);
-
-
     this->TailPieceMixing->setChecked(false);
-
     this->TailLineMixing->setChecked(false);
-
     this->SameTypeSizeMixing->setChecked(false);
-
     this->AllMixing->setChecked(false);
 }
 
@@ -747,18 +735,15 @@ void WholeSheetConfigTab::onNewButtonClicked()
 
 void WholeSheetConfigTab::onItemChanged()
 {
-    if(this->dataList.length() == 0)
+    if(this->dataList.length() == 0){
         return;
-
+    }
 
     int row = this->tableWidget->currentItem()->row();
-    //qDebug()<<"row::222"<<row;
-    //this->button1->setEnabled(true);
     this->button4->setEnabled(false);
     this->button2->setEnabled(true);
     this->button3->setEnabled(true);
     QList<int> configurelist = this->dataList[row];
-   // qDebug()<<"row::233"<<configurelist.length();
     this->degree->setText(QString("%1").arg(configurelist[0]));
     if(configurelist[1] == 1)
         this->HorizontalNest->setChecked(true);
@@ -817,15 +802,28 @@ StripSheetConfigTab::StripSheetConfigTab(QWidget *parent,QList<QList<int>> dataL
      QVBoxLayout *layout = new QVBoxLayout();
      QVBoxLayout *layout1 = new QVBoxLayout();
      QHBoxLayout *hLayout1= new QHBoxLayout();
-     leftRightTurnCBox = new QCheckBox(tr("左右交替"));
-     sizeDownCBox = new QCheckBox(tr("尺码大到小"));
+     QGroupBox *group = new QGroupBox(tr("排版方式"));
+     QVBoxLayout *gLayout = new QVBoxLayout(group);
+     leftRightTurnRB = new QRadioButton(tr("左右交替"), group);
+     leftRightTurnRB->setChecked(true);  // 默认选择
+     sizeDownRB = new QRadioButton(tr("尺码大到小"), group);
+     gLayout->addWidget(leftRightTurnRB);
+     gLayout->addWidget(sizeDownRB);
+     gLayout->addItem(new QSpacerItem(group->width(),
+                                      10,
+                                      QSizePolicy::Expanding,
+                                      QSizePolicy::Expanding));
+
      HorizontalAdaptiveSpacing = new QCheckBox(tr("横向自适应间距"));
      TailPieceMixing = new QCheckBox(tr("尾只混合"));
 
-     layout->addWidget(leftRightTurnCBox);
-     layout->addWidget(sizeDownCBox);
+     layout->addWidget(group);
      layout->addWidget(HorizontalAdaptiveSpacing);
      layout->addWidget(TailPieceMixing);
+     layout->addItem(new QSpacerItem(this->width(),
+                                     10,
+                                     QSizePolicy::Expanding,
+                                     QSizePolicy::Expanding));
      mainlayout->addLayout(layout);
      tableWidget = new QTableWidget(0, 2);
      tableWidget->setShowGrid(true);
@@ -881,25 +879,18 @@ void StripSheetConfigTab::setTabWidget()
 
 void StripSheetConfigTab::onConfigureButtonClicked()
 {
-
-
-
-
-
-
     if(!this->tableWidget->currentItem()){
-        qDebug()<<"here";
         return;
     }
 
     int index = this->tableWidget->currentItem()->row();
-    if(this->leftRightTurnCBox->isChecked()){
+    if(this->leftRightTurnRB->isChecked()){
         this->dataList[index][0] = 1;
     }
     else{
         this->dataList[index][0] = 0;
     }
-    if(this->sizeDownCBox->isChecked()){
+    if(this->sizeDownRB->isChecked()){
         this->dataList[index][1] = 1;
     }
     else{
@@ -926,18 +917,14 @@ void StripSheetConfigTab::onConfigureButtonClicked()
     this->button4->setEnabled(true);
 
     //所有组件回归初始化状态
-    this->leftRightTurnCBox->setChecked(false);
-    this->sizeDownCBox->setChecked(false);
+    this->leftRightTurnRB->setChecked(false);
+    this->sizeDownRB->setChecked(false);
     this->HorizontalAdaptiveSpacing->setChecked(false);
     this->TailPieceMixing->setChecked(false);
-
-
 }
 
 void StripSheetConfigTab::onEditButtonClicked()
 {
-
-
     this->button1->setEnabled(true);
     this->button3->setEnabled(false);
 }
@@ -947,17 +934,8 @@ void StripSheetConfigTab::onDeleteButtonClicked()
     if(this->tableWidget->currentItem()!=NULL)
     {
         int row = this->tableWidget->currentItem()->row();
-        //this->dataMap->value(0).removeAt(row);
-        //this->setTableWidget();
-
         this->dataList.removeAt(row);
         emit sDataChanged(1,this->dataList);
-
-        qDebug()<<"here we are in del w"<<row;
-
-
-
-        //bug是不能一开始就删除第一个！！！
         this->tableWidget->removeRow(row);
     }
 
@@ -965,8 +943,8 @@ void StripSheetConfigTab::onDeleteButtonClicked()
     this->button2->setEnabled(false);
     this->button3->setEnabled(false);
 
-    this->leftRightTurnCBox->setChecked(false);
-    this->sizeDownCBox->setChecked(false);
+    this->leftRightTurnRB->setChecked(false);
+    this->sizeDownRB->setChecked(false);
     this->HorizontalAdaptiveSpacing->setChecked(false);
     this->TailPieceMixing->setChecked(false);
 }
@@ -974,13 +952,13 @@ void StripSheetConfigTab::onDeleteButtonClicked()
 void StripSheetConfigTab::onNewButtonClicked()
 {
     QList<int> newConfigureList;
-    if(this->leftRightTurnCBox->isChecked()){
+    if(this->leftRightTurnRB->isChecked()){
         newConfigureList.append(1);
     }
     else{
         newConfigureList.append(0);
     }
-    if(this->sizeDownCBox->isChecked()){
+    if(this->sizeDownRB->isChecked()){
         newConfigureList.append(1);
     }
     else{
@@ -1012,7 +990,6 @@ void StripSheetConfigTab::onNewButtonClicked()
     name = "材料"+name;
     tableWidget->setItem(row,1,new QTableWidgetItem(name));
     this->tableWidget->clearSelection();
-    //this->tableWidget
 }
 
 void StripSheetConfigTab::onItemChanged()
@@ -1020,24 +997,22 @@ void StripSheetConfigTab::onItemChanged()
     if(this->dataList.length() == 0)
         return;
     int row = this->tableWidget->currentItem()->row();
-    //qDebug()<<"row::"<<row;
-    //this->button1->setEnabled(true);
     this->button2->setEnabled(true);
     this->button3->setEnabled(true);
     this->button4->setEnabled(false);
     QList<int> configurelist = this->dataList[row];
 
     if(configurelist[0] == 1){
-        this->leftRightTurnCBox->setChecked(true);
+        this->leftRightTurnRB->setChecked(true);
     }
     else{
-        this->leftRightTurnCBox->setChecked(false);
+        this->leftRightTurnRB->setChecked(false);
     }
     if(configurelist[1] == 1){
-        this->sizeDownCBox->setChecked(true);
+        this->sizeDownRB->setChecked(true);
     }
     else{
-        this->sizeDownCBox->setChecked(false);
+        this->sizeDownRB->setChecked(false);
     }
     if(configurelist[2] == 1){
         this->HorizontalAdaptiveSpacing->setChecked(true);
@@ -1066,7 +1041,7 @@ PackageSheetConfig::PackageSheetConfig(QWidget *parent,QList<QList<int>> dataLis
     QLabel *label1 =new QLabel(tr("摆动角度"));
     degree =new QLineEdit;
     degree->setText(tr("0"));
-    degree->setValidator(new QIntValidator(0, 90, this));//限制只能输入数字0~90
+    degree->setValidator(new QIntValidator(0, 180, this));//限制只能输入数字0~90
     QLabel *label2 = new QLabel(tr("度"), this);
     HorizontalNest = new QRadioButton(tr("横向"));
     VerticalNest = new QRadioButton(tr("纵向"));
@@ -1101,14 +1076,6 @@ PackageSheetConfig::PackageSheetConfig(QWidget *parent,QList<QList<int>> dataLis
     button1->setEnabled(false);
     button2->setEnabled(false);
     button3->setEnabled(false);
-//    degree->setEnabled(false);
-//    HorizontalNest->setEnabled(false);
-//    VerticalNest->setEnabled(false);
-//    TailPieceMixing->setEnabled(false);
-//    TailLineMixing->setEnabled(false);
-//    SameTypeSizeMixing->setEnabled(false);
-//    AllMixing->setEnabled(false);
-
 
     hLayout1->addWidget(button4);
     hLayout1->addWidget(button2);
@@ -1279,10 +1246,6 @@ void PackageSheetConfig::onDeleteButtonClicked()
 
         this->dataList.removeAt(row);
         emit pDataChanged(2,this->dataList);
-
-
-
-
 
         //bug是不能一开始就删除第一个！！！
         this->tableWidget->removeRow(row);

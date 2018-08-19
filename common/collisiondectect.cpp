@@ -13,6 +13,7 @@ CollisionDectect::CollisionDectect(QVector<QPointF> pList1, QVector<QPointF> pLi
     if(!isCircle2 && pList2[0] == pList2[pList2.length()-1]){
         pList2.removeLast();
     }
+
     this->pList1 = pList1;
     this->pList2 = pList2;
     this->isCircle1 = isCircle1;
@@ -272,7 +273,7 @@ bool CollisionDectect::convexPolygonCollision(QVector<QPointF> pList1, QVector<Q
     }
     //qDebug() << "separating Axis: "  << separatingAxis.length();
     //for(int i=0; i<separatingAxis.length(); i++){
-    //    qDebug() << separatingAxis[i];
+    //    //qDebug() << separatingAxis[i];
     //}
     //qDebug() << "";
     QPointF extreme1, extreme2;
@@ -283,17 +284,17 @@ bool CollisionDectect::convexPolygonCollision(QVector<QPointF> pList1, QVector<Q
         } else{
             extreme1 = getPolygonProjection(pList1, separatingAxis[i]);
         }
-        // qDebug() << "第一个图形的投影极值为："
+        //qDebug() << "第一个图形的投影极值为："
                  // << extreme1.rx() << "  " << extreme1.ry();
         if(isCircle2){
             extreme2 = getCircleProjection(pList2, separatingAxis[i]);
         } else{
             extreme2 = getPolygonProjection(pList2, separatingAxis[i]);
         }
-        // qDebug() << "第一个图形的投影极值为："
+        //qDebug() << "第一个图形的投影极值为："
                  // << extreme2.rx() << "  " << extreme2.ry();
         if(!overlap(extreme1, extreme2)){
-            // qDebug() << "在投影轴为#" << i << "：" << separatingAxis[i]
+            //qDebug() << "在投影轴为#" << i << "：" << separatingAxis[i]
                         // << "时分离";
             return false;
         }
@@ -304,32 +305,32 @@ bool CollisionDectect::convexPolygonCollision(QVector<QPointF> pList1, QVector<Q
 ConcavePolygon::ConcavePolygon(QVector<QPointF> &list) :
     coordinateSystem(LeftHandRuleCS)
 {
-    // qDebug() << "构造ConcavePolygon, 默认是左手定则";
+    //qDebug() << "构造ConcavePolygon, 默认是左手定则";
     // 默认为逆时针，否则反转多边形
     if(!isAntiClockDir(list)){
-        // qDebug() << list.length() << " - 顺时针";
+        //qDebug() << list.length() << " - 顺时针";
         conversPoly(list);
     } else {
-        // qDebug() << list.length() << " - 逆时针";
+        //qDebug() << list.length() << " - 逆时针";
     }
     pList = list;
 }
 
 ConcavePolygon::ConcavePolygon(QVector<QPointF> &list, CoordinateSystem cs)
 {
-    // qDebug() << "构造ConcavePolygon, 默认是左手定则";
+    //qDebug() << "构造ConcavePolygon, 默认是左手定则";
     // 默认为逆时针，否则反转多边形
     if(!isAntiClockDir(list)){
-        // qDebug() << list.length() << " - 顺时针";
+        //qDebug() << list.length() << " - 顺时针";
         conversPoly(list);
     } else {
-        // qDebug() << list.length() << " - 逆时针";
+        //qDebug() << list.length() << " - 逆时针";
     }
     pList = list;
     coordinateSystem = cs;
     // 如果使用了平面直角坐标系统，对坐标系要进行转换
     if(coordinateSystem == RightHandRuleCS){
-        // qDebug() << "使用了平面直角坐标系";
+        //qDebug() << "使用了平面直角坐标系";
         for(int i=0; i<list.length(); i++){
             pList[i].setY(-pList[i].ry());
         }
@@ -343,10 +344,10 @@ bool ConcavePolygon::isConcavePolygon(QVector<QPointF> pList)
     }
     QVector<int> res = getAllConcaveIndex(pList, 0);
     for(int i=0; i<res.length(); i++){
-        // qDebug() << "凹点: #" << res[i] << "  " << pList[res[i]];
+        //qDebug() << "凹点: #" << res[i] << "  " << pList[res[i]];
     }
     bool ret = getNextConcaveIndex(pList, 0) >=0;
-    // qDebug() << "检测该多边形是否为凹多边形: "  << ret;
+    //qDebug() << "检测该多边形是否为凹多边形: "  << ret;
     return ret;
 }
 
@@ -405,29 +406,31 @@ void ConcavePolygon::_separateConcavePoly(QVector<QPointF> pList, QMap<int, QVec
     }
 
     int nextConcaveIndex = getNextConcaveIndex(pList, startIndex);
-    // qDebug() << "下一凹点：" << " #"  << nextConcaveIndex;
+    //qDebug() << "nextConcaveIndex = " << nextConcaveIndex;
+
+#if 1
     if(nextConcaveIndex > 0 && nextConcaveIndex < len){
-        // qDebug() << "凹点为：" << pList[nextConcaveIndex];
+        //qDebug() << "凹点为：" << pList[nextConcaveIndex];
     }
+#endif
+
     if(nextConcaveIndex < 0){
-        // qDebug() << "nextConcaveIndex < 0";
         map.insert(map.size(), pList);
         return;
     }
     startIndex = nextConcaveIndex + 1;
     IntersectionPoint intersectionPoint;
     if(getSplitPointByVertexRegion(pList, nextConcaveIndex, intersectionPoint)){
-        // qDebug() << "交点" << intersectionPoint.index << "  " << intersectionPoint.intersection;
+        //qDebug() << "交点" << intersectionPoint.index << "  " << intersectionPoint.intersection;
         QVector<QPointF> pLeftList;
         QVector<QPointF> pRightList;
         splitPolyByIntersection(pList, nextConcaveIndex, intersectionPoint, pLeftList, pRightList);
-        // qDebug() << "pLeftList: " << pLeftList.length();
-        // qDebug() << "pRightList: " << pRightList.length();
+        //qDebug() << "pLeftList: " << pLeftList.length();
+        //qDebug() << "pRightList: " << pRightList.length();
         _separateConcavePoly(pLeftList, map, startIndex);
         _separateConcavePoly(pRightList, map, startIndex);
         return;
     }
-    // qDebug() << "nextConcaveIndex > 0";
     map.insert(map.size(), pList);
 }
 
@@ -481,7 +484,7 @@ bool ConcavePolygon::getSplitPointByVertexRegion(QVector<QPointF> pList, int con
     if(len <= 3){
         return false;
     }
-    // qDebug() << "----getSplitPointByVertexRegion-----";
+     //qDebug() << "----getSplitPointByVertexRegion-----";
     int preIndex = concaveIndex > 0 ? concaveIndex - 1 : len - 1;
     int nextIndex = (concaveIndex < (len - 1)) ? concaveIndex + 1 : 0;
     int ret1 = 0;
@@ -498,14 +501,14 @@ bool ConcavePolygon::getSplitPointByVertexRegion(QVector<QPointF> pList, int con
     QVector<int> D1;
     int nMax = (nextIndex <= preIndex) ? preIndex : preIndex + len;
 
-    // qDebug() << "preIndex: " << preIndex;
-    // qDebug() << "concaveIndex: " << concaveIndex;
-    // qDebug() << "nextIndex: " << nextIndex;
-    // qDebug() << "nMax: " << nMax;
+    //qDebug() << "preIndex: " << preIndex;
+    //qDebug() << "concaveIndex: " << concaveIndex;
+    //qDebug() << "nextIndex: " << nextIndex;
+    //qDebug() << "nMax: " << nMax;
 
     for(int i=nextIndex; i<=nMax; i++){
         int nCur = i % len;
-//        // qDebug() << "nCur: " << nCur;
+        //qDebug() << "nCur: " << nCur;
         ret1 = getMutiPtClockDir(pList[concaveIndex], pList[preIndex], pList[nCur]);
         ret2 = getMutiPtClockDir(pList[concaveIndex], pList[nextIndex], pList[nCur]);
         // 计算所在区域
@@ -519,47 +522,46 @@ bool ConcavePolygon::getSplitPointByVertexRegion(QVector<QPointF> pList, int con
             D.append(nCur);
         }
     }
-    // qDebug() << "A:  ";
+    //qDebug() << "A:  ";
     for(int i=0; i<A.length(); i++){
-        // qDebug() << i << "  " << A[i];
+        //qDebug() << i << "  " << A[i];
     }
-    // qDebug() << "B:  ";
+    //qDebug() << "B:  ";
     for(int i=0; i<B.length(); i++){
-        // qDebug() << i << "  " << B[i];
+        //qDebug() << i << "  " << B[i];
     }
-    // qDebug() << "C:  ";
+    //qDebug() << "C:  ";
     for(int i=0; i<C.length(); i++){
-        // qDebug() << i << "  " << C[i];
+        //qDebug() << i << "  " << C[i];
     }
-    // qDebug() << "D:  ";
+    //qDebug() << "D:  ";
     for(int i=0; i<D.length(); i++){
-        // qDebug() << i << "  " << D[i];
+        //qDebug() << i << "  " << D[i];
     }
     // 取可见点分区
-    // qDebug() << "A1可见区";
+    //qDebug() << "A1可见区";
     visibleRegionPtSet(pList, concaveIndex, A, A1);
     for(int i=0; i<A1.length(); i++){
-        // qDebug() << i << "   " << A1[i];
+        //qDebug() << i << "   " << A1[i];
     }
     B1.append(B);
-    // qDebug() << "B1可见区:  ";
+    //qDebug() << "B1可见区:  ";
     for(int i=0; i<B1.length(); i++){
-        // qDebug() << i << "  " << B1[i];
+        //qDebug() << i << "  " << B1[i];
     }
 
-    // qDebug() << "C1可见区";
+    //qDebug() << "C1可见区";
     visibleRegionPtSet(pList, concaveIndex, C, C1);
     for(int i=0; i<C1.length(); i++){
-        // qDebug() << i << "   " << C1[i];
+        //qDebug() << i << "   " << C1[i];
     }
     D1.append(D);
-    // qDebug() << "D1可见区:  ";
+    //qDebug() << "D1可见区:  ";
     for(int i=0; i<D1.length(); i++){
-        // qDebug() << i << "  " << D1[i];
+        //qDebug() << i << "  " << D1[i];
     }
 
     if(A1.length() > 0){
-
         QVector<int> setA, setB;
         setSplitByRegion(pList, A1, setA, setB);
         if(setB.length() > 0){
@@ -572,13 +574,13 @@ bool ConcavePolygon::getSplitPointByVertexRegion(QVector<QPointF> pList, int con
             return false;
         }
         intersectionPoint.intersection = pList[intersectionPoint.index];
-        // qDebug() << "A1 不为空， 交点： #" << intersectionPoint.index << "  " << intersectionPoint.intersection;
+        //qDebug() << "A1 不为空， 交点： #" << intersectionPoint.index << "  " << intersectionPoint.intersection;
         return true;
     }
     // 如果A为空，BC必不为空
-    // qDebug() << "A1 为空";
+    //qDebug() << "A1 为空";
     if(B1.length() < 1 || C1.length() < 1){
-        // qDebug() << "BC分区为空错误";
+        //qDebug() << "BC分区为空错误";
         return false;
     }
     //int mid = concaveIndex;
@@ -587,17 +589,17 @@ bool ConcavePolygon::getSplitPointByVertexRegion(QVector<QPointF> pList, int con
     // BC区域的首位点必在一条直线上
     QPointF d1(pList[right].rx() - pList[left].rx(),
                pList[right].ry() - pList[left].ry());
-    // qDebug() << "d1: " << d1;
+    //qDebug() << "d1: " << d1;
     QPointF d00(pList[concaveIndex].rx() - pList[preIndex].rx(),
                 pList[concaveIndex].ry() - pList[preIndex].ry());
-    // qDebug() << "d00: " << d00;
+    //qDebug() << "d00: " << d00;
     QPointF d01(pList[concaveIndex].rx() - pList[nextIndex].rx(),
                 pList[concaveIndex].ry() - pList[nextIndex].ry());
-    // qDebug() << "d01: " << d01;
+    //qDebug() << "d01: " << d01;
     // A区域与交点区域的角平分线
     QPointF d0((d00.rx() + d01.rx()) / 2,
                (d00.ry() + d01.ry()) / 2);
-    // qDebug() << "d0: " << d0;
+    //qDebug() << "d0: " << d0;
     QPointF crossPt(0, 0);
 
     QLineF line1(pList[concaveIndex], d0);
@@ -605,9 +607,9 @@ bool ConcavePolygon::getSplitPointByVertexRegion(QVector<QPointF> pList, int con
     QPointF point;
     QLineF::IntersectType type = line1.intersect(line2,&point);
     if(type != QLineF::NoIntersection){
-        // qDebug() << "line's intersect: " << point;
+        //qDebug() << "line's intersect: " << point;
     } else{
-        // qDebug() << "无交点";
+        //qDebug() << "无交点";
     }
 
     if(!getCrossByRadialAndSegment(pList[concaveIndex], d0, pList[left], d1, crossPt)){
@@ -616,10 +618,10 @@ bool ConcavePolygon::getSplitPointByVertexRegion(QVector<QPointF> pList, int con
 
     intersectionPoint.index = left;
     intersectionPoint.intersection = crossPt;
-    // qDebug() << "**************";
-    // qDebug() << "intersectionPoint.index = " << left;
-    // qDebug() << "intersectionPoint.intersection = " << crossPt;
-    // qDebug() << "**************";
+    //qDebug() << "**************";
+    //qDebug() << "intersectionPoint.index = " << left;
+    //qDebug() << "intersectionPoint.intersection = " << crossPt;
+    //qDebug() << "**************";
     return true;
 }
 
@@ -672,40 +674,59 @@ void ConcavePolygon::conversPoly(QVector<QPointF> &pList)
 
 bool ConcavePolygon::isVectorInsection(QPointF p1, QPointF d1, QPointF p2, QPointF d2)
 {
+    //qDebug() << p1 << ", " << d1 << ", " << p2 << ", " << d2;
+    QLineF l1(p1, d1);
+    QLineF l2(p2, d2);
+    QPointF intersection;
+    return getLineIntersection(l1, l2, intersection);
+#if 0
     QPointF ePoint(p2.rx()-p1.rx(), p2.ry()-p1.ry());
     qreal cross = d1.rx() * d2.ry() - d1.ry() * d2.rx();
     qreal sqrtCross = cross * cross;
     qreal sqrtLen1 = d1.rx() * d1.rx() + d1.ry() * d1.ry();
     qreal sqrtLen2 = d2.rx() * d2.rx() + d2.ry() * d2.ry();
-    qreal sqrtEpsilon = 0.01;
-    if(sqrtCross > sqrtEpsilon * sqrtLen1 * sqrtLen2){
+    qreal sqrtEpsilon = 0.01f;
+    //qDebug() << "ePoint: " << ePoint;
+    //qDebug() << "cross:" << cross;
+    //qDebug() << "sqrtCross: " << sqrtCross;
+    //qDebug() << "sqrtLen1: " << sqrtLen1;
+    //qDebug() << "sqrtLen2: " << sqrtLen2;
+    //qDebug() << "sqrtEpsilon * sqrtLen1 * sqrtLen2: " << sqrtEpsilon * sqrtLen1 * sqrtLen2;
+    //qDebug() << endl;
+    if(sqrtCross > (sqrtEpsilon * sqrtLen1 * sqrtLen2)){
         // lines of the segments are not parallel
         qreal s = (ePoint.rx() * d2.ry() - ePoint.ry() * d2.rx()) / cross;
         if(s < 0 || s > 1){
+            //qDebug() << "s " << s;
             //intersection of lines is not a point on segment P0 + s * D0
             return false;
         }
         qreal t = (ePoint.rx() * d1.ry() - ePoint.ry() * d1.rx()) / cross;
         if(t < 0 || t > 1){
+            //qDebug() << "t: " << t;
             return false;
         }
+        //qDebug() << "return true";
         return true;
     }
     return false;
+#endif
 }
 
 bool ConcavePolygon::isVisiblePtToConcave(QVector<QPointF> pList, int index1, int index2)
 {
     int len = pList.length();
     for(int i=0; i<len; i++){
-        int nextIndex = (i >= len - 1) ? 0 : i + 1;
+        int nextIndex = (i+1)%len;
         if(i == index1
                 || i == index2
                 || nextIndex == index1
                 || nextIndex == index2){
             continue;
         }
+        //qDebug() << index1 << ", " << index2 << ", " << i << ", " << nextIndex;
         if(isVectorInsection(pList[index1], pList[index2], pList[i], pList[nextIndex])){
+            //qDebug() << "Vector Insection";
             return false;
         }
     }
@@ -717,7 +738,7 @@ void ConcavePolygon::visibleRegionPtSet(QVector<QPointF> pList, int concaveIndex
     int i = -1;
     while(++i < region.length()){
         if(isVisiblePtToConcave(pList, concaveIndex, region[i])){
-            // qDebug() << concaveIndex << " 对 " << region[i] << "可见";
+            //qDebug() << concaveIndex << " 对 " << region[i] << "可见";
             region1.append(region[i]);
         }
     }
@@ -792,15 +813,15 @@ bool ConcavePolygon::getCrossByRadialAndSegment(QPointF p1, QPointF d1, QPointF 
     if(sqrtCross > sqrtEpsilon * sqrtLen1 * sqrtLen2){
         // lines of the segments are not parallel
         qreal s = (ePoint.rx() * d2.ry() - ePoint.ry() * d2.rx()) / cross;
-        // qDebug() << "s: " << s;
+        //qDebug() << "s: " << s;
         if(s < 0 || s > 1){
-            // qDebug() << "s<0";
+            //qDebug() << "s<0";
             return false;
         }
         qreal t = (ePoint.rx() * d1.ry() - ePoint.ry() * d1.rx()) / cross;
         if(t < 0 || t > 1){
             //intersection of lines is not a point on segment P1 + t * D1
-            // qDebug() << "t < 0 || t > 1";
+            //qDebug() << "t < 0 || t > 1";
             return false;
         }
         QPointF pt(d1.rx() * s, d1.ry() * s);

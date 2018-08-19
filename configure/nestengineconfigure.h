@@ -11,8 +11,8 @@
  * @brief The AutoNestConfigure class
  * // to do
  * 1. 构造几个结构体，每个结构体对应于每种材料的排版配置
- * 3. 能对配置进行保存、载入及修改
- * 4. 能够实现配置列表，参照sheet
+ * 2. 能对配置进行保存、载入及修改
+ * 3. 能够实现配置列表，参照sheet
  */
 
 class NestEngineConfigure
@@ -35,9 +35,9 @@ public:
     // 针对于条板材料的配置
     struct StripSheetNest{
         StripSheetNest() :
-            strategy(NestEngine::NoStrategy),
-            stripmixing(NestEngine::NoMixing),
-            stripadaptive(NestEngine::NoAdaptiveSpacing)
+            strategy(NestEngine::LeftRightTurn),
+            stripmixing(NestEngine::TailPieceMixing),
+            stripadaptive(NestEngine::HorizontalAdaptiveSpacing)
         {
 
         }

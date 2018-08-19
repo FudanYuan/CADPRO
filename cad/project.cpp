@@ -111,10 +111,6 @@ int Project::getSceneIdByName(const QString name)
 void Project::insertScene(const QList<Scene *> sList)
 {
     int length = sList.length();
-    //qDebug() << "sList length: " << sList.length();
-    //for(int i=0; i<length; i++){
-        //qDebug() << "sList polyline Length: " << sList[i]->getPolylineListLength();
-    //}
     this->sceneList.append(sList);
     length = sceneList.length();  // 更新长度
     sceneActive = sceneList[length - 1];

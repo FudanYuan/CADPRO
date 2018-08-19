@@ -658,6 +658,15 @@ qreal cal2PolygonMaxMinDiff(QVector<QPointF> pList1, QVector<QPointF> pList2){
                     disMin = dis1;
                 }
             }
+            j++;
+        }
+        i++;
+    }
+#if 1
+    i = 0;
+    while(i<length2){
+        int j = 0;
+        while(j<length1-1){
             if((yList2[i] <= yList1[j]
                 && yList2[i] > yList1[j+1])
                     || (yList2[i] <= yList1[j+1]
@@ -680,6 +689,7 @@ qreal cal2PolygonMaxMinDiff(QVector<QPointF> pList1, QVector<QPointF> pList2){
         }
         i++;
     }
+#endif
     return qrealPrecision(disMax-disMin, PRECISION);
 }
 

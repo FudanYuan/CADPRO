@@ -4,9 +4,10 @@
 
 NestEngine::NestEngine(QObject *parent) :
     QObject(parent),
+    isStripSheet(false),
     autoRepeatLastSheet(false),
-    compactStep(1),
-    compactAccuracy(0.1),
+    compactStep(5),
+    compactAccuracy(1),
     nestType(SingleRow),
     mixingTyes(NoMixing),
     adaptiveSpacingTypes(NoAdaptiveSpacing),
@@ -26,6 +27,7 @@ NestEngine::NestEngine(QObject *parent,
                        const QVector<Piece> pieceList,
                        QVector<Sheet> sheetList) :
     QObject(parent),
+    isStripSheet(false),
     autoRepeatLastSheet(false),
     compactStep(5),
     compactAccuracy(1),
@@ -58,7 +60,7 @@ NestEngine::NestEngine(QObject *parent,
     NestEngine(parent, pieceList, sheetList)
 {
     this->sameTypePieceList = sameTypePieceList;
-    initsameTypeNestPieceIndexMap();
+    initSameTypeNestPieceIndexMap();
 }
 
 NestEngine::~NestEngine()
@@ -99,12 +101,23 @@ QVector<Sheet> NestEngine::getSheetList()
 void NestEngine::setSameTypePieceList(QVector<NestEngine::SameTypePiece> sameTypePieceList)
 {
     this->sameTypePieceList = sameTypePieceList;
-    initsameTypeNestPieceIndexMap();
+    initSameTypeNestPieceIndexMap();
 }
 
 QVector<NestEngine::SameTypePiece> NestEngine::getSameTypePieceList()
 {
     return this->sameTypePieceList;
+}
+
+void NestEngine::setPairPieceList(QVector<PairPiece> pairPieceList)
+{
+    this->pairPieceList = pairPieceList;
+    initSamePairNestPieceIndexMap();
+}
+
+QVector<NestEngine::PairPiece> NestEngine::getPairPieceList()
+{
+    return this->pairPieceList;
 }
 
 QVector<NestEngine::NestPiece> NestEngine::getNestPieceList()
@@ -262,12 +275,31 @@ void NestEngine::sortedPieceListByArea(QVector<Piece> pieceList, QMap<int, QVect
     QMap<qreal, QVector<int>>::const_iterator i;
     for(i=pieceAreaMap.constBegin(); i!=pieceAreaMap.constEnd(); ++i){
         foreach (int oldID, i.value()) {
-            QVector<int> dic;
-            dic.append(newID);
-            dic.append(oldID);
-            transformMap.insert(newID++, dic);  // 记录变换前后的位置映射关系，变换后为newID，变换前为oldID
+            if(!transformMap.contains(oldID)){
+                QVector<int> dic;
+                transformMap.insert(oldID, dic);
+            }
+            transformMap[oldID].append(newID++);
+            // 记录变换前后的位置映射关系，变换后为newID，变换前为oldID
         }
     }
+
+    foreach (int newID, transformMap.keys()) {
+        int oldID = -1;
+        foreach (int id, transformMap.keys()) {
+            if(transformMap[id][0] == newID){
+                oldID = id;
+                break;
+            }
+        }
+        transformMap[newID].append(oldID);
+    }
+
+#ifdef DEBUG
+    foreach (int id, transformMap.keys()) {
+        qDebug() << "id: " << id << ", " << transformMap[id][0] << ", " << transformMap[id][1] ;
+    }
+#endif
 }
 
 void NestEngine::initQuadTreeMap(int sheetID)
@@ -293,24 +325,7 @@ void NestEngine::initNestPieceList()
     }
     // 根据排版策略初始化排版零件
     int count=0;
-    switch (nestEngineStrategys){
-    case LeftRightTurn: {
-        for(int i=0; i<pieceList.length(); i++){
-            Piece piece = pieceList[i];
-            PieceIndexRange indexRange(i, count, count+piece.getCount()-1);
-            nestPieceIndexRangeMap.insert(i, indexRange);  // 初始化排版零件序号范围
-            for(int j=0; j<piece.getCount(); j++){
-                // 左右交替，即两个图形相差180*
-                NestPiece nestPiece(count++, i);
-                qreal transposeAngle = piece.isTranspose() ? 90 : 0;
-                nestPiece.alpha = j % 2 == 0 ? 0 : 180 + transposeAngle;
-                nestPieceList.append(nestPiece);  // 初始化排版零件列表
-            }
-            pieceMaxPackPointMap.insert(i, 0);  // 初始化零件排样点最大值map
-        }
-        break;
-    }
-    case SizeDown: {
+    if((nestEngineStrategys & SizeDown) != NoStrategy) {
         for(int i=0; i<pieceList.length(); i++){
             Piece piece = pieceList[transformMap[i][1]];
             PieceIndexRange indexRange(transformMap[i][1], count, count+piece.getCount()-1);
@@ -321,48 +336,34 @@ void NestEngine::initNestPieceList()
             }
             pieceMaxPackPointMap.insert(transformMap[i][1], 0);  // 初始化零件排样点最大值map
         }
-        break;
     }
-    case ReferenceLine:{  // 参考线一定是左右交替
-        // 该策略下，需要根据参考线的方向指定旋转方向，
-        // 如果排版线列号为奇数，就是顺时针；
-        // 如果排版线列号为偶数，就是逆时针；
-        for(int i=0; i<sheetList.length(); i++){
-            Piece piece = pieceList[i];
-            PieceIndexRange indexRange(i, count, count+piece.getCount()-1);
-            nestPieceIndexRangeMap.insert(i, indexRange);  // 初始化排版零件序号范围
-            for(int j=0; j<piece.getCount(); j++){
-                // 左右交替，即两个图形相差180*
-                NestPiece nestPiece(count++, i);
-                nestPiece.alpha = j % 2 == 0 ? 0 : 180;
-                nestPieceList.append(nestPiece);  // 初始化排版零件列表
+    if((nestEngineStrategys & LeftRightTurn) != NoStrategy){
+        foreach (PairPiece pairPiece, pairPieceList) {
+            int left = pairPiece.leftID;
+            int right = pairPiece.rightID;
+            Piece leftPiece = pieceList[left];
+            Piece rightPiece = pieceList[right];
+            int leftNum = leftPiece.getCount();
+            int rightNum = rightPiece.getCount();
+            if(leftNum != rightNum){
+                emit nestException(PiecePairError);
+                break;
             }
-            pieceMaxPackPointMap.insert(i, 0);  // 初始化零件排样点最大值map
-        }
-        break;
-    }
-    case AllStrategys: {
-        for(int i=0; i<pieceList.length(); i++){
-            Piece piece = pieceList[transformMap[i][1]];
-            PieceIndexRange indexRange(transformMap[i][1], count, count+piece.getCount()-1);
-            nestPieceIndexRangeMap.insert(transformMap[i][1], indexRange);  // 初始化排版零件序号范围
-            for(int j=0; j<piece.getCount(); j++){
-                // 左右交替，即两个图形相差180*
-                NestPiece nestPiece(count++, transformMap[i][1]);
-                qreal transposeAngle = piece.isTranspose() ? 90 : 0;
-                nestPiece.alpha = j % 2 == 0 ? 0 : 180 + transposeAngle;
-                nestPieceList.append(nestPiece);
+            PieceIndexRange indexRange1(transformMap[left][0], count, count+leftNum+rightNum-1, 2);
+            nestPieceIndexRangeMap.insert(transformMap[left][0], indexRange1);  // 初始化排版零件序号范围
+
+            PieceIndexRange indexRange2(transformMap[right][0], count+1, count+leftNum+rightNum-1, 2);
+            nestPieceIndexRangeMap.insert(transformMap[right][0], indexRange2);  // 初始化排版零件序号范围
+
+            for(int i=0; i<leftNum; i++){
+                nestPieceList.append(NestPiece(count++, transformMap[left][0], 0));
+                nestPieceList.append(NestPiece(count++, transformMap[right][0], 180));
             }
-            pieceMaxPackPointMap.insert(transformMap[i][1], 0);  // 初始化零件排样点最大值map
         }
-        break;
-    }
-    default:
-        break;
     }
 }
 
-void NestEngine::initsameTypeNestPieceIndexMap()
+void NestEngine::initSameTypeNestPieceIndexMap()
 {
     // 使用sameTypeNestPieceIndexMap来记录每个零件的同型体编号
     for(int i=0; i<sameTypePieceList.length(); i++){
@@ -372,19 +373,25 @@ void NestEngine::initsameTypeNestPieceIndexMap()
         for(int j=0; j<pieceIDList.length()-1; j++){
             int oldIndex1 = pieceIDList[j];  // 之前的索引值
             int newIndex1 = transformMap[oldIndex1][0];  // 现在的索引值
+
             if(!sameTypeNestPieceIndexMap.contains(oldIndex1)){
                 sameTypeNestPieceIndexMap.insert(oldIndex1, QVector<int>());
             }
             for(int k=j+1; k<pieceIDList.length(); k++){
                 int oldIndex2 = pieceIDList[k];  // 之前的索引值
                 int newIndex2 = transformMap[oldIndex2][0];  // 现在的索引值
+
                 if(!sameTypeNestPieceIndexMap.contains(oldIndex2)){
                     sameTypeNestPieceIndexMap.insert(oldIndex2, QVector<int>());
                 }
-                if(newIndex2 < newIndex1){
-                    sameTypeNestPieceIndexMap[oldIndex1].append(oldIndex2);
+                if(newIndex2 > newIndex1){
+                    if(!sameTypeNestPieceIndexMap[oldIndex1].contains(oldIndex2)){
+                        sameTypeNestPieceIndexMap[oldIndex1].append(oldIndex2);
+                    }
                 } else{
-                    sameTypeNestPieceIndexMap[oldIndex2].append(oldIndex1);
+                    if(!sameTypeNestPieceIndexMap[oldIndex2].contains(oldIndex1)){
+                        sameTypeNestPieceIndexMap[oldIndex2].append(oldIndex1);
+                    }
                 }
             }
         }
@@ -398,6 +405,45 @@ void NestEngine::initsameTypeNestPieceIndexMap()
         }
         qDebug() << "]";
     }
+#endif
+}
+
+void NestEngine::initSamePairNestPieceIndexMap()
+{
+    foreach (PairPiece pairPiece, pairPieceList) {
+        int left = pairPiece.leftID;  // 获取左支编号
+        int right = pairPiece.rightID;  // 获取右支编号
+        if(!samePairNestPieceIndexMap.contains(left)){
+            samePairNestPieceIndexMap.insert(left, right);
+        }
+        if(!samePairNestPieceIndexMap.contains(right)){
+            samePairNestPieceIndexMap.insert(right, left);
+        }
+
+        // 同双对默认为同型体
+        if(!sameTypeNestPieceIndexMap.contains(left)){
+            QVector<int> list;
+            sameTypeNestPieceIndexMap.insert(left, list);
+        }
+        if(!sameTypeNestPieceIndexMap[left].contains(right)){
+            sameTypeNestPieceIndexMap[left].append(right);
+        }
+
+        if(!sameTypeNestPieceIndexMap.contains(right)){
+            QVector<int> list;
+            sameTypeNestPieceIndexMap.insert(right, list);
+        }
+        if(!sameTypeNestPieceIndexMap[right].contains(left)){
+            sameTypeNestPieceIndexMap[right].append(left);
+        }
+    }
+
+#ifdef DEBUG
+    qDebug() << "samePairNestPieceIndexMap: ";
+    foreach (int id, samePairNestPieceIndexMap.keys()) {
+        qDebug() << "# " << id << "->" << "# " << samePairNestPieceIndexMap[id];
+    }
+    qDebug() << endl;
 #endif
 }
 
@@ -418,6 +464,7 @@ void NestEngine::initNestEngineConfig(Sheet::SheetType sheetType, NestEngineConf
         break;
     }
     case (Sheet::Strip):{
+        isStripSheet = true;  // 条形板材料标志为true
         NestEngineConfigure::StripSheetNest stripSheetNest = proConfig->getStripSheetNest();
         setNestEngineStrategys(stripSheetNest.strategy);  // 排版策略
         setNestAdaptiveSpacingTypes(stripSheetNest.stripadaptive);  // 自适应间隔
@@ -714,11 +761,15 @@ qreal NestEngine::doubleRowNestWithVerAlg(const Piece &piece,
                 continue;
             }
 
-            if(offset - moveLeft < 0){  // 如果移动距离小于0，继续循环
+            qreal moveRight = offset - moveLeft;  // 右移距离
+            if(moveRight < 0){  // 如果移动距离小于0，继续循环
                 continue;
             }
 
             qreal d = d1 > d2 ? d1 : d2;  // 取二者最大值
+            if(d < moveRight){  // 如果右移距离大于步距，继续循环
+                continue;
+            }
             qreal hd = h * d;
             if(hd < minZ){  // 寻找min值，并记录min值时各变量的值
                 minZ = hd;
@@ -911,7 +962,7 @@ NestEngine::NestType NestEngine::getPieceBestNestType(const Piece &piece,
     }
 #endif
 
-#if 0
+#if 1
     qreal rate2 = doubleRowNestWithVerAlg(piece, a, s, x, h, 100, maxRotateAngle, maxWidth, maxHeight);  // 普通双排方式
     if(rate2 > rateMax){
         rateMax = rate2;
@@ -953,7 +1004,7 @@ NestEngine::NestType NestEngine::getPieceBestNestType(const Piece &piece,
 void NestEngine::getAllBestNestTypes(QVector<Piece> pieceList)
 {
     // 按照零件类型确定最佳排版方式
-    for(int i=0; i<pieceList.length(); i++){
+    for(int i=0; i<pieceList.length(); i++) {
         Piece piece = pieceList[i];
         qreal alpha, xStep;
         QPointF pOffset, rCOffset;
@@ -967,6 +1018,64 @@ void NestEngine::getAllBestNestTypes(QVector<Piece> pieceList)
         BestNestType bestNestType(i, type, alpha, xStep, pOffset, rCOffset);
         pieceBestNestTypeMap[i] = bestNestType;
     }
+}
+
+/**
+ * @brief NestEngine::oppositeDoubleRowNestWithVerAlgForStrip
+ * @param layoutRect
+ * @param piece1
+ * @param piece2
+ * @param pos1
+ * @param pos2
+ * @param xStep
+ * @param flag
+ * @return
+ */
+qreal NestEngine::oppositeDoubleRowNestWithVerAlgForStrip(const QRectF &layoutRect,
+                                                          const Piece &piece1,
+                                                          const Piece &piece2,
+                                                          QPointF &pos1,
+                                                          QPointF &pos2,
+                                                          qreal &xStep,
+                                                          const bool flag,
+                                                          QRectF &boundRect1,
+                                                          QRectF &boundRect2,
+                                                          QRectF &pairBoundRect)
+{
+    qreal rate = 0.0f;
+    // 初始化
+    xStep = 0.0f;
+
+    // 确定初始位置
+    Piece p1 = piece1;  // 复制，零件1
+    p1.moveTo(QPointF(0,0));  // 移动至原点，非必须
+    p1.rotateByReferenceLine(p1.getPosition(), flag);  // 旋转
+    // 把需要排放在条板内的零件区域标注出来
+    QPointF offset1 = p1.getOffsetForReferenceLine(layoutRect);
+    pos1 = p1.getPosition() + offset1;
+    p1.moveTo(pos1);
+
+    Piece p2 = piece2;  // 复制，零件2
+    p2.moveTo(QPointF(0,0));  // 移动至原点，非必须
+    p2.rotateByReferenceLine(p2.getPosition(), !flag);  // 旋转
+    QPointF offset2 = p2.getOffsetForReferenceLine(layoutRect);
+    p2.moveTo(p2.getPosition() + offset2 + QPointF(p1.getBoundingRect().width(), 0));
+
+    // 进行水平靠接
+    p2.compactToOnHD(p1, compactStep, compactAccuracy);
+    pos2 = p2.getPosition();
+
+    // 计算步距
+    qreal d1 = calVerToOppSideXDis(p1.getPointsList());  // 计算各顶点到对边距离的最大值
+    // 计算各顶点到错开零件各边最大值与min值的差
+    qreal d2 = cal2PolygonMaxMinDiff(p1.getPointsList(), p2.getPointsList());
+    xStep = d1 > d2 ? d1 : d2;  // 取二者最大值
+    boundRect1 = p1.getBoundingRect();
+    boundRect2 = p2.getBoundingRect();
+    pairBoundRect = getPairBoundingRect(boundRect1, boundRect2);
+    qreal pairBoundRectArea = pairBoundRect.width() * pairBoundRect.height();
+    rate = (p1.getArea() + p2.getArea()) / pairBoundRectArea;
+    return rate;
 }
 
 void NestEngine::packAlg()
@@ -1038,7 +1147,57 @@ bool NestEngine::collidesWithOtherPieces(int sheetID, Piece piece)
 
 void NestEngine::onNestStart()
 {
-    getAllBestNestTypes(pieceList);
+    if(!isStripSheet){  // 如果不为条形材料排版，则首先计算每个零件的最佳排版类型
+        qDebug() << "如果不为条形材料排版，则首先计算每个零件的最佳排版类型";
+        getAllBestNestTypes(pieceList);  // 获取每个零件最佳排样类型
+    }
     initNestPieceList();  // 初始化排样零件
     packAlg();  // 进行连续排版
+}
+
+QRectF NestEngine::getPairBoundingRect(QPointF &pos1, QPointF &pos2,
+                                               const qreal pieceWidth, const qreal pieceHeight)
+{
+    qreal xMin1 = pos1.rx()-0.5*pieceWidth;
+    qreal yMin1 = pos1.ry()-0.5*pieceHeight;
+    qreal xMax1 = pos1.rx()+0.5*pieceWidth;
+    qreal yMax1 = pos1.ry()+0.5*pieceHeight;
+
+    qreal xMin2 = pos2.rx()-0.5*pieceWidth;
+    qreal yMin2 = pos2.ry()-0.5*pieceHeight;
+    qreal xMax2 = pos2.rx()+0.5*pieceWidth;
+    qreal yMax2 = pos2.ry()+0.5*pieceHeight;
+
+    qreal pairLeft = xMin1 < xMin2 ? xMin1 : xMin2;  // 组合零件左边界
+    qreal pairTop = yMin1 < yMin2 ? yMin1 : yMin2;  // 组合零件上边界
+    qreal pairRight = xMax1 > xMax2 ? xMax1 : xMax2;  // 组合零件右边界
+    qreal pairBottom = yMax1 > yMax2 ? yMax1 : yMax2;  // 组合零件下边界
+
+    qreal pairWidth = pairRight - pairLeft;  // 组合零件的宽
+    qreal pairHeight = pairBottom - pairTop;  // 组合零件的高
+    QRectF pairBoundingRect(pairLeft, pairTop, pairWidth, pairHeight);  // 组合零件的外包矩形
+    return pairBoundingRect;
+}
+
+QRectF NestEngine::getPairBoundingRect(QRectF &bRect1, QRectF &bRect2)
+{
+    qreal xMin1 = bRect1.left();
+    qreal xMax1 = bRect1.right();
+    qreal yMin1 = bRect1.top();
+    qreal yMax1 = bRect1.bottom();
+
+    qreal xMin2 = bRect2.left();
+    qreal xMax2 = bRect2.right();
+    qreal yMin2 = bRect2.top();
+    qreal yMax2 = bRect2.bottom();
+
+    qreal pairLeft = xMin1 < xMin2 ? xMin1 : xMin2;  // 组合零件左边界
+    qreal pairTop = yMin1 < yMin2 ? yMin1 : yMin2;  // 组合零件上边界
+    qreal pairRight = xMax1 > xMax2 ? xMax1 : xMax2;  // 组合零件右边界
+    qreal pairBottom = yMax1 > yMax2 ? yMax1 : yMax2;  // 组合零件下边界
+
+    qreal pairWidth = pairRight - pairLeft;  // 组合零件的宽
+    qreal pairHeight = pairBottom - pairTop;  // 组合零件的高
+    QRectF pairBoundingRect(pairLeft, pairTop, pairWidth, pairHeight);  // 组合零件的外包矩形
+    return pairBoundingRect;
 }

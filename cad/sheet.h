@@ -46,7 +46,7 @@ struct Sheet
         name(""),
         type(Whole),
         material(""),
-        width(1000),
+        width(1200),
         height(1000),
         componentGap(0),
         topMargin(5),
@@ -58,7 +58,8 @@ struct Sheet
         doubleStrip(false),
         cutPaneSize(INT_MAX)
     {
-
+        stripPW.append(StripPW(200, 200));
+        stripPW.append(StripPW(600, 200));
     }
     QString name;  // 材料名称
     SheetType type;  // 材料类型
@@ -105,8 +106,16 @@ struct Sheet
 
     // 材料的有效面积
     qreal area() const {
-        return (width - leftMargin - rightMargin) *
+        qreal area = 0;
+        if(type != Strip){
+            area = (width - leftMargin - rightMargin) *
                 (height - topMargin - bottomMargin);
+        } else{
+            foreach (StripPW s, stripPW) {
+                area += s.width * (width - leftMargin - rightMargin);
+            }
+        }
+        return area;
     }
 
     QRectF boundRect() const {
@@ -123,17 +132,10 @@ struct Sheet
     // 上插板区域
     QVector<QRectF> inforcementRects() const{
         QVector<QRectF> retRects;
-        switch (type) {
-        case Strip:
-            for(int i=0; i<stripPW.length(); i++){
-                retRects.append(QRectF(stripPW[i].position, topMargin,
-                                       stripPW[i].width, height-2*topMargin));
-            }
-            break;
-        case Whole:
-        case Package:
-        default:
-            break;
+        for(int i=0; i<stripPW.length(); i++){
+            retRects.append(QRectF(leftMargin, stripPW[i].position+topMargin,
+                                   width - leftMargin - rightMargin,
+                                   stripPW[i].width));
         }
         return retRects;
     }

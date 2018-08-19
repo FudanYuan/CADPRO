@@ -23,8 +23,6 @@ QMap<int,QList<QList<int>>> NestEngineConfigure::LoadConfigureXml()
     QList<QList<int>> wItem;
     QList<QList<int>> sItem;
     QList<QList<int>> pItem;
-
-
     while(!r.atEnd() && !r.hasError()){
         r.readNext();
         if(r.isStartElement()){
@@ -34,34 +32,26 @@ QMap<int,QList<QList<int>>> NestEngineConfigure::LoadConfigureXml()
                     r.readNext();
                     if(r.name() == "maxRotate"){
                         configureList.append(r.readElementText().toInt());
-                                    //qDebug() << "this name: " << r.readElementText();
                     }
                     if(r.name() == "HorizontalNest"){
                         configureList.append(r.readElementText().toInt());
-                                    //qDebug() << "type: " << r.readElementText();
                     }
                     if(r.name() == "VerticalNest"){
                         configureList.append(r.readElementText().toInt());
                     }
                     if(r.name() == "TailPieceMixing"){
                         configureList.append(r.readElementText().toInt());
-                                    //qDebug() << "material: " << r.readElementText();
                     }
                     if(r.name() == "TailLineMixing"){
                         configureList.append(r.readElementText().toInt());
-                                    //qDebug() << "width: " << r.readElementText();
                     }
                     if(r.name() == "SameTypeSizeMixing"){
                         configureList.append(r.readElementText().toInt());
-                                    //qDebug() << "height: " << r.readElementText();
-                                    //qDebug()<<"samesize_qhh"<<configureList[configureList.length()-1];
                     }
                     if(r.name() == "AllMixing"){
                         configureList.append(r.readElementText().toInt());
                         wItem.append(configureList);
                         break;
-                                    //qDebug()<<"hello_qhh"<<configureList[configureList.length()-1];
-                                    //qDebug() << "componentGap: " << r.readElementText();
                     }
                 }
             }
@@ -72,11 +62,9 @@ QMap<int,QList<QList<int>>> NestEngineConfigure::LoadConfigureXml()
                     r.readNext();
                     if(r.name() == "LeftRightTurn"){
                         configureList.append(r.readElementText().toInt());
-                                    //qDebug() << "this name: " << r.readElementText();
                     }
                     if(r.name() == "SizeDown"){
                         configureList.append(r.readElementText().toInt());
-                                    //qDebug() << "type: " << r.readElementText();
                     }
                     if(r.name() == "HorizontaoSpace"){
                         configureList.append(r.readElementText().toInt());
@@ -85,7 +73,6 @@ QMap<int,QList<QList<int>>> NestEngineConfigure::LoadConfigureXml()
                         configureList.append(r.readElementText().toInt());
                         sItem.append(configureList);
                         break;
-                                    //qDebug() << "material: " << r.readElementText();
                     }
                 }
             }
@@ -96,27 +83,21 @@ QMap<int,QList<QList<int>>> NestEngineConfigure::LoadConfigureXml()
                     r.readNext();
                     if(r.name() == "maxRotate"){
                         configureList.append(r.readElementText().toInt());
-                                    //qDebug() << "this name: " << r.readElementText();
                     }
                     if(r.name() == "HorizontalNest"){
                         configureList.append(r.readElementText().toInt());
-                                    //qDebug() << "type: " << r.readElementText();
                     }
                     if(r.name() == "VerticalNest"){
                         configureList.append(r.readElementText().toInt());
                     }
                     if(r.name() == "TailPieceMixing"){
                         configureList.append(r.readElementText().toInt());
-                                    //qDebug() << "material: " << r.readElementText();
                     }
                     if(r.name() == "TailLineMixing"){
                         configureList.append(r.readElementText().toInt());
-                                    //qDebug() << "width: " << r.readElementText();
                     }
                     if(r.name() == "SameTypeSizeMixing"){
                         configureList.append(r.readElementText().toInt());
-                                    //qDebug() << "height: " << r.readElementText();
-                                    //qDebug()<<"samesize_qhh"<<configureList[configureList.length()-1];
                     }
                     if(r.name() == "AllMixing"){
                         configureList.append(r.readElementText().toInt());
@@ -151,9 +132,8 @@ void NestEngineConfigure::WriteConfigureXml(QMap<int,QList<QList<int>>> & writed
 
     w.writeStartElement("Info");
     foreach(int index , writedata.keys()){
-       // qDebug()<<"index"<<index;
         switch (index) {
-        case  0:    // whole
+        case  0:  // whole
         {
             for(int i=0; i< writedata[0].length();i++){
                 w.writeStartElement("Whole");
@@ -168,7 +148,7 @@ void NestEngineConfigure::WriteConfigureXml(QMap<int,QList<QList<int>>> & writed
             }
             break;
         }
-        case 1://样条
+        case 1:  // strip
         {
             for(int i=0; i< writedata[1].length();i++){
                 w.writeStartElement("Strip");
@@ -179,12 +159,11 @@ void NestEngineConfigure::WriteConfigureXml(QMap<int,QList<QList<int>>> & writed
                 w.writeEndElement();
             }
             break;}
-        case 2://卷装
+        case 2:  //package
         {
 
             for(int i=0; i< writedata[2].length();i++){
                 w.writeStartElement("Package");
-                //qDebug()<<"hellwwo"<<writedata[index].length();
                 w.writeTextElement("maxRotate", QString("%1").arg(writedata[index][i][0]));
                 w.writeTextElement("HorizontalNest", QString("%1").arg(writedata[index][i][1]));
                 w.writeTextElement("VerticalNest", QString("%1").arg(writedata[index][i][2]));

@@ -36,6 +36,9 @@ public:
     void setPoints(const QVector<QPointF> &value);
     QVector<QPointF> getPoints();  // 获取点
 
+    void setRLines(const QVector<QLineF> &lines);  // 设置参考线
+    QVector<QLineF> getRLines();  // 获取参考线
+
     void setType(Type type);  // 设置类型
     Type getType();  // 获取类型
 
@@ -69,6 +72,7 @@ protected:
 private:
     QVector<QPointF> points;  // 各个点的坐标
     QPointF newPoint;  // 最后一个点
+    QVector<QLineF> rLines;  // 参考线
     Type type;  // 类型
     double elevation;  // 高程
     qreal alpha;  // 旋转角度

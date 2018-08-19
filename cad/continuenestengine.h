@@ -26,6 +26,11 @@ public:
     ~ContinueNestEngine();
 
     PairPieceStatus initPairPieceStatus(const QRectF &layoutRect, Piece &piece, const BestNestType &bestNestType);  // 初始化状态
+
+    PairPieceStatus initPairPieceStatus(const QRectF &layoutRect, Piece &piece1, Piece &piece2);
+
+    SinglePieceStatus initSinglePieceStatus(const QRectF &layoutRect, const Piece &piece, int &flag);  // 初始化单个零件排版状态
+
     bool packPieceByLayoutRect(const int sheetID,
                                const QRectF& layoutRect,
                                const int pieceType,
@@ -37,20 +42,46 @@ public:
                                qreal &spaceDelta,
                                bool &sheetAvailable,
                                QVector<int> &sameRowPieceList,
-                               QList<int> &nestedList, QList<int> &unnestedList,
-                               const RectTypes rectType, bool wholeSheetFlag,
+                               QList<int> &nestedList,
+                               QList<int> &unnestedList,
+                               const RectTypes rectType,
                                QRectF &layoutRect1,
                                QRectF &layoutRect2);  // 按零件矩形排放零件
+
+    bool packPieceByReferenceLine(const int sheetID,
+                                  const QRectF &layoutRect,
+                                  int pieceType,
+                                  int pieceIndex,
+                                  const int pieceMaxIndex,
+                                  NestEngine::PairPieceStatus &status,
+                                  qreal &spaceDelta,
+                                  bool &sheetAvailable,
+                                  QVector<int> &sameRowPieceList,
+                                  QList<int> &nestedList,
+                                  QList<int> &unnestedList,
+                                  QRectF &layoutRect1,
+                                  int &packFlag);  // 按参考线排放零件2
+
+    bool packTailPiece(const int sheetID,
+                       const QRectF &layoutRect,
+                       int pieceType,
+                       int pieceIndex,
+                       NestEngine::PairPieceStatus &status,
+                       qreal &spaceDelta,
+                       bool &sheetAvailable,
+                       QVector<int> &sameRowPieceList,
+                       QList<int> &nestedList,
+                       QList<int> &unnestedList,
+                       QRectF &layoutRect1,
+                       int &packFlag, bool isStripSheet);  // 排放尾只
 
     void packPieces(QVector<int> indexList) Q_DECL_OVERRIDE;  // 排版算法
     bool packOnePiece(Piece piece, NestEngine::NestPiece &nestPiece) Q_DECL_OVERRIDE;  // 排放单个零件
     bool packOnePieceOnSheet(Piece piece, int sheetID, NestEngine::NestPiece &nestPiece) Q_DECL_OVERRIDE;  // 在给定材料上排放单个零件
     bool compact(int sheetID, NestPiece &nestPiece) Q_DECL_OVERRIDE;  // 紧凑算法
+    qreal compactOnHD(int sheetID, Piece piece);  // 水平方向靠接
     qreal compactOnVD(int sheetID, Piece piece);  // 垂直方向靠接
     bool collidesWithOtherPieces(int sheetID, Piece piece) Q_DECL_OVERRIDE;  // 判断该零件是否与其他零件碰撞
-
-private:
-    QRectF getPairBoundingRect(QPointF &pos1, QPointF &pos2, const qreal pieceWidth, const qreal pieceHeight);  // 计算组合零件的外包矩形
 };
 Q_DECLARE_OPERATORS_FOR_FLAGS(ContinueNestEngine::RectTypes)
 #endif // CONTINUENESTENGINE_H

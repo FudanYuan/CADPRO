@@ -59,8 +59,8 @@ public:
     explicit StripSheetConfigTab(QWidget *parent = 0,QList<QList<int>> dataList = QList<QList<int>>());
     void setTabWidget();
     QList<QList<int>> dataList;
-    QCheckBox *leftRightTurnCBox;
-    QCheckBox *sizeDownCBox;
+    QRadioButton *leftRightTurnRB;
+    QRadioButton *sizeDownRB;
     QCheckBox *HorizontalAdaptiveSpacing;
     QCheckBox *TailPieceMixing;
     QTableWidget *tableWidget;

@@ -1,6 +1,7 @@
 ﻿#include "piece.h"
 
 Piece::Piece() :
+    pairType(None),
     pointsList(QVector<QPointF>()),
     area(0),
     minBoundingRect(QRectF()),
@@ -15,6 +16,7 @@ Piece::Piece() :
 }
 
 Piece::Piece(Polyline *p, int n, short i) :
+    pairType(None),
     transpose(false)
 {
     QVector<QPointF> points = p->getPoints();
@@ -33,7 +35,32 @@ Piece::Piece(Polyline *p, int n, short i) :
     precision = i;
 }
 
+Piece::Piece(Polyline *p, QVector<QLineF> lines, int n, short i) :
+    Piece(p, n, i)
+{
+    if(lines.length() < 1){  // 如果上插线集合为空，直接返回
+        return;
+    }
+
+#if 0
+    // 对参考线进行旋转，角度为angle
+    if(qrealPrecision(angle, precision) != 0.0){
+        for(int i=0; i<lines.length(); i++){
+            QPointF p1 = lines[i].p1();
+            QPointF p2 = lines[i].p2();
+            p1 = transformRotate(QPointF(0,0), p1, angle);  // 旋转之后的点
+            p2 = transformRotate(QPointF(0,0), p2, angle);  // 旋转之后的点
+            lines[i].setP1(p1);
+            lines[i].setP2(p2);
+        }
+    }
+#endif
+
+    referenceLines = linesListPrecision(lines, i);
+}
+
 Piece::Piece(QVector<QPointF> points, int n, short i) :
+    pairType(None),
     transpose(false)
 {
     if(points.length() < 3){
@@ -53,9 +80,11 @@ Piece::Piece(QVector<QPointF> points, int n, short i) :
 Piece::Piece(QVector<QPointF> points, QVector<QLineF> lines, int n, short i) :
     Piece(points, n, i)
 {
-    if(lines.length() < 1){
+    if(lines.length() < 1){  // 如果上插线集合为空，直接返回
         return;
     }
+
+#if 0
     // 对参考线进行旋转，角度为angle
     if(qrealPrecision(angle, precision) != 0.0){
         for(int i=0; i<lines.length(); i++){
@@ -67,6 +96,7 @@ Piece::Piece(QVector<QPointF> points, QVector<QLineF> lines, int n, short i) :
             lines[i].setP2(p2);
         }
     }
+#endif
 
     referenceLines = linesListPrecision(lines, i);
 }
@@ -86,9 +116,24 @@ Object *Piece::toObject()
                       minBoundingRect.height());
 }
 
+void Piece::setPairType(Piece::PairType type)
+{
+    this->pairType = type;
+}
+
+Piece::PairType Piece::getPairType() const
+{
+    return this->pairType;
+}
+
 QVector<QPointF> &Piece::getPointsList()
 {
     return pointsList;
+}
+
+void Piece::setReferenceLinesList(QVector<QLineF> lines)
+{
+    this->referenceLines = lines;
 }
 
 QVector<QLineF> Piece::getReferenceLinesList()
@@ -217,42 +262,6 @@ void Piece::moveTo(const QPointF position)
     boundingRect.moveCenter(position);  // 更新外包矩形
 }
 
-void Piece::moveToByReferenceLine(const QPointF position)
-{
-    if(referenceLines.length() == 0){
-        qDebug() << "无参考线";
-        return;
-    }
-    // 有多条参考线，这里首先默认第一条
-    QLineF line = linePrecision(referenceLines[0], precision); // 保留i位小数位
-    QPointF offset = position - line.center();  // 偏移量
-    offset = pointPrecision(offset, precision);  // 保留i位小数位
-    // 更新多边形点集
-    QVector<QPointF> oldPointsList = pointsList;  // 多边形点集
-    QVector<QPointF> newPointsList;  // 存储移动之后的点坐标
-    for(int i=0; i<oldPointsList.length(); i++){
-        QPointF oldPoint = oldPointsList[i];  // 初始点
-        QPointF newPoint = oldPoint + offset;  // 移动之后的点
-        newPoint = pointPrecision(newPoint, precision);  // 保留i位小数位
-        newPointsList.append(newPoint);
-    }
-    pointsList = newPointsList;  // 更新点集
-
-    // 更新参考线集
-    QVector<QLineF> oldLinesList = referenceLines;  // 参考线集
-    QVector<QLineF> newLinesList;  // 存储移动之后的线
-    for(int i=0; i<oldLinesList.length(); i++){
-        QLineF oldLine = oldLinesList[i];  // 初始线
-        QLineF newLine(oldLine.p1()+offset, oldLine.p2()+offset);  // 移动之后的线
-        newLine = linePrecision(newLine, precision);  // 保留i位小数位
-        newLinesList.append(newLine);
-    }
-    referenceLines = newLinesList;  // 更新参考线集
-    centerPoint += offset; // 更新多边形质心
-    minBoundingRect.moveCenter(position);  // 更新最小包络矩形
-    boundingRect.moveCenter(position);  // 更新外包矩形
-}
-
 void Piece::rotate(const QPointF cPoint, const qreal alpha)
 {
     qreal alphaPcs = qrealPrecision(alpha, precision);  // 保留至i位
@@ -301,23 +310,58 @@ void Piece::rotate(const QPointF cPoint, const qreal alpha)
     angle = alpha;  // 该图形对应最小矩形顺时针转angle度
 }
 
+void Piece::moveToByReferenceLine(const QPointF position)
+{
+    if(referenceLines.length() == 0){
+        qDebug() << "无参考线";
+        return;
+    }
+    // 有多条参考线，这里首先默认第一条
+    QLineF line = linePrecision(referenceLines[0], precision); // 保留i位小数位
+    QPointF offset = position - line.center();  // 偏移量
+    offset = pointPrecision(offset, precision);  // 保留i位小数位
+    // 更新多边形点集
+    QVector<QPointF> oldPointsList = pointsList;  // 多边形点集
+    QVector<QPointF> newPointsList;  // 存储移动之后的点坐标
+    for(int i=0; i<oldPointsList.length(); i++){
+        QPointF oldPoint = oldPointsList[i];  // 初始点
+        QPointF newPoint = oldPoint + offset;  // 移动之后的点
+        newPoint = pointPrecision(newPoint, precision);  // 保留i位小数位
+        newPointsList.append(newPoint);
+    }
+    pointsList = newPointsList;  // 更新点集
+
+    // 更新参考线集
+    QVector<QLineF> oldLinesList = referenceLines;  // 参考线集
+    QVector<QLineF> newLinesList;  // 存储移动之后的线
+    for(int i=0; i<oldLinesList.length(); i++){
+        QLineF oldLine = oldLinesList[i];  // 初始线
+        QLineF newLine(oldLine.p1()+offset, oldLine.p2()+offset);  // 移动之后的线
+        newLine = linePrecision(newLine, precision);  // 保留i位小数位
+        newLinesList.append(newLine);
+    }
+    referenceLines = newLinesList;  // 更新参考线集
+    centerPoint += offset; // 更新多边形质心
+    minBoundingRect.moveCenter(position);  // 更新最小包络矩形
+    boundingRect.moveCenter(position);  // 更新外包矩形
+}
+
 void Piece::rotateByReferenceLine(const QPointF cPoint, bool flag)
 {
     if(referenceLines.length() == 0){
         qDebug() << "无参考线";
         return;
     }
-    QPointF cPointPcs = pointPrecision(cPoint, precision);  // 保留i位小数位
 
-    // 使参考线处于垂直方向
+    // 使参考线处于水平方向
     QLineF packLine;
     if(flag){
-        packLine.setLine(0, 0, 0, 10);
+        packLine.setLine(0, 0, 10, 0);
     } else{
-        packLine.setLine(0, 0, 0, -10);
+        packLine.setLine(0, 0, -10, 0);
     }
     qreal theta = referenceLines[0].angleTo(packLine);
-    qDebug() << packLine <<  " " << referenceLines[0] << " 参考线垂直角度需旋转" << theta;
+    //qDebug() << packLine <<  " " << referenceLines[0] << " 参考线水平角度需旋转" << theta;
     // 更新多边形点集
     QVector<QPointF> oldPointsList = pointsList;  // 多边形点集
     QVector<QPointF> newPointsList;  // 存储移动之后的点坐标
@@ -350,7 +394,52 @@ void Piece::rotateByReferenceLine(const QPointF cPoint, bool flag)
     centerPoint = transformRotate(cPoint, centerPoint, theta); // 更新多边形质心
     boundingRect = rectPrecision(calculatePolygonBoundingRect(pointsList), precision);  // 更新包络矩形
     angle = theta;  // 该图形对应最小矩形顺时针转angle度
-    qDebug() << "angle: " << angle;
+    //qDebug() << "angle: " << angle;
+}
+
+/**
+ * @brief Piece::getOffsetForReferenceLine
+ * @param layoutRect
+ * @param gPoint 重心
+ * @return
+ */
+QPointF Piece::getOffsetForReferenceLine(const QRectF layoutRect, QPointF &gPoint)
+{
+    QLineF rLine = referenceLines.first();  // 参考线
+    QPointF offset;
+    QRectF targetRect;
+    qreal y = rLine.p1().ry();
+    if(rLine.angleTo(QLineF(0,0,10,0)) == 0){
+        targetRect = QRectF(boundingRect.left(), boundingRect.top(), boundingRect.width(), y-boundingRect.top());
+        offset = layoutRect.bottomLeft() - targetRect.bottomLeft();
+    } else{
+        targetRect = QRectF(boundingRect.left(), y, boundingRect.width(), boundingRect.bottom()-y);
+        offset = layoutRect.topLeft()  - targetRect.topLeft();
+    }
+    gPoint = centerPoint;
+    return offset;
+}
+
+/**
+ * @brief Piece::getOffsetForReferenceLine 计算零件条板排样时满足左手定则，
+ * 伸出左手，手面朝上，四指指向参考线的方向，那么大拇指的方向上的矩形区域即需要排放在条板上的区域
+ * @param layoutRect
+ * @return
+ */
+QPointF Piece::getOffsetForReferenceLine(const QRectF layoutRect)
+{
+    QLineF rLine = referenceLines.first();  // 参考线
+    QPointF offset;
+    QRectF targetRect;
+    qreal y = rLine.p1().ry();
+    if(rLine.angleTo(QLineF(0,0,10,0)) == 0){
+        targetRect = QRectF(boundingRect.left(), boundingRect.top(), boundingRect.width(), y-boundingRect.top());
+        offset = layoutRect.bottomLeft() - targetRect.bottomLeft();
+    } else{
+        targetRect = QRectF(boundingRect.left(), y, boundingRect.width(), boundingRect.bottom()-y);
+        offset = layoutRect.topLeft()  - targetRect.topLeft();
+    }
+    return offset;
 }
 
 bool Piece::hasRelationToPoint(const QPointF &point)
@@ -447,6 +536,7 @@ qreal Piece::compactToOnHD(Piece p, qreal compactStep, qreal compactAccuracy)
         QPointF forwardPos(posTemp.rx()-stepX, posTemp.ry());  // 水平方向移动
         //qDebug() << "move to" << forwardPos;
         if(forwardPos.rx() < p.getPosition().rx()){
+            //qDebug() << "forwardPos.rx() < p.getPosition().rx()";
             break;
         }
         moveTo(forwardPos);  // 将零件移至新位置
@@ -457,6 +547,8 @@ qreal Piece::compactToOnHD(Piece p, qreal compactStep, qreal compactAccuracy)
         }
         pos.setX(pos.rx() - stepX);
     }
+
+    moveTo(pos);
     qreal step = posOld.rx() - pos.rx();
     return step;
 }
@@ -480,6 +572,8 @@ qreal Piece::compactToOnVD(Piece p, qreal compactStep, qreal compactAccuracy)
         }
         pos.setY(pos.ry() - stepY);
     }
+
+    moveTo(pos);
     qreal step = posOld.ry() - pos.ry();
     return step;
 }
@@ -515,6 +609,8 @@ QPointF Piece::compactToOnAlpha(Piece p, qreal alpha, qreal compactStep, qreal c
         pos.setX(pos.rx() - stepX);
         pos.setY(pos.ry() - stepY);
     }
+
+    moveTo(pos);
     qDebug() << "返回偏移：" << posOld - pos;
     return posOld - pos;
 }

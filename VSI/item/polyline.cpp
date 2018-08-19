@@ -148,6 +148,16 @@ void Polyline::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     drawRectPoint(painter, this->boundingRect().center(), 2);
     setPath(path);
 
+    foreach (QLineF line, rLines) {
+        painter->save();
+        QPen p = pen;
+        p.setStyle(Qt::DashLine);
+        p.setColor(Qt::red);
+        painter->setPen(p);
+        painter->drawLine(line);
+        painter->restore();
+    }
+
     painter->drawText(boundingRect().center(), QString("%1").arg(i));
 }
 
@@ -193,6 +203,16 @@ void Polyline::setPoints(const QVector<QPointF> &value)
 QVector<QPointF> Polyline::getPoints()
 {
     return this->points;
+}
+
+void Polyline::setRLines(const QVector<QLineF> &lines)
+{
+    this->rLines = lines;
+}
+
+QVector<QLineF> Polyline::getRLines()
+{
+    return this->rLines;
 }
 
 void Polyline::setType(Polyline::Type type)
@@ -253,6 +273,7 @@ Polyline *Polyline::copy()
 {
     Polyline *p = new Polyline(this);
     p->setPolyline(points, type, elevation, alpha, offset);
+    p->setRLines(this->rLines);
     return p;
 }
 
