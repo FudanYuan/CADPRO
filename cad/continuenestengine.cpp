@@ -432,7 +432,7 @@ bool ContinueNestEngine::packPieceByLayoutRect(const int sheetID,
                         BestNestType bestNestType = pieceBestNestTypeMap[type];
                         bool sheetAvailable = true;
                         QRectF layoutRect2;
-                        emit nestDebugRemainRect(sheetID, layoutRect1);
+                        //emit nestDebugRemainRect(sheetID, layoutRect1);
                         bool res = packPieceByLayoutRect(sheetID, layoutRect1, type, chooseIndex,
                                                          maxIndexTmp, bestNestType, status, anchorPos,
                                                          spaceDelta, sheetAvailable, sameRowPieceList,
@@ -467,7 +467,7 @@ bool ContinueNestEngine::packPieceByLayoutRect(const int sheetID,
             spaceDelta = 0.0f;
             sameRowPieceList.clear();
 
-            emit nestDebugRemainRect(sheetID, layoutRect2);
+            //emit nestDebugRemainRect(sheetID, layoutRect2);
             // 更新排版矩形
             bool res = packPieceByLayoutRect(sheetID, layoutRect2, pieceType, pieceIndex,
                                              pieceMaxIndex, bestNestType, status, anchorPos,
@@ -531,7 +531,7 @@ bool ContinueNestEngine::packPieceByLayoutRect(const int sheetID,
                     PairPieceStatus status;
                     bool sheetAvailable = true;
                     QRectF layoutRect1;
-                    emit nestDebugRemainRect(sheetID, layoutRect2);
+                    //emit nestDebugRemainRect(sheetID, layoutRect2);
 
                     bool res = packPieceByLayoutRect(sheetID, layoutRect2, type, chooseIndex,
                                                      pieceMaxIndex, bestNestType, status, anchorPos,
@@ -558,6 +558,14 @@ bool ContinueNestEngine::packPieceByLayoutRect(const int sheetID,
         nestPieceList[pieceIndex].nested = true;  // 设置已排
         sameRowPieceList.append(pieceIndex);  // 更新同行零件列表
         nestedList.append(pieceIndex);  // 更新已排零件列表
+
+        nestedPieceCount++;  // 更新已排零件个数
+        int pro = (int)(((float)nestedPieceCount / unnestedPieceCount) * 100);
+        if(pro != progressPercent)
+        {
+            progressPercent = pro;
+            emit progress(pro);
+        }
 
         // 将该对象加入四叉树中
         QRectF boundingRect(pos.rx()-0.5*pieceWidth, pos.ry()-0.5*pieceHeight, pieceWidth, pieceHeight);
@@ -817,6 +825,14 @@ bool ContinueNestEngine::packPieceByReferenceLine(const int sheetID,
         sameRowPieceList.append(pieceIndex);  // 更新同行零件列表
         nestedList.append(pieceIndex);  // 更新已排零件列表
 
+        nestedPieceCount++;  // 更新已排零件个数
+        int pro = (int)(((float)nestedPieceCount / unnestedPieceCount) * 100);
+        if(pro != progressPercent)
+        {
+            progressPercent = pro;
+            emit progress(pro);
+        }
+
         // 将该对象加入四叉树中
         QRectF boundingRect(pos.rx()-0.5*pieceWidth, pos.ry()-0.5*pieceHeight, pieceWidth, pieceHeight);
         Object *obj = new Object(pieceIndex, boundingRect);
@@ -831,8 +847,6 @@ bool ContinueNestEngine::packPieceByReferenceLine(const int sheetID,
         columnCounter++;  // 计数器
         pieceIndex++;
     }
-
-    emit nestDebugRemainRect(sheetID, layoutRect1);
 
     // 如果所有材料都已排完，同行零件列表不为空，则默认按上一行的间隔进行自适应
     if((adaptiveSpacingTypes & HorizontalAdaptiveSpacing) !=  NoAdaptiveSpacing && !sameRowPieceList.isEmpty()){
@@ -931,6 +945,9 @@ void ContinueNestEngine::packPieces(QVector<int> indexList)
 
     // 将向量转化为列表，因为后面会经常删除元素
     QList<int> unnestedList = indexList.toList();
+    int pieceTotalCount = unnestedList.length();  // 零件总个数
+    int process = 0;  // 进度
+    int unnestedPieceCount = pieceTotalCount;  // 记录未排零件个数
 
     // 排版，按照材料进行排版，排满一张后再排下一张
     int sheetID = 0;
@@ -979,22 +996,29 @@ void ContinueNestEngine::packPieces(QVector<int> indexList)
                                                  sheetAvailable, sameRowPieceList,
                                                  nestedList, unnestedList, rectType,
                                                  layoutRect1, layoutRect2);
+
                 if(!res){
                     // 该矩形内未能排放任何一个零件，则需要检查同行零件列表是否为空；
                     // 如果同行零件列表不为空，则需要清空该列表
-                    qDebug() << "pack pieces failed";
                     sheetAvailable = false;
-
+#ifdef DEBUG
+                    qDebug() << "pack pieces failed";
                     emit nestDebugRemainRect(sheetID, layoutRect1);
                     emit nestDebugRemainRect(sheetID, layoutRect2);
+#endif
                 }
+
                 if(!wholeSheet){  // 如果不是整张材料，则无需增加材料，只需切换至下一个矩形
+#ifdef DEBUG
                     qDebug() << "is not whole sheet, continue";
+#endif
                     wholeSheet = true;
                     continue;
                 }
                 if(!sheetAvailable){  // 如果材料不可用，则增加材料
+#ifdef DEBUG
                     qDebug() << "sheet #" << sheetID << " has finished" << endl;
+#endif
                     int sheetLength = sheetList.length();  // 获取材料列表长度
                     if(sheetLength <= sheetID+1){  // 如果材料不足
                         if(autoRepeatLastSheet){  // 如果设置了自动重复最后一张材料
@@ -1020,19 +1044,19 @@ void ContinueNestEngine::packPieces(QVector<int> indexList)
                     }
                     rectType = FirstRow;  // 更新矩形类型
                 } else {  // 如果材料仍可用，则先在同行内剩余材料排放
-                    qDebug() << "sheet is still available";
                     layoutRects.clear();
                     layoutRects.append(layoutRect1);
                     layoutRects.append(layoutRect2);
                     wholeSheet = false;
-
+#ifdef DEBUG
+                    qDebug() << "sheet is still available";
                     emit nestDebugRemainRect(sheetID, layoutRect1);
                     emit nestDebugRemainRect(sheetID, layoutRect2);
+#endif
                 }
             }
         }
     } else{  // 条形板排版
-        qDebug() << "条形板排版";
         QVector<QRectF> layoutRects = sheetList[sheetID].inforcementRects();  // 获取上插板矩形区域
         PairPieceStatus status;  // 组合零件状态
         QVector<int> sameRowPieceList;  // 记录同一行零件列表
@@ -1064,6 +1088,7 @@ void ContinueNestEngine::packPieces(QVector<int> indexList)
                                                     status, spaceDelta,
                                                     sheetAvailable, sameRowPieceList, nestedList, unnestedList,
                                                     layoutRect1, packFlag);
+
                 if(!res){
                     // 该矩形内未能排放任何一个零件，则需要检查同行零件列表是否为空；
                     // 如果同行零件列表不为空，则需要清空该列表

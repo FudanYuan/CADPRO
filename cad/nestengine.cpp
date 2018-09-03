@@ -4,6 +4,9 @@
 
 NestEngine::NestEngine(QObject *parent) :
     QObject(parent),
+    unnestedPieceCount(0),
+    nestedPieceCount(0),
+    progressPercent(0),
     isStripSheet(false),
     autoRepeatLastSheet(false),
     compactStep(5),
@@ -27,6 +30,9 @@ NestEngine::NestEngine(QObject *parent,
                        const QVector<Piece> pieceList,
                        QVector<Sheet> sheetList) :
     QObject(parent),
+    unnestedPieceCount(0),
+    nestedPieceCount(0),
+    progressPercent(0),
     isStripSheet(false),
     autoRepeatLastSheet(false),
     compactStep(5),
@@ -735,7 +741,8 @@ qreal NestEngine::doubleRowNestWithVerAlg(const Piece &piece,
     // 初始化
     alpha = step = X = H = 0.0f;
     qreal minZ = LONG_MAX;  // 目标值，希望其min
-    for(int i=0; i<=maxRotateAngle; i++){
+    for(int i=0; i<=maxRotateAngle; i+=10){
+        qDebug() << "i = " << i;
         Piece p = piece;  // 复制，零件1
         p.moveTo(QPointF(0, 0));  // 移动至原点，非必须
         p.rotate(p.getPosition(), i);  // 旋转
@@ -747,6 +754,8 @@ qreal NestEngine::doubleRowNestWithVerAlg(const Piece &piece,
             continue;
         }
         for(qreal delta=0; delta<pieceHeight; delta+=pieceHeight/n){
+
+            qDebug() << "delta = " << delta;
             qreal h = pieceHeight + qAbs(delta);  // 获取旋转之后的高度，注意要加上错开量
             if(h>maxHeight){  // 如果旋转高度大于材料高度，直接进行下次循环
                 continue;
@@ -811,7 +820,7 @@ qreal NestEngine::oppositeSingleRowNestWithVerAlg(const Piece &piece,
     alpha = step = 0.0f;
     offset = QPointF(0, 0);
     qreal minZ = LONG_MAX;  // 目标值，希望其min
-    for(int i=0; i<=maxRotateAngle; i++){
+    for(int i=0; i<=maxRotateAngle; i+=10){
         Piece p = piece;  // 复制，零件1
         p.moveTo(QPointF(0, 0));  // 移动至原点，非必须
         p.rotate(p.getPosition(), i);  // 旋转
@@ -878,7 +887,7 @@ qreal NestEngine::oppositeDoubleRowNestWithVerAlg(const Piece &piece,
     alpha = step = H = 0.0f;
     offset = QPointF(0, 0);
     qreal minZ = LONG_MAX;  // 目标值，希望其min
-    for(int i=0; i<=maxRotateAngle; i++){
+    for(int i=0; i<=maxRotateAngle; i+=10){
         Piece p = piece;  // 复制，零件1
         p.moveTo(QPointF(0, 0));  // 移动至原点，非必须
         p.rotate(p.getPosition(), i);  // 旋转
@@ -1085,6 +1094,7 @@ void NestEngine::packAlg()
     }
     for(int j=0; j<nestPieceList.length(); j++){
         unnestedPieceIndexlist.append(nestPieceList[j].index);
+        unnestedPieceCount++;
     }
     packPieces(unnestedPieceIndexlist);
     return;

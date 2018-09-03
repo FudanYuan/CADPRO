@@ -539,6 +539,9 @@ protected:
     QMap<int, PieceIndexRange> nestPieceIndexRangeMap;  // 排版零件的index范围 Map<零件id, 排样零件序号范围>
     QMap<int, QVector<int>> sameTypeNestPieceIndexMap;  // 同型体排版零件index列表 Map<同型体id, 零件序号列表>
     QMap<int, int> samePairNestPieceIndexMap;  // 同双体排版零件index列表 Map<零件id，其同双零件id>
+    int unnestedPieceCount;  // 零件总个数
+    int nestedPieceCount;  // 已排零件个数
+    int progressPercent;  // 进度条
     QVector<int> nestedPieceIndexlist;  // 已排零件Index列表
     QVector<int> unnestedPieceIndexlist;  // 未排零件Index列表
     QMap<int, QVector<int>> nestSheetPieceMap;  // 排样材料-零件索引 Map<材料id, 零件序号列表>

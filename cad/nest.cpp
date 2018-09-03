@@ -143,6 +143,7 @@ void Nest::initActions()
 // ![1] 文件
 
 // ![2] 编辑
+#ifdef DEBUG
     action_edit_undo = new QAction(tr("&撤销"), this);
     action_edit_undo->setShortcut(QKeySequence::Undo);
     action_edit_undo->setStatusTip(tr("撤销上一个操作"));
@@ -183,6 +184,7 @@ void Nest::initActions()
     action_edit_paste->setStatusTip(tr("粘贴先前复制的实体"));
     action_edit_paste->setDisabled(true);
     connect(action_edit_paste, &QAction::triggered, this, &Nest::onActionEditPaste);
+#endif
 // ![2] 编辑
 
 // ![3] 排版
@@ -195,6 +197,7 @@ void Nest::initActions()
     action_nest_config->setStatusTip(tr("自动排版配置"));
     connect(action_nest_config, &QAction::triggered, this, &Nest::onActionNestEngineConfig);
 
+#ifdef DEBUG
     action_nest_side_left = new QAction(tr("左靠边"));
     action_nest_side_left->setStatusTip(tr("切割件紧靠材料左边"));
     action_nest_side_left->setDisabled(false);  // debug时为false
@@ -214,6 +217,7 @@ void Nest::initActions()
     action_nest_side_bottom->setStatusTip(tr("切割件紧靠材料底部"));
     action_nest_side_bottom->setDisabled(false);
     connect(action_nest_side_bottom, &QAction::triggered, this, &Nest::onActionNestSideBottom);
+#endif
 
     action_nest_direction_horizontal = new QAction(tr("横向"));
     action_nest_direction_horizontal->setStatusTip(tr("横向排版，即自左至右"));
@@ -249,7 +253,7 @@ void Nest::initActions()
 
     action_sheet_auto_duplicate = new QAction(tr("自动重复材料"));
     action_sheet_auto_duplicate->setStatusTip(tr("自动重复当前材料"));
-    action_sheet_auto_duplicate->setDisabled(false);
+    action_sheet_auto_duplicate->setDisabled(true);
     connect(action_sheet_auto_duplicate, &QAction::triggered, this, &Nest::onActionSheetAutoDuplicate);
 
     action_sheet_previous = new QAction(tr("上一张"));
@@ -377,6 +381,7 @@ void Nest::initMenuBar()
 // ![1] 文件栏
 
 // ![2] 编辑栏
+#ifdef DEBUG
     menu_edit = ui->menuBar->addMenu(tr("编辑(&E)"));
     menu_edit->addAction(action_edit_undo);
     menu_edit->addAction(action_edit_redo);
@@ -385,12 +390,14 @@ void Nest::initMenuBar()
     menu_edit->addAction(action_edit_delete);
     menu_edit->addAction(action_edit_copy);
     menu_edit->addAction(action_edit_paste);
+#endif
 // ![2] 编辑栏
 
 // ![3] 排版栏
     menu_nest = ui->menuBar->addMenu(tr("排版"));
     menu_nest->addAction(action_nest_start);
     menu_nest->addAction(action_nest_config);
+#ifdef DEBUG
     menu_nest->addSeparator();
     menu_action_nest_side = menu_nest->addMenu(tr("靠边"));
     menu_action_nest_side->addAction(action_nest_side_left);
@@ -398,6 +405,7 @@ void Nest::initMenuBar()
     menu_action_nest_side->addAction(action_nest_side_top);
     menu_action_nest_side->addAction(action_nest_side_bottom);
     menu_nest->addMenu(menu_action_nest_side);
+#endif
     menu_nest->addSeparator();
     menu_action_nest_direction = menu_nest->addMenu(tr("方向"));
     menu_action_nest_direction->addAction(action_nest_direction_horizontal);
@@ -479,16 +487,20 @@ void Nest::initToolBar()
     tool_standard->addAction(action_file_new);
     tool_standard->addAction(action_file_open);
     tool_standard->addAction(action_file_save);
+#ifdef DEBUG
     tool_standard->addSeparator();
     tool_standard->addAction(action_edit_cut);
     tool_standard->addAction(action_edit_copy);
     tool_standard->addAction(action_edit_paste);
     tool_standard->addAction(action_file_print);
+#endif
     tool_standard->addAction(action_help_about);
     tool_standard->addAction(action_help_help);
+#ifdef DEBUG
     tool_standard->addSeparator();
     tool_standard->addAction(action_edit_undo);
     tool_standard->addAction(action_edit_redo);
+#endif
 // ![2] 标准工具栏
 
 // ![4] 视图工具栏
@@ -510,11 +522,13 @@ void Nest::initToolBar()
     tool_nest->setAllowedAreas(Qt::AllToolBarAreas);
     tool_nest->addAction(action_nest_start);
     tool_nest->addAction(action_nest_config);
+#ifdef DEBUG
     tool_nest->addSeparator();
     tool_nest->addAction(action_nest_side_left);
     tool_nest->addAction(action_nest_side_right);
     tool_nest->addAction(action_nest_side_top);
     tool_nest->addAction(action_nest_side_bottom);
+#endif
     tool_nest->addSeparator();
     tool_nest->addAction(action_nest_direction_horizontal);
     tool_nest->addAction(action_nest_direction_vertical);
@@ -553,7 +567,7 @@ void Nest::initStatusBar()
     nestProgressLabel->setMargin(1);
     mousePositionLabel = new QLabel(tr(""), this);
     mousePositionLabel->setMargin(1);
-    //statusBar()->addPermanentWidget(nestProgressBar);//添加到状态栏的右边
+    statusBar()->addPermanentWidget(nestProgressBar);//添加到状态栏的右边
     statusBar()->addPermanentWidget(nestProgressLabel);
     statusBar()->addPermanentWidget(mousePositionLabel);
 }
@@ -1014,11 +1028,12 @@ bool Nest::initSheet()
         qDebug() << "项目已选择材料，材料类型为：" << sheetType;
     }
 
+    SheetDialog mDialog(sheetType);
+    mDialog.setDialogRole(SheetDialog::Nest);
+    mDialog.exec();
+    curSheet = mDialog.getSheetActive();
+
 #ifdef DEBUG
-//    SheetDialog mDialog(sheetType);
-//    mDialog.setDialogRole(SheetDialog::Nest);
-//    mDialog.exec();
-//    curSheet = mDialog.getSheetActive();
     curSheet = new Sheet;
 #endif
 
@@ -1471,11 +1486,13 @@ bool Nest::saveFile(QString fileName)
 void Nest::setNestActionDisabled(bool flag)
 {
     action_nest_start->setDisabled(flag);
+#ifdef DEBUG
     action_nest_side_left->setDisabled(flag);
     action_nest_side_right->setDisabled(flag);
     action_nest_side_top->setDisabled(flag);
     action_nest_side_left->setDisabled(flag);
     action_nest_side_bottom->setDisabled(flag);
+#endif
     action_nest_direction_horizontal->setDisabled(flag);
     action_nest_direction_vertical->setDisabled(flag);
     action_sheet_add->setDisabled(flag);
@@ -1520,20 +1537,16 @@ void Nest::onMousePositionChanged(QPointF pos)
     pos -= nestScene->getOffset();
     // 如果鼠标范围没有在材料内部，则关闭所有接口
     if(!nestScene->getSheet().layoutRect().contains(pos)){
-//        nestView->setMouseFlag(false);
-//        nestView->setKeyboardFlag(false);
-//        nestView->setWheelFlag(false);
         return;
     }
-//    nestView->setMouseFlag(true);
-//    nestView->setKeyboardFlag(true);
-//    nestView->setWheelFlag(true);
+    mousePositionLabel->setText(tr("X=") + QString::number(pos.rx()) + " Y=" + QString::number(pos.ry()));
 
-    mousePositionLabel->setText(tr("X=") + QString::number(pos.rx()) + " Y=" + QString::number(pos.ry())
-                                + tr("view: X=") + QString::number(nestView->mapFromScene(pos).rx())
-                                + " Y=" + QString::number(nestView->mapFromScene(pos).ry())
-                                + "view size: " + QString::number(nestView->width()) + ", "
-                                + QString::number(nestView->height()));
+#ifdef DEBUG
+    + tr("view: X=") + QString::number(nestView->mapFromScene(pos).rx())
+    + " Y=" + QString::number(nestView->mapFromScene(pos).ry())
+    + "view size: " + QString::number(nestView->width()) + ", "
+    + QString::number(nestView->height())
+#endif
 }
 
 void Nest::onNestProjectChanged(Project *curProject)
@@ -1578,16 +1591,6 @@ void Nest::onProjectNameChanged(QString lastName, QString presentName)
     }
     // 改变树枝结构的名称
     tree_project_active_item->setText(0, presentName);
-
-    /*
-     *
-    // 更新活动项目Map
-    QString pName = projectActive->getName();
-    if(proSceneListMap.contains(pName)){
-        qDeleteAll(proSceneListMap[pName]);
-        proSceneListMap[pName].clear();
-    }
-     */
 }
 
 void Nest::onNestProgressChanged(int i)
@@ -1634,9 +1637,9 @@ void Nest::onNestFinished(QVector<NestEngine::NestPiece> nestPieceList)
         /***
          * 这里可以优化,提示用户存在排版结果,是否要清除?
          */
-//        foreach(Scene *scene, sceneList){  // 清除所有图形
-//            scene->clearCustomItem();  // debug，暂时注释掉
-//        }
+        foreach(Scene *scene, sceneList){  // 清除所有图形
+            scene->clearCustomItem();  // debug，暂时注释掉
+        }
         QVector<Piece*> pieceList = proPieceInfoMap[pName]->pieceList.toVector();
         for(int i=0; i<pieceList.length(); i++) {  // 遍历零件列表，保存偏移点
             QVector<PiecePoint> pointsList;  // 用来保存零件点列表
@@ -1712,6 +1715,12 @@ void Nest::onNestFinished(QVector<NestEngine::NestPiece> nestPieceList)
 
     // 显示排版结果
     showNestResult();
+    action_nest_direction_horizontal->setDisabled(true);
+    action_nest_direction_vertical->setDisabled(true);
+    action_sheet_add->setDisabled(true);
+    action_sheet_remove->setDisabled(true);
+    action_sheet_duplicate->setDisabled(true);
+    action_sheet_auto_duplicate->setDisabled(true);
 }
 
 void Nest::onNestInterrupted(int remainNum)
@@ -1887,6 +1896,20 @@ void Nest::onActionFileOpen()
 
 bool Nest::onActionFileSave()
 {
+    if(!projectActive){
+        QMessageBox::warning(this, tr("错误"), tr("未选择任何项目！"));
+        return false;
+    }
+
+    QString pName = projectActive->getName();
+    if(!proPieceInfoMap.contains(pName)
+            || !proSheetInfoMap.contains(pName)
+            || !proSceneListMap.contains(pName)
+            || !proNestEngineConfigMap.contains(pName)){  // 如果map中不包含该项目名称，返回
+        QMessageBox::warning(this, tr("错误"), tr("该项目未排版！"));
+        return false;
+    }
+
     // 如果项目保存过，不再弹出保存框
     if(projectActive->isSaved()) {
         // 如果项目被修改过，直接保存修改后的项目
@@ -2061,6 +2084,7 @@ void Nest::onActionNestStart()
     connect(nestEngine, &NestEngine::nestPieceUpdate, this, &Nest::onNestPieceUpdate);
 
     // debug start
+#ifdef DEBUG
     QVector<NestEngine::PairPiece> pairPieceList;
     NestEngine::PairPiece pairPiece;
     pairPiece.pairID = 0;
@@ -2087,6 +2111,7 @@ void Nest::onActionNestStart()
     sameTypePieceList.append(sameType);
     nestEngine->setSameTypePieceList(sameTypePieceList);
     // debug end
+#endif
 
     // 创建线程
     nestThread = new QThread();
@@ -2149,282 +2174,6 @@ void Nest::onActionNestSideLeft()
 void Nest::onActionNestSideRight()
 {
     qDebug() << "右靠边";
-     QVector<QPointF> points;
-//     points.append(QPointF(0,0));
-//     points.append(QPointF(0,100));
-//     points.append(QPointF(50,150));
-//     points.append(QPointF(50,100));
-//     points.append(QPointF(25,75));
-//     points.append(QPointF(25,0));
-//     points.append(QPointF(0,0));
-
-//     points.append(QPointF(100,0));
-//     points.append(QPointF(100,100));
-//     points.append(QPointF(0,100));
-//     points.append(QPointF(0,200));
-//     points.append(QPointF(100,200));
-//     points.append(QPointF(175,175));
-//     points.append(QPointF(175,100));
-//     points.append(QPointF(200,100));
-//     points.append(QPointF(200,0));
-//     points.append(QPointF(100,0));
-//     points.append(QPointF(80,155));
-//     points.append(QPointF(80,305));
-//     points.append(QPointF(130,355));
-//     points.append(QPointF(155,305));
-//     points.append(QPointF(130,255));
-//     points.append(QPointF(130,155));
-//     points.append(QPointF(80,155));
- //    points.append(QPointF(0,0));
- //    points.append(QPointF(0,100));
- //    points.append(QPointF(50,150));
- //    points.append(QPointF(25,0));
- //    points.append(QPointF(0,0));
- //    Piece piece(points);
- //    piece.rotate(piece.getBoundingRect().center(), piece.getAngle());
-/*
-    QVector<NestEngine::SameTypePiece> sameTypePieceList;
-    NestEngine::SameTypePiece sameType;
-    sameType.typeID = 0;
-    sameType.pieceIDList.append(0);
-    sameType.pieceIDList.append(1);
-    sameType.pieceIDList.append(2);
-    sameTypePieceList.append(sameType);
-
-    NestEngine::SameTypePiece sameType1;
-    sameType1.typeID = 1;
-    sameType1.pieceIDList.append(3);
-    sameType1.pieceIDList.append(4);
-    sameType1.pieceIDList.append(5);
-    sameTypePieceList.append(sameType1);
-
-    ContinueNestEngine *nestEngine = new ContinueNestEngine(this);
-    nestEngine->setSameTypePieceList(sameTypePieceList);
-    nestEngine->initSameTypeNestPieceIndexMap();
-*/
-#if 0
-     QString name = projectActive->getName();
-     Piece piece = *proPieceInfoMap[name]->pieceList.at(1);
-
-     qreal alpha, step;
-     ContinueNestEngine *nestEngine = new ContinueNestEngine(this);
-     qreal rate = nestEngine->singleRowNestWithVerAlg(piece, alpha, step, 360, 1000, 190);
-     qDebug() << "singleRowNestWithVerAlg rate: " << rate;
-
-     Piece piece1 = piece;  // 构造影子零件
-     QPointF pos1(0, 100);
-     piece1.moveTo(pos1 + nestScene->getOffset());  // 将零件移至原点
-     piece1.rotate(pos1 + nestScene->getOffset(), alpha);  // 将零件绕中心点旋转
-
-     for(int i = 0; i < 2; i++){
-         Piece piece2 = piece;  // 构造影子零件
-         QPointF pos2(step*i, 100);
-         piece2.moveTo(pos2 + nestScene->getOffset());  // 将影子零件移动至(d, 0)处,以保证在旋转过程中,两零件不会碰撞
-         piece2.rotate(pos2 + nestScene->getOffset(), alpha);  // 将影子零件绕中心点旋转
-
-         Polyline *p2 = new Polyline;
-         p2->setPolyline(piece2.getPointsList(), 1);
-         p2->i = 2;
-         nestScene->addCustomPolylineItem(p2);
-     }
-
-     qreal X;
-     qreal H;
-     rate = nestEngine->doubleRowNestWithVerAlg(piece, alpha, step, X, H, 100, 360, 1000, 190);  //
-     qDebug() << "doubleRowNestWithVerAlg rate: " << rate;
-     for(int i=0; i<2; i++){
-         Piece piece8 = piece;  // 构造影子零件
-         QPointF pos8(step*i, 400);
-         piece8.moveTo(pos8 + nestScene->getOffset());  // 将零件移至原点
-         piece8.rotate(pos8 + nestScene->getOffset(), alpha);  // 将零件绕中心点旋转
-
-         Piece piece9 = piece8;  // 构造影子零件
-         piece9.moveTo(pos8 + nestScene->getOffset() + QPointF(X, H));
-
-         Polyline *p8 = new Polyline;
-         p8->setPolyline(piece8.getPointsList(), 1);
-         p8->i = 8;
-         nestScene->addCustomPolylineItem(p8);
-
-         Polyline *p9 = new Polyline;
-         p9->setPolyline(piece9.getPointsList(), 1);
-         p9->i = 9;
-         nestScene->addCustomPolylineItem(p9);
-     }
-
-     QPointF center;
-     rate = nestEngine->oppositeSingleRowNestWithVerAlg(piece, alpha, step, center, 360, 1000, 190);  //
-     qDebug() << "oppositeSingleRowNestWithVerAlg rate: " << rate;
-     for(int i=0; i<2; i++){
-         Piece piece5 = piece;  // 构造影子零件
-         QPointF pos5(step*i, 600);
-         piece5.moveTo(pos5 + nestScene->getOffset());  // 将零件移至原点
-         piece5.rotate(pos5 + nestScene->getOffset(), alpha);  // 将零件绕中心点旋转
-
-         Piece piece6 = piece5;  // 构造影子零件
-         piece6.rotate(piece6.getPosition()+center, 180);  // 将影子零件绕中心点旋转
-
-         Polyline *p5 = new Polyline;
-         p5->setPolyline(piece5.getPointsList(), 1);
-         p5->i = 5;
-         nestScene->addCustomPolylineItem(p5);
-
-         Polyline *p6 = new Polyline;
-         p6->setPolyline(piece6.getPointsList(), 1);
-         p6->i = 6;
-         nestScene->addCustomPolylineItem(p6);
-     }
-
-     rate = nestEngine->oppositeDoubleRowNestWithVerAlg(piece, alpha, step, center, H, 100, 360, 1000, 190);  //
-     qDebug() << "oppositeDoubleRowNestWithVerAlg rate: " << rate;
-
-     for(int i=0; i<2; i++){
-         Piece piece3 = piece;  // 构造影子零件
-         QPointF pos3(step*i, 800);
-         piece3.moveTo(pos3 + nestScene->getOffset());  // 将零件移至原点
-         piece3.rotate(pos3 + nestScene->getOffset(), alpha);  // 将零件绕中心点旋转
-
-         Piece piece4 = piece3;  // 构造影子零件
-         piece4.rotate(piece4.getPosition()+center, 180);  // 将影子零件绕中心点旋转
-
-         Polyline *p3 = new Polyline;
-         p3->setPolyline(piece3.getPointsList(), 1);
-         p3->i = 3;
-         nestScene->addCustomPolylineItem(p3);
-
-         Polyline *p4 = new Polyline;
-         p4->setPolyline(piece4.getPointsList(), 1);
-         p4->i = 4;
-         nestScene->addCustomPolylineItem(p4);
-     }
-
-#endif
-     nestScene->clearCustomItem();
-     QString name = projectActive->getName();
-
-     Sheet sheet = *proSheetInfoMap[name]->sheetList.at(0);
-     QRectF layoutRect = sheet.inforcementRects().first();
-
-     qreal xStep;
-     QPointF pos1, pos2;
-     bool flag = true;
-     QRectF boundRect1, boundRect2, pairBoundRect;
-
-
-     Piece piece1 = *proPieceInfoMap[name]->pieceList.at(1);
-     piece1.setPairType(Piece::Left);
-     Piece piece2 = *proPieceInfoMap[name]->pieceList.at(0);
-     piece2.setPairType(Piece::Left);
-
-//     NestEngine *n = new NestEngine;
-//     n->oppositeDoubleRowNestWithVerAlgForStrip(layoutRect, piece1, piece2,
-//                                                pos1, pos2, xStep, flag,
-//                                                boundRect1, boundRect2, pairBoundRect);
-
-     Piece p1 = piece1;  // 复制，零件1
-     Piece p2 = piece2;  // 复制，零件2
-
-//     qDebug() << "pList1: ";
-//     foreach (QPointF p, p1.getPointsList()) {
-//         qDebug() << p;
-//     }
-//     qDebug() << endl;
-
-//     qDebug() << "pList2: ";
-//     foreach (QPointF p, p2.getPointsList()) {
-//         qDebug() << p;
-//     }
-//     qDebug() << endl;
-
-     pos1 = QPointF(942.5,355);
-     pos2 = QPointF(1005,255);
-
-     p1.moveTo(pos1);
-     p2.moveTo(pos2);
-     p1.rotateByReferenceLine(p1.getPosition(),flag);
-     p2.rotateByReferenceLine(p2.getPosition(),!flag);
-
-     qDebug() << "pos1: " << pos1;
-     qDebug() << "pos2: " << pos2;
-
-     qreal xOffset = p2.compactToOnHD(p1, 1, 0.1);
-     pos2 = p2.getPosition();
-     qDebug() << pos2 << ", " << xOffset;
-
-     p1.moveTo(pos1+nestScene->getOffset());
-     p2.moveTo(pos2+nestScene->getOffset());
-     Polyline *poly1 = new Polyline;
-     poly1->setPolyline(p1.getPointsList(), 1);
-     poly1->i = 1;
-     nestScene->addCustomPolylineItem(poly1);
-
-     Polyline *poly2 = new Polyline;
-     poly2->setPolyline(p2.getPointsList(), 1);
-     poly2->i = 2;
-     nestScene->addCustomPolylineItem(poly2);
-
-     return;
-
-     QVector<QPointF> pList1 = p1.getPointsList();
-     pList1.removeLast();
-     QVector<QPointF> pList2 = p2.getPointsList();
-     pList2.removeLast();
-
-     qDebug() << "pList1: ";
-     foreach (QPointF p, pList1) {
-         qDebug() << p;
-     }
-     qDebug() << endl;
-
-     qDebug() << "pList2: ";
-     foreach (QPointF p, pList2) {
-         qDebug() << p;
-     }
-     qDebug() << endl;
-
-     ConcavePolygon concavePoly1(pList1);
-     ConcavePolygon concavePoly2(pList2);
-     QMap<int, QVector<QPointF>> splitRet1 = concavePoly1.onSeparateConcavePoly(pList1);
-     foreach (int key, splitRet1.keys()) {
-         Piece pS(splitRet1[key]);
-         Polyline *poly1 = new Polyline;
-         poly1->setPolyline(pS.getPointsList());
-         poly1->i = key+10;
-         nestScene->addCustomPolylineItem(poly1);
-     }
-
-     qDebug() << "next "<< endl;
-
-     QMap<int, QVector<QPointF>> splitRet2 = concavePoly2.onSeparateConcavePoly(pList2);
-     foreach (int key, splitRet2.keys()) {
-         Piece pS(splitRet2[key]);
-         Polyline *poly1 = new Polyline;
-         poly1->setPolyline(pS.getPointsList());
-         poly1->i = key+20;
-         nestScene->addCustomPolylineItem(poly1);
-     }
-
-     CollisionDectect collisionDectect(p1.getPointsList(), p2.getPointsList());
-
-     int c = 0;
-     for(int i=0; i<splitRet1.size(); i++){
-         for(int j=0; j<splitRet2.size(); j++){
-             qDebug() << "i = " << i << ", j = " << j;
-             if(collisionDectect.convexPolygonCollision(splitRet1[i], splitRet2[j])){
-                 Polyline *poly1 = new Polyline;
-                 poly1->setPolyline(splitRet1[i]);
-                 poly1->i = c + 30;
-                 nestScene->addCustomPolylineItem(poly1);
-
-                 Polyline *poly2 = new Polyline;
-                 poly2->setPolyline(splitRet2[j]);
-                 poly2->i = c + 40;
-                 nestScene->addCustomPolylineItem(poly2);
-                 qDebug() << "碰撞";
-                 c++;
-             }
-         }
-     }
 }
 
 void Nest::onActionNestSideTop()
@@ -2954,7 +2703,7 @@ void Nest::onActionTreeProjectNestScene()
 void Nest::onActionTreeProjectAddScene()
 {
     qDebug() << "import dxf files";
-    QString fileName = fName; //QFileDialog::getOpenFileName(this, tr("打开DXF文件"), QDir::currentPath());
+    QString fileName = QFileDialog::getOpenFileName(this, tr("打开DXF文件"), QDir::currentPath());  // fName;
     if (!fileName.isEmpty()) {
         QString pName = tree_project_active_item->text(0);  // 获取当前项目
         Project *project = getProjectByName(pName);

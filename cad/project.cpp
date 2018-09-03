@@ -250,8 +250,9 @@ Scene *Project::getDXFLayer(QString name)
 
 void Project::dxfFileReader(const QString fileName)
 {
-    QTextCodec *code = QTextCodec::codecForName("GB2312");//解决中文路径问题
-    std::string name = code->fromUnicode(fileName).data();
+    //qDebug() << "fileName: " << fileName;
+    //QTextCodec *code = QTextCodec::codecForName("GB2312");//解决中文路径问题
+    std::string name = fileName.toStdString() ; //code->fromUnicode(fileName).data();
     //初始化dxf文件
     if (!dxf.in(name, &dxfFilter)) {
         throw(tr("无法读取DXF文件"));

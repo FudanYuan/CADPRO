@@ -3,7 +3,9 @@
 
 #endif // DEBUG_H
 
+#if 0
 #define DEBUG
+#endif
 
 #if 0
 #define PROJECTDEBUG

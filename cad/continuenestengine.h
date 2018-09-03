@@ -82,6 +82,7 @@ public:
     qreal compactOnHD(int sheetID, Piece piece);  // 水平方向靠接
     qreal compactOnVD(int sheetID, Piece piece);  // 垂直方向靠接
     bool collidesWithOtherPieces(int sheetID, Piece piece) Q_DECL_OVERRIDE;  // 判断该零件是否与其他零件碰撞
+
 };
 Q_DECLARE_OPERATORS_FOR_FLAGS(ContinueNestEngine::RectTypes)
 #endif // CONTINUENESTENGINE_H
