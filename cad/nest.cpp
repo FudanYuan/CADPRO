@@ -2084,7 +2084,7 @@ void Nest::onActionNestStart()
     connect(nestEngine, &NestEngine::nestPieceUpdate, this, &Nest::onNestPieceUpdate);
 
     // debug start
-#ifdef DEBUG
+#ifndef DEBUG
     QVector<NestEngine::PairPiece> pairPieceList;
     NestEngine::PairPiece pairPiece;
     pairPiece.pairID = 0;
