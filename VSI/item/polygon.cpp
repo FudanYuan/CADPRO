@@ -79,7 +79,11 @@ void Polygon::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
     drawCrossPoint(painter, cPoint, 5, upright);
 }
 
+<<<<<<< HEAD
 void Polygon::toPolyline()
+=======
+QVector<QPointF>  Polygon::toPolyline()
+>>>>>>> Jeremy
 {
     int r=radius;
     int num = lineNum;
@@ -200,12 +204,20 @@ void Polygon::onSceneMoveableChanged(bool moveable)
     setFlag(QGraphicsItem::ItemIsMovable, moveable);
 }
 
+<<<<<<< HEAD
 void Polygon::setPoints(const QList<QPointF> &value)
+=======
+void Polygon::setPoints(const QVector<QPointF> &value)
+>>>>>>> Jeremy
 {
     points = value;
 }
 
+<<<<<<< HEAD
 QList<QPointF> Polygon::getPoints() const
+=======
+QVector<QPointF> Polygon::getPoints() const
+>>>>>>> Jeremy
 {
     return points;
 }

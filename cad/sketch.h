@@ -1,4 +1,4 @@
-#ifndef SKETCH_H
+﻿#ifndef SKETCH_H
 #define SKETCH_H
 
 #include <QMainWindow>
@@ -9,10 +9,9 @@
 #include <QSettings>
 #include <QLabel>
 
-#include "configure.h"
+#include "sketchconfigure.h"
 #include "project.h"
 #include "view.h"
-#include "scene.h"
 #include "shape.h"
 
 
@@ -28,6 +27,7 @@ public:
     explicit Sketch(QWidget *parent = 0);
     ~Sketch();
 
+    void initAllPointers();  // 初始化指针
     void initActions();         // 初始化action
     void initMenuBar();         // 初始化菜单栏
     void initToolBar();         // 初始化工具栏
@@ -53,7 +53,7 @@ protected:
 private:
     Ui::Sketch *ui;
 
-    Configure *config;               // 配置
+    SketchConfigure *config;               // 配置
     View *view;                         // 视图
     QList<Project *> project_list;      // 项目列表
     Project *project_active;            // 活动项目
@@ -543,7 +543,6 @@ signals:
 public slots:
     void onProjectNameChanged(QString lastName, QString presentName);
     void onMousePositionChanged(QPointF pos);  // 鼠标位置更新
-
     void onSceneItemsChanged();  // 响应场景图元改变
     void onPointSelected(Point *point);
     void onLineSelected(Line *line);  // 响应图形被选中

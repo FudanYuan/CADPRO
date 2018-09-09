@@ -1,9 +1,11 @@
-#ifndef VIEW_H
+﻿#ifndef VIEW_H
 #define VIEW_H
 
 #include <QGraphicsView>
 #include <QKeyEvent>
 #include "debug.h"
+
+class Scene;
 
 class View : public QGraphicsView
 {
@@ -37,6 +39,8 @@ public:
     void setAngle(qreal angle);  // 设置旋转角度
     qreal getAngle();  // 获取旋转角度
 
+    QPointF customFitInView(const QRectF &rect, qreal rate=1);  // 自定义 自适应显示图层, 显示比例
+
 protected:
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
@@ -57,6 +61,7 @@ private:
     qreal xPos;  // x点坐标
     qreal yPos;  // y点坐标
 
+    QPoint anchor;  // 中心点
     qreal windowScale;  // 缩放量
     qreal zoomDelta;  // 缩放的增量
 
@@ -69,13 +74,14 @@ private:
 signals:
     void mousePositionChanged(QPointF pos);  // 鼠标坐标更改事件
     void viewScaleChanged(qreal scaleFactor);  // view缩放改变
+    void viewOffsetChanged(QPointF offset);  // 发送偏移量
 
 public slots:
     void zoomIn();  // 放大
     void zoomOut();  // 缩小
     void zoomBack();  // 还原
     void zoom(qreal scaleFactor); // 缩放 - scaleFactor：缩放的比例因子
-    void translate(QPointF delta);  // 平移
+    void translate_(QPointF delta);  // 平移
 };
 
 

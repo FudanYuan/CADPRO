@@ -1,4 +1,4 @@
-#ifndef POLYLINE_H
+﻿#ifndef POLYLINE_H
 #define POLYLINE_H
 
 #include <QGraphicsPathItem>
@@ -30,17 +30,37 @@ public:
     QPainterPath shape() const Q_DECL_OVERRIDE;
 
     bool collidesWithItem(const QGraphicsItem *other, Qt::ItemSelectionMode mode = Qt::IntersectsItemShape) const Q_DECL_OVERRIDE;
+<<<<<<< HEAD
 
     void setPolyline(QList<QPointF> pList, int flag, qreal ele=0, qreal angle=0, const QPointF off=QPointF());
+=======
+>>>>>>> Jeremy
 
-    void setPoints(const QList<QPointF> &value);
-    QList<QPointF> getPoints();  // 获取点
+    void setPolyline(QVector<QPointF> pList, int flag=1, qreal ele=0, qreal angle=0, const QPointF off=QPointF());
+
+    void setPoints(const QVector<QPointF> &value);
+    QVector<QPointF> getPoints();  // 获取点
+
+    void setRLines(const QVector<QLineF> &lines);  // 设置参考线
+    QVector<QLineF> getRLines();  // 获取参考线
 
     void setType(Type type);  // 设置类型
     Type getType();  // 获取类型
 
     void setElevation(qreal elevation);  // 设置高程
     qreal getElevation();  // 获取高程
+<<<<<<< HEAD
+=======
+
+    void setAlpha(const qreal alpha);  //设置旋转角度
+    qreal getAlpha() const;  // 获取旋转角度
+
+    QRectF getBoundingRect();  // 获取包围矩形
+
+    Polyline *copy();
+
+    int i;
+>>>>>>> Jeremy
 
     Polyline *copy();
 protected:
@@ -59,8 +79,9 @@ protected:
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) Q_DECL_OVERRIDE;
 
 private:
-    QList<QPointF> points;  // 各个点的坐标
+    QVector<QPointF> points;  // 各个点的坐标
     QPointF newPoint;  // 最后一个点
+    QVector<QLineF> rLines;  // 参考线
     Type type;  // 类型
     double elevation;  // 高程
     qreal alpha;  // 旋转角度

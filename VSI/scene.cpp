@@ -1,17 +1,20 @@
-#include "scene.h"
+﻿#include "scene.h"
 #include <QDebug>
 #include <QPainter>
 
 Scene::Scene(QObject *parent) :
     QGraphicsScene(parent),
+    type(Sketch),
     name(""),
     curShape(Shape::None),
     modified(false),
     drawable(true),
-    moveable(false),
+    moveable(true),  // debug时为true
     drawing(false),
     penWidth(1),
-    scaleFactor(1)
+    scaleFactor(1),
+    offset(QPointF(0, 0)),
+    backgroundColor(Qt::white)
 {
     qDebug() << INT_MIN << "  " << INT_MAX;
     qDebug() << SHRT_MIN << "  " << SHRT_MAX;
@@ -35,8 +38,19 @@ Scene::~Scene()
 #ifdef DEBUG
     qDebug() << "scene has been deleted!";
 #endif
+    qDeleteAll(itemList);
     itemList.clear();
     curItem = NULL;
+}
+
+void Scene::setType(Scene::Type type)
+{
+    this->type = type;
+}
+
+Scene::Type Scene::getType()
+{
+    return type;
 }
 
 void Scene::setName(QString name)
@@ -101,6 +115,10 @@ int Scene::getPolylineListLength() const
     return this->polylineList.length();
 }
 
+void Scene::addPolylineList(Polyline *polyline){
+    this->polylineList.append(polyline);
+}
+
 QList<Ellipse *> Scene::getEllipseList() const
 {
     return this->ellipseList;
@@ -156,19 +174,79 @@ void Scene::setDrawable(bool flag)
     this->drawable = flag;
 }
 
-void Scene::setEntityStyle(Configure::EntityStyle eStyle)
+void Scene::setBackgroundColor(QColor color)
+{
+    backgroundColor = color;
+}
+
+QColor Scene::getBackgroundColor()
+{
+    return backgroundColor;
+}
+
+void Scene::setOffset(QPointF pos)
+{
+    offset = pos;
+}
+
+QPointF Scene::getOffset()
+{
+    return offset;
+}
+
+void Scene::setEntityStyle(const SketchConfigure::EntityStyle &eStyle)
 {
     this->eStyle = eStyle;
 }
 
-Configure::EntityStyle Scene::getEntityStyle()
+SketchConfigure::EntityStyle Scene::getEntityStyle()
 {
     return this->eStyle;
 }
 
-void Scene::setAxesGrid(Configure::AxesGrid axesGrid)
+void Scene::setAxesGrid(SketchConfigure::AxesGrid axesGrid)
 {
     this->axesGrid = axesGrid;
+}
+
+void Scene::setSheetStyle(const NestConfigure::SheetStyle &style)
+{
+    this->sheetStyle = style;
+}
+
+NestConfigure::SheetStyle Scene::getSheetStyle() const
+{
+    return this->sheetStyle;
+}
+
+void Scene::setMainGrid(const NestConfigure::Grid &grid)
+{
+    this->mainGrid = grid;
+}
+
+NestConfigure::Grid Scene::getMainGrid() const
+{
+    return this->mainGrid;
+}
+
+void Scene::setSecondGrid(const NestConfigure::Grid &grid)
+{
+    this->secondGrid = grid;
+}
+
+NestConfigure::Grid Scene::getSecondGrid() const
+{
+    return this->secondGrid;
+}
+
+void Scene::setSheet(const Sheet &s)
+{
+    this->sheet = s;
+}
+
+Sheet Scene::getSheet() const
+{
+    return this->sheet;
 }
 
 void Scene::addCustomPointItem(Point *point)
@@ -177,9 +255,7 @@ void Scene::addCustomPointItem(Point *point)
         return;
     }
     point->setShapeId(getItemListLength()+1);
-
-    qDebug() << "shapeType: " << point->getShapeType();
-    Configure::PenStyle pen(eStyle.referPoint.color, Qt::SolidLine, 1);
+    SketchConfigure::PenStyle pen(eStyle.referPoint.color, Qt::SolidLine, 1);
     point->setPenStyle(pen);
     point->setOffset(eStyle.referPoint.sizeInPix);
     point->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
@@ -233,6 +309,7 @@ void Scene::addCustomPolylineItem(Polyline *polyline)
 
     itemList.append(polyline);
     polylineList.append(polyline);
+
     addItem(polyline);
     connect(polyline, &Shape::sceneMoveableChanged, polyline, &Polyline::onSceneMoveableChanged);
     connect(polyline, &Polyline::select, this, &Scene::onPolylineSelected);
@@ -452,6 +529,7 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     //变化成polyline
                     switch(curShape)
                     {
+<<<<<<< HEAD
                     case Shape::Rectangle:
                     {
                         //转换类型
@@ -491,6 +569,42 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     }
                     default:
                         break;
+=======
+                        case Shape::Rectangle:
+                        {
+                            //转换类型
+                            Polyline *polyline = new Polyline;
+                            polyline->setPoints(recttram->toPolyline());
+                            polylineList.append(polyline);
+                            break;
+                        }
+                        case Shape::Polygon:
+                        {
+                            //转换类型
+                            Polyline *polyline = new Polyline;
+                            polyline->setPoints(polygontram->toPolyline());
+                            polylineList.append(polyline);
+                            break;
+                        }
+                        case Shape::Trapezium:
+                        {
+                            //转换类型
+                            //Polyline *polyline = new Polyline;
+                            //polyline->setPoints(trapeziumtram->toPolyline());
+                            //polylineList.append(polyline);
+                            break;
+                        }
+                        case Shape::Eyelet:
+                        {
+                            //转换类型
+                            //Polyline *polyline = new Polyline;
+                            //polyline->setPoints(eyelettram->toPolyline());
+                            //polylineList.append(polyline);
+                            break;
+                        }
+                        default:
+                            break;
+>>>>>>> Jeremy
                     }
                 }
             } else {
@@ -504,7 +618,7 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                 case Shape::Point:{
                     Point *point = new Point;
                     point->setShapeId(id+1);
-                    Configure::PenStyle pen(eStyle.referPoint.color, Qt::SolidLine, 1);
+                    SketchConfigure::PenStyle pen(eStyle.referPoint.color, Qt::SolidLine, 1);
                     point->setPenStyle(pen);
                     point->setOffset(eStyle.referPoint.sizeInPix);
                     point->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
@@ -694,6 +808,10 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     polygontram = polygon;
                     addItem(polygon);
                     connect(polygon, &Shape::sceneMoveableChanged, polygon, &Polygon::onSceneMoveableChanged);
+<<<<<<< HEAD
+=======
+                    //connect(polygon, &Polygon::select, this, &Scene::onPolygonSelected);
+>>>>>>> Jeremy
                     break;
                 }
                 case Shape::Trapezium:
@@ -717,8 +835,15 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     trapezium->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
                     trapezium->setSelectStyle(eStyle.selectedEntity);
                     curItem = trapezium;
+<<<<<<< HEAD
                     addItem(trapezium);
                     connect(trapezium, &Shape::sceneMoveableChanged, trapezium, &Trapezium::onSceneMoveableChanged);
+=======
+                    //trapeziumtram =trapezium;//转变类型
+                    addItem(trapezium);
+                    connect(trapezium, &Shape::sceneMoveableChanged, trapezium, &Trapezium::onSceneMoveableChanged);
+                    //connect(trapezium, &Trapezium::select, this, &Scene::onTrapeziumSelected);
+>>>>>>> Jeremy
                     break;
                 }
                 case Shape::Eyelet:
@@ -739,8 +864,15 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     eyelet->setEntityUnderCursorStyle(eStyle.entityUnderCursor);
                     eyelet->setSelectStyle(eStyle.selectedEntity);
                     curItem = eyelet;
+<<<<<<< HEAD
                     addItem(eyelet);
                     connect(eyelet, &Shape::sceneMoveableChanged, eyelet, &Eyelet::onSceneMoveableChanged);
+=======
+                    //eyelettram =eyelet;
+                    addItem(eyelet);
+                    connect(eyelet, &Shape::sceneMoveableChanged, eyelet, &Eyelet::onSceneMoveableChanged);
+                    //connect(eyelet, &Eyelet::select, this, &Scene::onEyeletSelected);
+>>>>>>> Jeremy
                     break;
                 }
                 case Shape::Text:
@@ -749,6 +881,10 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
                     text->setTextcontent(this->textdialog->textdialog->getText());
                     text->setTextPixelSize(this->textdialog->textdialog->getTextsize());
+<<<<<<< HEAD
+=======
+                    //text->setTextcolor(this->textdialog->textdialog->getTextcolor());
+>>>>>>> Jeremy
                     qDebug()<<"文本内容"<<text->getTextcontent();
                     qDebug()<<"文本大小"<<text->getTextPixelSize();
 
@@ -758,6 +894,10 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     curItem = text;
                     addItem(text);
                     connect(text, &Shape::sceneMoveableChanged, text, &Text::onSceneMoveableChanged);
+<<<<<<< HEAD
+=======
+                    //connect(text, &Text::select, this, &Scene::onTextSelected);
+>>>>>>> Jeremy
                     break;
                 }
                 default:
@@ -847,6 +987,7 @@ void Scene::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         curItem->drawing(event);
     }
     if(moveable){
+<<<<<<< HEAD
         for(int i=0;i<polylineList.length();i++){
 
             QPointF p(100,100);
@@ -861,6 +1002,21 @@ void Scene::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
                 }
             }
         }
+=======
+//        for(int i=0;i<polylineList.length();i++){
+//            QPointF p(100,100);
+//            //qDebug() << "是否包含QPointF p(100,100) ：" << polylineList[i]->contains(p);
+//            for(int j=0;j<polylineList.length();j++){
+//                if(i == j){
+//                    continue;
+//                }
+//                if(polylineList[i]->collidesWithItem(polylineList[j])){
+//                    qDebug() << polylineList[i]->getShapeId() << " 与"
+//                             << polylineList[j]->getShapeId() << "碰撞";
+//                }
+//            }
+//        }
+>>>>>>> Jeremy
     }
     update();
     QGraphicsScene::mouseMoveEvent(event);
@@ -888,69 +1044,159 @@ void Scene::dropEvent(QGraphicsSceneDragDropEvent *event)
 
 void Scene::drawBackground(QPainter *painter, const QRectF &rect)
 {
-    painter->save();
-    painter->setBrush(eStyle.backgroundColor);
-    painter->drawRect(rect);
+    switch (type) {
+    case Sketch:{
+        painter->save();
+        painter->setBrush(eStyle.backgroundColor);
+        painter->drawRect(rect);
+        if(axesGrid.grid.showGrid){
+            // 画网格
+            // 获取到当前的线宽，这里的线宽其实还是之前设置的线宽值;
+            // 比如我们之前设置线宽为 2 ，这里返回的线宽还是 2 ，但是当前的缩放比例变了；
+            // 其实当前的线宽就相当于 penWidth * scaleFactor;
+            // 所以如果我们想要让线宽保持不变，那就需要进行转换，即 penWidth = penWidth / scaleFactor;
+            // 重新设置画笔线宽;
+            QPen pen = QPen();
+            pen.setWidthF(0);
+            pen.setColor(axesGrid.grid.gridColor);
+            painter->setPen(pen);
 
-    if(axesGrid.grid.showGrid){
-        // 画网格
-        // 获取到当前的线宽，这里的线宽其实还是之前设置的线宽值;
-        // 比如我们之前设置线宽为 2 ，这里返回的线宽还是 2 ，但是当前的缩放比例变了；
-        // 其实当前的线宽就相当于 penWidth * scaleFactor;
-        // 所以如果我们想要让线宽保持不变，那就需要进行转换，即 penWidth = penWidth / scaleFactor;
-        // 重新设置画笔线宽;
-        QPen pen = QPen();
-        pen.setWidthF(0);
-        pen.setColor(axesGrid.grid.gridColor);
-        painter->setPen(pen);
+            const double w = sceneRect().width();
+            const double h = sceneRect().height();
 
-        const double w = sceneRect().width();
-        const double h = sceneRect().height();
-
-        for(int i=0; i<h; i+=axesGrid.grid.yStep / scaleFactor){
-            painter->drawLine(QPointF(-w,i),QPointF(w,i));
-            painter->drawLine(QPointF(-w,-i),QPointF(w,-i));
+            for(int i=0; i<h; i+=axesGrid.grid.yStep / scaleFactor){
+                painter->drawLine(QPointF(-w,i),QPointF(w,i));
+                painter->drawLine(QPointF(-w,-i),QPointF(w,-i));
+            }
+            for(int i=0; i<w; i+=axesGrid.grid.xStep / scaleFactor)
+            {
+                painter->drawLine(QPointF(i,-h),QPointF(i,h));
+                painter->drawLine(QPointF(-i,-h),QPointF(-i,h));
+            }
         }
-        for(int i=0; i<w; i+=axesGrid.grid.xStep / scaleFactor)
-        {
-            painter->drawLine(QPointF(i,-h),QPointF(i,h));
-            painter->drawLine(QPointF(-i,-h),QPointF(-i,h));
+        if(axesGrid.axes.showAxes){
+            // 画x轴
+            QPen pen = QPen();
+            pen.setWidthF(0);
+            pen.setColor(axesGrid.axes.xAxisColor);
+            pen.setJoinStyle(Qt::MiterJoin);
+            painter->setPen(pen);
+
+            QBrush brush = QBrush();
+            brush.setColor(axesGrid.axes.xAxisColor);
+            brush.setStyle(Qt::SolidPattern);
+            painter->setBrush(brush);
+
+            QPointF xPos = QPointF(axesGrid.axes.axisSizeInPix / scaleFactor,0);
+            QLineF lineX(QPointF(0,0), xPos);
+            drawLineWithArrow(painter, lineX, axesGrid.axes.arrowSizeInPix / scaleFactor);
+            painter->drawText(10, 0, 20, 20, Qt::AlignLeft | Qt::AlignTop, tr("x"));
+
+
+            // 画y轴
+            pen.setWidthF(0);
+            pen.setColor(axesGrid.axes.yAxisColor);
+            pen.setJoinStyle(Qt::MiterJoin);
+            painter->setPen(pen);
+
+            brush.setColor(axesGrid.axes.yAxisColor);
+            brush.setStyle(Qt::SolidPattern);
+            painter->setBrush(brush);
+
+            QPointF yPos = QPointF(0,-axesGrid.axes.axisSizeInPix / scaleFactor);
+            QLineF lineY(QPointF(0,0), yPos);
+            drawLineWithArrow(painter, lineY, axesGrid.axes.arrowSizeInPix / scaleFactor);
+            painter->drawText(-10, -20, 20, 20, Qt::AlignLeft | Qt::AlignTop, tr("y"));
         }
+        break;
     }
+    case Nest:{
+        painter->save();
+        painter->setBrush(backgroundColor);
+        painter->drawRect(rect);
 
-    if(axesGrid.axes.showAxes){
-        // 画x轴
+        // 画材料
+        QRectF boundRect = sheet.boundRect();  // 材料外接矩形
         QPen pen = QPen();
         pen.setWidthF(0);
-        pen.setColor(axesGrid.axes.xAxisColor);
-        pen.setJoinStyle(Qt::MiterJoin);
+        pen.setColor(sheetStyle.sheetColor);
+        pen.setStyle(Qt::SolidLine);  // 设置实线
         painter->setPen(pen);
+        painter->translate(offset);
+        painter->setBrush(sheetStyle.sheetColor);
+        painter->drawRect(boundRect);  // 画出材料外接矩形区域
 
-        QBrush brush = QBrush();
-        brush.setColor(axesGrid.axes.xAxisColor);
-        brush.setStyle(Qt::SolidPattern);
-        painter->setBrush(brush);
-
-        QPointF xPos = QPointF(axesGrid.axes.axisSizeInPix / scaleFactor,0);
-        QLineF lineX(QPointF(0,0), xPos);
-        drawLineWithArrow(painter, lineX, axesGrid.axes.arrowSizeInPix / scaleFactor);
-        painter->drawText(10, 0, 20, 20, Qt::AlignLeft | Qt::AlignTop, tr("x"));
-
-
-        // 画y轴
+        QRectF layoutRect = sheet.layoutRect();  // 获取排版区域
         pen.setWidthF(0);
-        pen.setColor(axesGrid.axes.yAxisColor);
-        pen.setJoinStyle(Qt::MiterJoin);
+        pen.setColor(sheetStyle.sheetMarginColor);
+        pen.setStyle(Qt::DashLine);  // 设置虚线
         painter->setPen(pen);
+        painter->drawRect(layoutRect);  // 画出材料排版的区域
 
-        brush.setColor(axesGrid.axes.yAxisColor);
-        brush.setStyle(Qt::SolidPattern);
-        painter->setBrush(brush);
+        // 如果是条板类型，则需要画上插板
+        if(sheet.type == Sheet::Strip){
+            QVector<QRectF> layoutRects = sheet.inforcementRects();  // 材料外接矩形
+            QPen pen = QPen();
+            pen.setWidthF(0);
+            pen.setColor(sheetStyle.reinforcementMarginColor);
+            pen.setStyle(Qt::SolidLine);  // 设置线型
+            painter->setPen(pen);
+            painter->setBrush(QBrush(sheetStyle.reinforcementColor));
+            painter->drawRects(layoutRects);
+        }
 
-        QPointF yPos = QPointF(0,-axesGrid.axes.axisSizeInPix / scaleFactor);
-        QLineF lineY(QPointF(0,0), yPos);
-        drawLineWithArrow(painter, lineY, axesGrid.axes.arrowSizeInPix / scaleFactor);
-        painter->drawText(-10, -20, 20, 20, Qt::AlignLeft | Qt::AlignTop, tr("y"));
+        // 画主网格
+        if(mainGrid.showGrid){
+            //qDebug() << "主网格";
+            QPen pen = QPen();
+            pen.setWidthF(0);
+            pen.setColor(mainGrid.gridColor);
+            painter->setPen(pen);
+
+            const double w = layoutRect.width();
+            const double h = layoutRect.height();
+
+            int rows = h / mainGrid.yStep;  // 行数
+            int columns = w / mainGrid.xStep;  // 列数
+            for(int i=0; i<=rows; i++){  // 划横线
+                qreal rowsYPos = i*mainGrid.yStep+sheet.topMargin;  // 纵坐标
+                painter->drawLine(QPointF(sheet.leftMargin,rowsYPos),
+                                  QPointF(w+sheet.leftMargin,rowsYPos));
+            }
+            for(int i=0; i<=columns; i++){  // 划纵线
+                qreal columnsYPos = i*mainGrid.xStep+sheet.leftMargin;  // 横坐标
+                painter->drawLine(QPointF(columnsYPos,sheet.topMargin),
+                                  QPointF(columnsYPos,h+sheet.topMargin));
+            }
+            if(qrealPrecision(h - rows*mainGrid.yStep, 6) != 0.0f){  // 补齐横线
+                painter->drawLine(QPointF(sheet.leftMargin,h+sheet.topMargin),
+                                  QPointF(w+sheet.leftMargin,h+sheet.topMargin));
+            }
+            if(qrealPrecision(w - columns*mainGrid.xStep, 6) != 0.0f){  // 补齐纵线
+                painter->drawLine(QPointF(w+sheet.leftMargin,sheet.topMargin),
+                                  QPointF(w+sheet.leftMargin,h+sheet.topMargin));
+            }
+        }
+
+        // 画副网格
+        if(secondGrid.showGrid){
+            //qDebug() << "副网格";
+            QPen pen = QPen();
+            pen.setWidthF(1/scaleFactor);
+            pen.setColor(secondGrid.gridColor);
+            painter->setPen(pen);
+            const double w = layoutRect.width();
+            const double h = layoutRect.height();
+            for(int i=0; i<=w; i+=secondGrid.xStep / scaleFactor) {
+                for(int j=0; j<=h; j+=secondGrid.yStep / scaleFactor) {
+                    painter->drawPoint(QPointF(i+sheet.leftMargin,j+sheet.topMargin));
+                }
+            }
+        }
+        break;
+    }
+    default:
+        break;
     }
     painter->restore();
 }
@@ -963,6 +1209,23 @@ Text *Scene::getTextdialog() const
 void Scene::setTextdialog(Text *value)
 {
     textdialog = value;
+}
+
+Scene *Scene::copy()
+{
+    Scene *s = new Scene;
+    if(name != ""){
+        s->setName(name);
+    }
+    s->setModified(modified);
+    s->setEntityStyle(eStyle);
+    foreach (Polyline* p, polylineList) {
+        s->addCustomPolylineItem(p->copy());
+    }
+    foreach (Line* l, lineList) {
+        s->addCustomLineItem(l->copy());
+    }
+    return s;
 }
 
 Eyelet *Scene::getEyeletDialog() const
@@ -981,6 +1244,22 @@ void Scene::onViewScaleChanged(qreal scaleFactor)
     update();
 }
 
+void Scene::onViewOffsetChanged(QPointF offset)
+{
+    qDebug() << "偏移了" << offset;
+    this->offset -= offset;
+    // 更新排版零件
+    foreach (Polyline *polyline, polylineList) {
+        QVector<QPointF> offsetPoints;
+        foreach (QPointF point, polyline->getPoints()) {
+            point -= offset;
+            offsetPoints.append(point);
+        }
+        polyline->setPoints(offsetPoints);
+    }
+    update();
+}
+
 void Scene::onAxesChanged(bool show)
 {
     axesGrid.axes.showAxes = show;
@@ -989,13 +1268,23 @@ void Scene::onAxesChanged(bool show)
 
 void Scene::onGridChanged(bool show)
 {
-    axesGrid.grid.showGrid = show;
+    switch (type) {
+    case Sketch:{
+        axesGrid.grid.showGrid = show;
+        break;
+    }
+    case Nest:{
+        mainGrid.showGrid = show;
+        secondGrid.showGrid = show;
+        break;
+    }
+    }
     update();
 }
 
 void Scene::onNewItem()
 {
-    qDebug() << "有新实体";
+    //qDebug() << "有新实体";
     emit sceneItemsChanged();
 }
 

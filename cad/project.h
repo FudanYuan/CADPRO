@@ -31,8 +31,10 @@ public:
     Scene* getScene(const int index);  // 获取项目图层
     Scene* getSceneByName(const QString name);  // 通过名称获取项目图层
     int getSceneIdByName(const QString name);  // 通过名称获取图层序号
+    void insertScene(const QList<Scene *> sList);  // 插入图层列表
     bool removeScene(const int index);  // 删除项目图层
     bool removeSceneByName(const QString name); // 通过名称删除项目图层
+    bool clearScene();  // 清空图层
     Scene* getActiveScene();  // 获取项目活动图层
     bool changeScene(int i, int j);  // 交换两scene的位置
     void setSaved(const bool saved);  // 设置项目保存状态
@@ -43,6 +45,8 @@ public:
     QString getSceneName(Scene *Scene);  // 获取图层名称
     QString getSceneName(const int i);  // 获取第i层图层名称
 
+    // dxf 重置
+    void resetDxfFilter();
     // dxf 读
     Scene* getDXFLayer(QString name);  //  获取dxf图层对象
     void dxfFileReader(const QString fileName);  // 解析dxf文件

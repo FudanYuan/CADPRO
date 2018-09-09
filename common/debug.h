@@ -3,7 +3,9 @@
 
 #endif // DEBUG_H
 
+#if 0
 #define DEBUG
+#endif
 
 #if 0
 #define PROJECTDEBUG
@@ -25,4 +27,11 @@
 #define DEBUGNFREADER
 #endif
 
+<<<<<<< HEAD
+=======
+#if 1
+#define NESTENGINEDEBUG
+#endif
+
+>>>>>>> Jeremy
 #define DISCARD_DXF_ENTITY_PROPERTITY  // 丢掉dxf文件中的实体属性

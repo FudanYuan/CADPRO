@@ -1,4 +1,8 @@
 #include "nf_reader.h"
+<<<<<<< HEAD
+=======
+#include <assert.h>
+>>>>>>> Jeremy
 #include <QDebug>
 
 NF_Reader::NF_Reader(FILE *fp) :
@@ -403,7 +407,11 @@ bool NF_Reader::readPieceOffsetList(FILE *fp)
                 tokenPtr=strtok(NULL,",");
                 temp++;
             }
+<<<<<<< HEAD
             PiecePointsList points(px, py, pz);
+=======
+            PiecePoint points(px, py, pz);
+>>>>>>> Jeremy
             pieceOffset.pointsList.append(points);
             lineTmp++;
         }

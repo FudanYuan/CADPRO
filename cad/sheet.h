@@ -1,4 +1,4 @@
-#ifndef SHEETDIALOG_H
+﻿#ifndef SHEETDIALOG_H
 #define SHEETDIALOG_H
 
 #include <QDialog>
@@ -9,13 +9,15 @@
 #include <QTableWidget>
 #include <QGroupBox>
 #include <QDialogButtonBox>
-#include "sheet.h"
+#include <QLabel>
+#include <QComboBox>
+#include <QCheckBox>
 #include "view.h"
-#include "scene.h"
 
 #define SHEET_XML "sheet.xml"
 #define WHOLE tr("整体")
-#define STRIP tr("样条")
+#define STRIP tr("条板")
+#define PACKAGE tr("卷装")
 
 struct StripPW
 {
@@ -35,11 +37,30 @@ struct Sheet
 {
     enum SheetType{
         Whole,
-        Strip
+        Strip,
+        Package,
+        None
     };
 
-    Sheet();
-
+    Sheet() :
+        name(""),
+        type(Whole),
+        material(""),
+        width(1200),
+        height(1000),
+        componentGap(0),
+        topMargin(5),
+        rightMargin(5),
+        bottomMargin(5),
+        leftMargin(5),
+        layers(1),
+        margin(2),
+        doubleStrip(false),
+        cutPaneSize(INT_MAX)
+    {
+        stripPW.append(StripPW(200, 200));
+        stripPW.append(StripPW(600, 200));
+    }
     QString name;  // 材料名称
     SheetType type;  // 材料类型
     QString material; // 材料构成，非必填
@@ -61,10 +82,44 @@ struct Sheet
     qreal cutPaneSize;  // 切割平面尺寸
     QList<StripPW> stripPW;  // 上插板位置宽度
 
+    // 获取类型名称
+    QString typeName(){
+        QString name;
+        switch (type) {
+        case Whole:
+            name = "整体";
+            break;
+        case Strip:
+            name = "条板";
+            break;
+        case Package:
+            name = "卷装";
+            break;
+        case None:
+            name = "无";
+            break;
+        default:
+            break;
+        }
+        return name;
+    }
+
     // 材料的有效面积
     qreal area() const {
-        return (width - leftMargin - rightMargin) *
+        qreal area = 0;
+        if(type != Strip){
+            area = (width - leftMargin - rightMargin) *
                 (height - topMargin - bottomMargin);
+        } else{
+            foreach (StripPW s, stripPW) {
+                area += s.width * (width - leftMargin - rightMargin);
+            }
+        }
+        return area;
+    }
+
+    QRectF boundRect() const {
+        return QRectF(0, 0, width, height);
     }
 
     // 材料的有效区域
@@ -73,7 +128,41 @@ struct Sheet
                       (width - leftMargin - rightMargin),
                       (height - topMargin - bottomMargin));
     }
+
+    // 上插板区域
+    QVector<QRectF> inforcementRects() const{
+        QVector<QRectF> retRects;
+        for(int i=0; i<stripPW.length(); i++){
+            retRects.append(QRectF(leftMargin, stripPW[i].position+topMargin,
+                                   width - leftMargin - rightMargin,
+                                   stripPW[i].width));
+        }
+        return retRects;
+    }
+
+    Sheet *sheet(){
+        Sheet *s = new Sheet;
+        s->name = name;
+        s->type = type;
+        s->material = material;
+        s->width = width;
+        s->height = height;
+        s->componentGap = componentGap;
+        s->topMargin = topMargin;
+        s->rightMargin = rightMargin;
+        s->bottomMargin = bottomMargin;
+        s->leftMargin = leftMargin;
+        s->layers = layers;
+        s->margin = margin;
+        s->doubleStrip = doubleStrip;
+        s->cutPaneSize = cutPaneSize;
+        s->stripPW = stripPW;
+
+        return s;
+    }
 };
+
+class Scene;
 
 // sheet管理对话框
 class SheetDialog : public QDialog
@@ -84,7 +173,14 @@ public:
         Manager,  // 进行材料的管理
         Nest  // 排版时进行材料的增加
     };
+<<<<<<< HEAD
     SheetDialog();
+=======
+    SheetDialog(Sheet::SheetType type = Sheet::None);
+    ~SheetDialog();
+    void setDialogType(Sheet::SheetType type);  // 设置显示材料类型
+    Sheet::SheetType getDialogType();  // 获取显示材料类型
+>>>>>>> Jeremy
     void setDialogRole(SheetDialog::RoleType role);  // 设置对话框角色
     SheetDialog::RoleType getDialogRole();  // 获取对话框角色
     void initDialog();  // 初始化对话框
@@ -94,18 +190,35 @@ public:
     void loadSheetInfo();  // 下载材料信息
     void saveSheetInfo();  // 保存材料信息
     void updateSheetInfo(const Sheet *sheetActive);
-    void updateSheetListTable(QList<Sheet*> sheetList);  // 更新表格
+    void updateSheetActive(Sheet *sheetActive);  // 更新
+    void updateSheetListTable(QList<Sheet*> filterList);  // 更新表格
     void updateStripConfigTable(QList<StripPW> stripPW);  // 更新strip配置表格
+    void setSheetInfoDisable(bool flag);  // 使能材料属性框
     QList<Sheet*> xmlFileReader(QString fileName);  // 读取xml数据
     void xmlFileWrite(QString fileName, QList<Sheet*> list);  // 写入xml数据
+    Sheet* getSheetActive();
+    bool sheetNameConflict(const int index);  // 检查名字是否冲突
+
+protected:
+     void closeEvent(QCloseEvent *) Q_DECL_OVERRIDE;
 
     Sheet* getSheetActive();
 private:
     RoleType role;  // 打开该对话框的角色类型
+<<<<<<< HEAD
     QList<Sheet*> sheetList;  // 材料列表
+=======
+    Sheet::SheetType sheetType;  // 材料类型
+    QList<Sheet*> sheetList;  // 读入的材料列表
+    QList<Sheet*> showList;  // 显示的材料列表
+>>>>>>> Jeremy
     Sheet *sheetActive;  // 选中材料
     int currentIndex;  // 当前序号
-    int newSheetItem;  // 新材料个数
+    bool insertFlag;  // 添加标志
+    bool editFlag;  // 编辑标志
+    int insertCounter; // 添加计数器
+    int editCounter; // 编辑计数器
+    int removeCounter; // 删除计数器
     QVBoxLayout *mainLayout;  // 主布局
     QGroupBox *sheetListGroupBox;  // 列表组件
     QTableWidget *sheetListTable;  // 列表表格
@@ -154,7 +267,7 @@ signals:
     void sheetSelected(int i);  // 材料被选中
 
 private slots:
-    void onStripConfigTableChanged(int row, int column);
+    void onMousePositionChanged(QPointF pos);  // 响应鼠标移动
     void onDoubleStripChanged(bool checkd);
     void onSheetTypeComChanged(int index);  // 响应类型下拉框选项改变
     void onDialogButtonClicked(QAbstractButton *button);  // 响应材料信息改变

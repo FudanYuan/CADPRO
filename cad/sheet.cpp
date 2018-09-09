@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 ﻿#include "sheet.h"
+=======
+﻿ #include "sheet.h"
+>>>>>>> Jeremy
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QHBoxLayout>
@@ -11,7 +15,10 @@
 #include <QFile>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
+#include <qmath.h>
+#include "scene.h"
 
+<<<<<<< HEAD
 Sheet::Sheet() :
       name(""),
       type(Whole),
@@ -34,14 +41,41 @@ Sheet::Sheet() :
 
 SheetDialog::SheetDialog() :
     role(Manager),
+=======
+SheetDialog::SheetDialog(Sheet::SheetType type) :
+    role(Manager),
+    sheetType(type),
+>>>>>>> Jeremy
     sheetActive(NULL),
-    currentIndex(0),
-    newSheetItem(0)
+    currentIndex(-1),
+    insertFlag(false),
+    editFlag(false),
+    insertCounter(0),
+    editCounter(0),
+    removeCounter(0)
 {
     initDialog();
     loadSheetInfo();
 }
 
+<<<<<<< HEAD
+=======
+SheetDialog::~SheetDialog()
+{
+
+}
+
+void SheetDialog::setDialogType(Sheet::SheetType type)
+{
+    sheetType = type;
+}
+
+Sheet::SheetType SheetDialog::getDialogType()
+{
+    return sheetType;
+}
+
+>>>>>>> Jeremy
 void SheetDialog::setDialogRole(SheetDialog::RoleType role)
 {
     this->role = role;
@@ -137,25 +171,23 @@ void SheetDialog::initSheetListPanel()
     listLayout->addWidget(sheetInsertBtn, 20, 0, 1, 2);
     listLayout->addWidget(sheetRemoveBtn, 20, 2, 1, 2);
     listLayout->addWidget(sheetEditBtn, 20, 4, 1, 2);
-    sheetListGroupBox->setLayout(listLayout);
 }
 
 void SheetDialog::initSheetInfoPanel()
 {
     sheetInfoGroupBox = new QGroupBox(tr("材料详情"), this);
 
-    sheetInfoGroupBox->setHidden(true);
-
     // 材料详情总布局
     infoLayout = new QGridLayout(sheetInfoGroupBox);
 
     // 材料属性布局
-    sheetPropertyLayout = new QGridLayout(sheetInfoGroupBox);
+    sheetPropertyLayout = new QGridLayout();
 
     typeLabel = new QLabel(tr("类型"), sheetInfoGroupBox);
     typeCBox = new QComboBox(sheetInfoGroupBox);
     typeCBox->insertItem(0, WHOLE);
     typeCBox->insertItem(1, STRIP);
+    typeCBox->insertItem(3, PACKAGE);
     typeCBox->setCurrentIndex(0);
     connect(typeCBox, SIGNAL(currentIndexChanged(int)), this, SLOT(onSheetTypeComChanged(int)));
 
@@ -212,7 +244,6 @@ void SheetDialog::initSheetInfoPanel()
     marginLayout->addWidget(doubleStrip, 3, 0, 1, 1);
     marginLayout->addWidget(cutSizeLabel, 3, 2, 1, 1);
     marginLayout->addWidget(cutSizeLine, 3, 3, 1, 1);
-    sheetInfoMarginGroupBox->setLayout(marginLayout);
 
     sheetPropertyLayout->addWidget(typeLabel, 0, 0, 1, 1);
     sheetPropertyLayout->addWidget(typeCBox, 0, 1, 1, 1);
@@ -249,16 +280,13 @@ void SheetDialog::initSheetInfoPanel()
     stripConfigTable->verticalHeader()->setVisible(false);//隐藏左边垂直
     stripConfigTable->setSelectionBehavior(QTableWidget::SelectItems);//一次选中一项
     stripConfigTable->setSelectionMode(QAbstractItemView::SingleSelection);//只能单选
-    connect(stripConfigTable, &QTableWidget::cellDoubleClicked, this, &SheetDialog::onStripConfigTableChanged);
 
     sheetView = new View(sheetInfoGroupBox);  // 初始化sheet view
-    sheetScene = new Scene(sheetView);
-    Configure config;
-    sheetScene->setEntityStyle(config.eStyle);
-//    sheetView->setMouseFlag(false);  // 忽略鼠标事件
-//    sheetView->setWheelFlag(false);  // 忽略滚轮事件
-//    sheetView->setKeyboardFlag(false);  // 忽略键盘事件
-
+    // 屏蔽所有外设
+    sheetView->setMouseFlag(false);
+    sheetView->setKeyboardFlag(false);
+    sheetView->setWheelFlag(false);
+    connect(sheetView, &View::mousePositionChanged, this, &SheetDialog::onMousePositionChanged);
     infoLayout->addLayout(sheetPropertyLayout, 0, 0, 10, 2);
     infoLayout->addWidget(stripConfigTable, 0, 2, 10, 2);
     infoLayout->addItem(new QSpacerItem(stripConfigTable->width(),
@@ -267,7 +295,8 @@ void SheetDialog::initSheetInfoPanel()
                                         QSizePolicy::Expanding),
                              0, 2, 10, 1);
     infoLayout->addWidget(sheetView, 0, 6, 10, 1);
-    sheetInfoGroupBox->setLayout(infoLayout);
+    sheetInfoGroupBox->setHidden(true);
+    setSheetInfoDisable(true);
 }
 
 void SheetDialog::initBtnPanel()
@@ -277,6 +306,7 @@ void SheetDialog::initBtnPanel()
                                      | QDialogButtonBox::Ok
                                      | QDialogButtonBox::Cancel, this);
     buttonBox->button(QDialogButtonBox::Apply)->setDisabled(true);
+    buttonBox->button(QDialogButtonBox::Cancel)->setDisabled(true);
     connect(buttonBox, &QDialogButtonBox::clicked, this, &SheetDialog::onDialogButtonClicked);
 }
 
@@ -284,12 +314,28 @@ void SheetDialog::loadSheetInfo()
 {
     // 读取xml文件
     sheetList.clear();
+<<<<<<< HEAD
     sheetList.append(xmlFileReader(SHEET_XML));
     if(sheetList.length() == 0){
+=======
+    showList.clear();
+    sheetList = xmlFileReader(SHEET_XML);  // 返回文件中的材料列表
+    // 显示的列表
+    if(sheetType != Sheet::None){
+        foreach (Sheet *sheet, sheetList) {
+            if(sheet->type == sheetType){
+                showList.append(sheet);
+            }
+        }
+    } else{
+        showList.append(sheetList);
+    }
+    if(showList.length() == 0){
+>>>>>>> Jeremy
         QMessageBox::warning(this, tr("警告"), tr("材料列表为空!"));
         return;
     }
-    updateSheetListTable(sheetList);
+    updateSheetListTable(showList);
 }
 
 void SheetDialog::saveSheetInfo()
@@ -305,7 +351,6 @@ void SheetDialog::updateSheetInfo(const Sheet *sheetActive)
     nameLine->setText(sheetActive->name);
     materialLine->setText(sheetActive->material);
     xLine->setText(QString("%1").arg(sheetActive->width));
-    yLine->setText(QString("%1").arg(sheetActive->height));
     distanceLine->setText(QString("%1").arg(sheetActive->componentGap));
     leftLine->setText(QString("%1").arg(sheetActive->leftMargin));
     topLine->setText(QString("%1").arg(sheetActive->topMargin));
@@ -336,6 +381,7 @@ void SheetDialog::updateSheetInfo(const Sheet *sheetActive)
         stripConfigTable->hide();
     }
 
+<<<<<<< HEAD
     sheetView->setSceneRect(QRectF(0, 0, sheetActive->width, sheetActive->height));
     sheetView->centerOn(sheetView->mapFromScene(0,0));
     sheetScene->setSceneRect(sheetView->rect());
@@ -352,29 +398,81 @@ void SheetDialog::updateSheetInfo(const Sheet *sheetActive)
     rect->setPenStyle(pen);
     rect->setRect(sheetActive->layoutRect());
     sheetScene->addCustomRectItem(rect);
+=======
+    if(sheetActive->type == Sheet::Package){
+        yLine->setText(tr("00"));
+        yLine->setDisabled(true);
+    } else{
+        yLine->setText(QString("%1").arg(sheetActive->height));
+    }
+
+    // 配置材料图层
+    sheetScene = new Scene(sheetView);
+    NestConfigure *config = new NestConfigure(this);
+    sheetScene->setSceneRect(sheetView->sceneRect());
+    sheetScene->setType(Scene::Nest);  // 设置图层类型
+    sheetScene->setBackgroundColor(config->backgroundColor);
+    sheetScene->setSheetStyle(config->sheetStyle);
+    sheetScene->setMainGrid(config->mainGrid);
+    sheetScene->setSecondGrid(config->secondGrid);
+    sheetScene->setSheet(*sheetActive);
+
+    QPointF offset = sheetView->customFitInView(sheetActive->boundRect(), 0.9);  // 获取偏移
+    sheetScene->setOffset(offset);  // 设置图层偏移
+    sheetView->setScene(sheetScene);  // 更新材料视图
+>>>>>>> Jeremy
 }
 
-void SheetDialog::updateSheetListTable(QList<Sheet *> sheetList)
+void SheetDialog::updateSheetActive(Sheet *sheetActive)
+{
+    sheetActive->type = (Sheet::SheetType)typeCBox->currentIndex();
+    sheetActive->name = nameLine->text();
+    sheetActive->material = materialLine->text();
+    sheetActive->width = xLine->text().toDouble();
+    sheetActive->height = yLine->text().toDouble();
+    sheetActive->componentGap = distanceLine->text().toDouble();
+    sheetActive->leftMargin = leftLine->text().toDouble();
+    sheetActive->topMargin = topLine->text().toDouble();
+    sheetActive->rightMargin = rightLine->text().toDouble();
+    sheetActive->bottomMargin = bottomLine->text().toDouble();
+    if(sheetActive->type == Sheet::Strip){
+        sheetActive->margin = marginLine->text().toDouble();
+        sheetActive->doubleStrip = doubleStrip->isChecked();
+        sheetActive->cutPaneSize = cutSizeLine->text().toDouble();
+        int count = sheetActive->doubleStrip == true ? 2 : 1;
+        sheetActive->stripPW.clear();
+        for(int row=0; row<count; row++){
+            qreal position = stripConfigTable->item(row, 0)->text().toDouble();
+            qreal width = stripConfigTable->item(row, 1)->text().toDouble();
+            StripPW strip(position, width);
+            sheetActive->stripPW.append(strip);
+        }
+    } else{
+        sheetActive->layers = layerLine->text().toInt();
+    }
+}
+
+void SheetDialog::updateSheetListTable(QList<Sheet *> filterList)
 {
     sheetListTable->clearContents();
     sheetListTable->setRowCount(0);
-    // 将该列表显示在表格中
-    for(int row=0; row<sheetList.length(); row++){
+    for(int row=0; row<filterList.length(); row++){
         // 添加新的一行
         sheetListTable->insertRow(row);
-        sheetListTable->setItem(row,0,new QTableWidgetItem(QString("%1").arg(sheetList[row]->type)));
-        sheetListTable->setItem(row,1,new QTableWidgetItem(sheetList[row]->name));
-        sheetListTable->setItem(row,2,new QTableWidgetItem(sheetList[row]->material));
+        sheetListTable->setItem(row,0,new QTableWidgetItem(filterList[row]->typeName()));
+        sheetListTable->setItem(row,1,new QTableWidgetItem(filterList[row]->name));
+        sheetListTable->setItem(row,2,new QTableWidgetItem(filterList[row]->material));
         sheetListTable->setItem(row,3,new QTableWidgetItem(
                                     QString("%1 X %2")
-                                    .arg(sheetList[row]->width)
-                                    .arg(sheetList[row]->height)));
-        sheetListTable->setItem(row,4,new QTableWidgetItem(QString("%1").arg(sheetList[row]->componentGap)));
-        if(sheetList[row]->type == Sheet::Strip){
-            sheetListTable->setItem(row,5,new QTableWidgetItem(QString("%1").arg(sheetList[row]->stripPW[0].width)));
+                                    .arg(filterList[row]->width)
+                                    .arg(filterList[row]->height)));
+        sheetListTable->setItem(row,4,new QTableWidgetItem(QString("%1").arg(filterList[row]->componentGap)));
+        if(filterList[row]->type == Sheet::Strip){
+            sheetListTable->setItem(row,5,new QTableWidgetItem(QString("%1").arg(filterList[row]->stripPW[0].width)));
         }
     }
     sheetListTable->show();
+    filterList.clear();
 }
 
 void SheetDialog::updateStripConfigTable(QList<StripPW> stripPW)
@@ -388,6 +486,27 @@ void SheetDialog::updateStripConfigTable(QList<StripPW> stripPW)
         stripConfigTable->setItem(row,1,new QTableWidgetItem(QString("%1").arg(stripPW[row].width)));
     }
     stripConfigTable->show();
+}
+
+void SheetDialog::setSheetInfoDisable(bool flag)
+{
+    typeCBox->setDisabled(flag);
+    nameLine->setDisabled(flag);
+    materialLine->setDisabled(flag);
+    xLine->setDisabled(flag);
+    yLine->setDisabled(flag);
+    distanceLine->setDisabled(flag);
+    leftLine->setDisabled(flag);
+    topLine->setDisabled(flag);
+    rightLine->setDisabled(flag);
+    bottomLine->setDisabled(flag);
+    marginLine->setDisabled(flag);
+    layerLine->setDisabled(flag);
+
+    doubleStrip->setDisabled(flag);
+    cutSizeLine->setDisabled(flag);
+
+    stripConfigTable->setDisabled(flag);
 }
 
 QList<Sheet *> SheetDialog::xmlFileReader(QString fileName)
@@ -411,27 +530,27 @@ QList<Sheet *> SheetDialog::xmlFileReader(QString fileName)
                     r.readNext();
                     if(r.name() == "name"){
                         sheet->name = r.readElementText();
-                        qDebug() << "this name: " << sheet->name;
+                        //qDebug() << "this name: " << sheet->name;
                     }
                     if(r.name() == "type"){
                         sheet->type = (Sheet::SheetType)r.readElementText().toInt();
-                        qDebug() << "type: " << sheet->type;
+                        //qDebug() << "type: " << sheet->type;
                     }
                     if(r.name() == "material"){
                         sheet->material = r.readElementText();
-                        qDebug() << "material: " << sheet->material;
+                        //qDebug() << "material: " << sheet->material;
                     }
                     if(r.name() == "width"){
                         sheet->width = r.readElementText().toDouble();
-                        qDebug() << "width: " << sheet->width;
+                        //qDebug() << "width: " << sheet->width;
                     }
                     if(r.name() == "height"){
                         sheet->height = r.readElementText().toDouble();
-                        qDebug() << "height: " << sheet->height;
+                        //qDebug() << "height: " << sheet->height;
                     }
                     if(r.name() == "componentGap"){
                         sheet->componentGap = r.readElementText().toDouble();
-                        qDebug() << "componentGap: " << sheet->componentGap;
+                        //qDebug() << "componentGap: " << sheet->componentGap;
                     }
                     if(r.isStartElement()){
                         if(r.name() == "margins"){
@@ -439,36 +558,36 @@ QList<Sheet *> SheetDialog::xmlFileReader(QString fileName)
                                 r.readNext();
                                 if(r.name() == "top"){
                                     sheet->topMargin = r.readElementText().toDouble();
-                                    qDebug() << "topMargin: " << sheet->topMargin;
+                                    //qDebug() << "topMargin: " << sheet->topMargin;
                                 }
                                 if(r.name() == "right"){
                                     sheet->rightMargin = r.readElementText().toDouble();
-                                    qDebug() << "rightMargin: " << sheet->rightMargin;
+                                    //qDebug() << "rightMargin: " << sheet->rightMargin;
                                 }
                                 if(r.name() == "bottom"){
                                     sheet->bottomMargin = r.readElementText().toDouble();
-                                    qDebug() << "bottomMargin: " << sheet->bottomMargin;
+                                    //qDebug() << "bottomMargin: " << sheet->bottomMargin;
                                 }
                                 if(r.name() == "left"){
                                     sheet->leftMargin = r.readElementText().toDouble();
-                                    qDebug() << "leftMargin: " << sheet->leftMargin;
+                                    //qDebug() << "leftMargin: " << sheet->leftMargin;
                                 }
                                 if(sheet->type == Sheet::Strip){
                                     if(r.name() == "margin"){
                                         sheet->margin = r.readElementText().toDouble();
-                                        qDebug() << "margin: " << sheet->margin;
+                                        //qDebug() << "margin: " << sheet->margin;
                                     }
                                     if(r.name() == "doubleStrip"){
                                         sheet->doubleStrip = r.readElementText().toInt();
-                                        qDebug() << "doubleStrip: " << sheet->doubleStrip;
+                                        //qDebug() << "doubleStrip: " << sheet->doubleStrip;
                                     }
                                     if(r.name() == "cutPaneSize"){
                                         sheet->cutPaneSize = r.readElementText().toDouble();
-                                        qDebug() << "cutPaneSize: " << sheet->cutPaneSize;
+                                        //qDebug() << "cutPaneSize: " << sheet->cutPaneSize;
                                     }
                                     if(r.isStartElement()){
                                         if(r.name() == "stripPW"){
-                                            qDebug() << "stripPW";
+                                            //qDebug() << "stripPW";
                                             sheet->stripPW.clear();
                                             StripPW spw;
                                             bool flag = false;
@@ -477,11 +596,11 @@ QList<Sheet *> SheetDialog::xmlFileReader(QString fileName)
                                                 r.readNext();
                                                 if(r.name() == "position"){
                                                     spw.position = r.readElementText().toDouble();
-                                                    qDebug() << "position: " << spw.position;
+                                                    //qDebug() << "position: " << spw.position;
                                                 }
                                                 if(r.name() == "width"){
                                                     spw.width = r.readElementText().toDouble();
-                                                    qDebug() << "width: " << spw.width;
+                                                    //qDebug() << "width: " << spw.width;
                                                     flag = true;
                                                 }
                                                 if(flag){
@@ -499,7 +618,7 @@ QList<Sheet *> SheetDialog::xmlFileReader(QString fileName)
                                 } else{
                                     if(r.name() == "layers"){
                                         sheet->layers = r.readElementText().toInt();
-                                        qDebug() << "layers: " << sheet->layers;
+                                        //qDebug() << "layers: " << sheet->layers;
                                         breakFlag = true;  // 此处需要跳出循环
                                     }
                                 }
@@ -575,25 +694,59 @@ void SheetDialog::xmlFileWrite(QString fileName, QList<Sheet *> list)
 }
 
 Sheet *SheetDialog::getSheetActive()
+<<<<<<< HEAD
 {
     return sheetActive;
 }
 
 void SheetDialog::onStripConfigTableChanged(int row, int column)
+=======
+>>>>>>> Jeremy
 {
-    if(!sheetActive || sheetActive->stripPW.length() - row < 1){
+    return sheetActive;
+}
+
+bool SheetDialog::sheetNameConflict(const int index)
+{
+    // 检查名称是否冲突
+    for(int i=0;i<showList.length();i++){
+        if(i == index){
+            continue;
+        }
+        if(showList[i]->name == nameLine->text()){
+            return true;
+        }
+    }
+    return false;
+}
+
+void SheetDialog::closeEvent(QCloseEvent *)
+{
+    if(insertFlag || editFlag){
+        QMessageBox::StandardButton box;
+        box = QMessageBox::warning(this,tr("确认"),tr("是否保存修改？"),
+        QMessageBox::Yes|QMessageBox::No);
+        if(box == QMessageBox::Yes) {
+            if(sheetNameConflict(currentIndex)){
+                QMessageBox::warning(this, tr("警告"), tr("材料列表中该名称已存在，无法保存!"));
+                return;
+            }
+            saveSheetInfo();
+        }
+    }
+    if(insertCounter != 0 || editCounter != 0 || removeCounter != 0){
+        saveSheetInfo();
+    }
+    if(role == Nest && !sheetActive){
+        QMessageBox::warning(this, tr("警告"), tr("请选择一种材料用于排版！"));
         return;
     }
-    switch (column) {
-    case 0:
-        sheetActive->stripPW[row].position = stripConfigTable->item(row, column)->text().toDouble();
-        break;
-    case 1:
-        sheetActive->stripPW[row].width = stripConfigTable->item(row, column)->text().toDouble();
-        break;
-    default:
-        break;
-    }
+}
+
+void SheetDialog::onMousePositionChanged(QPointF pos)
+{
+    qDebug() << "scene位置：" << pos;
+    qDebug() << "对应view位置：" << sheetView->mapFromScene(pos);
 }
 
 void SheetDialog::onDoubleStripChanged(bool checkd)
@@ -607,15 +760,7 @@ void SheetDialog::onDoubleStripChanged(bool checkd)
 
 void SheetDialog::onSheetTypeComChanged(int index)
 {
-    if(index == 0){
-        layerLabel->show();
-        layerLine->show();
-        marginLabel->hide();
-        marginLine->hide();
-        doubleStrip->hide();
-        cutSizeLabel->hide();
-        cutSizeLine->hide();
-    } else{
+    if(index == 1){
         marginLine->show();
         doubleStrip->show();
         cutSizeLabel->show();
@@ -623,12 +768,31 @@ void SheetDialog::onSheetTypeComChanged(int index)
         marginLabel->show();
         layerLabel->hide();
         layerLine->hide();
+        updateStripConfigTable(sheetActive->stripPW);
+        stripConfigTable->show();
+    } else{
+        layerLabel->show();
+        layerLine->show();
+        marginLabel->hide();
+        marginLine->hide();
+        doubleStrip->hide();
+        cutSizeLabel->hide();
+        cutSizeLine->hide();
     }
+    if(index == 2){
+        yLine->setText(tr("00"));
+        yLine->setDisabled(true);
+    } else{
+        yLine->setText(tr("1000"));
+        yLine->setDisabled(false);
+    }
+
 }
 
 void SheetDialog::onDialogButtonClicked(QAbstractButton *button)
 {
     if(button->text() == "Apply"){
+<<<<<<< HEAD
         // 检查名称是否冲突
         for(int i=0;i<sheetList.length();i++){
             if(i == currentIndex){
@@ -639,49 +803,80 @@ void SheetDialog::onDialogButtonClicked(QAbstractButton *button)
                 nameLine->setFocus();
                 return;
             }
+=======
+        if(sheetNameConflict(currentIndex)){
+            QMessageBox::warning(this, tr("警告"), tr("材料列表中该名称已存在!"));
+            nameLine->setFocus();
+            return;
+>>>>>>> Jeremy
         }
-
         // 重新赋值
-        sheetActive->type = (Sheet::SheetType)typeCBox->currentIndex();
-        sheetActive->name = nameLine->text();
-        sheetActive->material = materialLine->text();
-        sheetActive->width = xLine->text().toDouble();
-        sheetActive->height = yLine->text().toDouble();
-        sheetActive->componentGap = distanceLine->text().toDouble();
-        sheetActive->leftMargin = leftLine->text().toDouble();
-        sheetActive->topMargin = topLine->text().toDouble();
-        sheetActive->rightMargin = rightLine->text().toDouble();
-        sheetActive->bottomMargin = bottomLine->text().toDouble();
-        if(sheetActive->type == Sheet::Strip){
-            sheetActive->margin = marginLine->text().toDouble();
-            sheetActive->doubleStrip = doubleStrip->isChecked();
-            sheetActive->cutPaneSize = cutSizeLine->text().toDouble();
-            int count = sheetActive->doubleStrip == true ? 2 : 1;
-            sheetActive->stripPW.clear();
-            for(int row=0; row<count;row++){
-                qreal position = stripConfigTable->item(row, 0)->text().toDouble();
-                qreal width = stripConfigTable->item(row, 1)->text().toDouble();
-                StripPW strip(position, width);
-                sheetActive->stripPW.append(strip);
-            }
-        } else{
-            sheetActive->layers = layerLine->text().toInt();
-        }
-        updateSheetListTable(sheetList);
-        sheetInfoGroupBox->setDisabled(true);
+        updateSheetActive(sheetActive);
+        updateSheetListTable(showList);
+        sheetInsertBtn->setDisabled(false);
+        sheetRemoveBtn->setDisabled(false);
+        sheetEditBtn->setDisabled(false);
+        setSheetInfoDisable(true);
         buttonBox->button(QDialogButtonBox::Apply)->setDisabled(true);
+        buttonBox->button(QDialogButtonBox::Cancel)->setDisabled(true);
+        buttonBox->button(QDialogButtonBox::Ok)->setDisabled(false);
+        if(insertFlag) {
+            insertCounter++;
+            insertFlag = false;
+        }
+        if(editFlag){
+            editCounter++;
+            editFlag = false;
+        }
     }
     if(button->text() == "Cancel"){
+<<<<<<< HEAD
         if(newSheetItem != 0){
             QMessageBox::StandardButton box;
             box = QMessageBox::warning(this,tr("警告"),tr("添加了新的材料，是否保存？"),
+=======
+        if(insertFlag){
+            QMessageBox::StandardButton box;
+            box = QMessageBox::warning(this,tr("确认"),tr("是否保存添加的材料？"),
             QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
             if(box == QMessageBox::Yes) {
-                saveSheetInfo();
+                if(sheetNameConflict(currentIndex)){
+                    QMessageBox::warning(this, tr("警告"), tr("材料列表中该名称已存在!"));
+                    nameLine->setFocus();
+                    return;
+                }
+                updateSheetActive(sheetActive);
+                updateSheetListTable(showList);
+                insertCounter++;
+            } else if(box == QMessageBox::No){
+                sheetActive = showList.last();
+                onSheetRemove();
             } else if(box == QMessageBox::Cancel){
                 return;
             }
+            insertFlag = false;
         }
+        if(editFlag){
+            QMessageBox::StandardButton box;
+            box = QMessageBox::warning(this,tr("确认"),tr("是否保存编辑的材料？"),
+>>>>>>> Jeremy
+            QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
+            if(box == QMessageBox::Yes) {
+                if(sheetNameConflict(currentIndex)){
+                    QMessageBox::warning(this, tr("警告"), tr("材料列表中该名称已存在!"));
+                    nameLine->setFocus();
+                    return;
+                }
+                updateSheetActive(sheetActive);
+                editCounter++;
+            } else if(box == QMessageBox::No){
+                updateSheetInfo(sheetActive);
+            } else if(box == QMessageBox::Cancel){
+                return;
+            }
+            editFlag = false;
+        }
+<<<<<<< HEAD
         if(role == Nest){
             sheetActive = NULL;
         }
@@ -689,10 +884,26 @@ void SheetDialog::onDialogButtonClicked(QAbstractButton *button)
     }
     if(button->text() == "OK"){
         if(newSheetItem != 0){
+=======
+        sheetInsertBtn->setDisabled(false);
+        sheetRemoveBtn->setDisabled(false);
+        sheetEditBtn->setDisabled(false);
+        setSheetInfoDisable(true);
+        buttonBox->button(QDialogButtonBox::Apply)->setDisabled(true);
+        buttonBox->button(QDialogButtonBox::Cancel)->setDisabled(true);
+        buttonBox->button(QDialogButtonBox::Ok)->setDisabled(false);
+    }
+    if(button->text() == "OK"){
+        if(insertCounter != 0 || editCounter != 0 || removeCounter != 0){
+>>>>>>> Jeremy
             saveSheetInfo();
         }
         if(role == Nest && !sheetActive){
             QMessageBox::warning(this, tr("警告"), tr("请选择一种材料用于排版！"));
+<<<<<<< HEAD
+=======
+            return;
+>>>>>>> Jeremy
         }
         QDialog::accept();
     }
@@ -700,37 +911,60 @@ void SheetDialog::onDialogButtonClicked(QAbstractButton *button)
 
 void SheetDialog::onSheetSelected(const QModelIndex &index)
 {
+    if(insertFlag && currentIndex != index.row()){
+        QMessageBox::warning(this, tr("警告"), tr("正在增加材料，请继续配置材料信息或点击“取消”以退出!"));
+        sheetListTable->selectRow(currentIndex);
+        return;
+    }
+    if(editFlag && currentIndex != index.row()){
+        QMessageBox::warning(this, tr("警告"), tr("正在编辑材料，请继续编辑材料信息或点击“取消”以退出!"));
+        sheetListTable->selectRow(currentIndex);
+        return;
+    }
+    if(insertFlag || editFlag){
+        return;
+    }
+
     currentIndex = index.row();
-    qDebug() << "selected: " << currentIndex;
-    if(sheetList.length() < currentIndex+1){
+    if(showList.length() < currentIndex+1){
         buttonBox->button(QDialogButtonBox::Apply)->setDisabled(true);
-        sheetInfoGroupBox->setHidden(true);
+        setSheetInfoDisable(true);
         sheetActive = NULL;
         sheetRemoveBtn->hide();
         sheetEditBtn->hide();
         return;
     }
+
+    // 选择时，使能并显示删除、编辑按钮
+    sheetRemoveBtn->setDisabled(false);
+    sheetEditBtn->setDisabled(false);
     sheetRemoveBtn->show();
     sheetEditBtn->show();
-    sheetActive = sheetList[currentIndex];
-    sheetInfoGroupBox->setDisabled(true);
+    sheetActive = showList[currentIndex];
     updateSheetInfo(sheetActive);
+    setSheetInfoDisable(true);
 }
 
 void SheetDialog::onSheetInsert()
 {
     qDebug() << "添加";
-    buttonBox->button(QDialogButtonBox::Apply)->setDisabled(false);
-    sheetInfoGroupBox->setDisabled(false);
-
     sheetActive = new Sheet;
     sheetActive->name = "新增材料";
     updateSheetInfo(sheetActive);
+    showList.append(sheetActive);
     sheetList.append(sheetActive);
-    updateSheetListTable(sheetList);
-    sheetListTable->selectRow(sheetList.length()-1);
-    newSheetItem++;
-    this->update();
+    updateSheetListTable(showList);
+    sheetListTable->selectRow(showList.length()-1);
+    currentIndex = showList.length() - 1;
+    // 增加标志
+    insertFlag = true;
+    sheetRemoveBtn->setDisabled(true);
+    sheetEditBtn->setDisabled(true);
+    setSheetInfoDisable(false);
+    buttonBox->button(QDialogButtonBox::Apply)->setDisabled(false);
+    buttonBox->button(QDialogButtonBox::Cancel)->setDisabled(false);
+    buttonBox->button(QDialogButtonBox::Ok)->setDisabled(true);
+    updateSheetInfo(sheetActive);
 }
 
 void SheetDialog::onSheetRemove()
@@ -741,9 +975,17 @@ void SheetDialog::onSheetRemove()
         return;
     }
     sheetList.removeOne(sheetActive);
-    updateSheetListTable(sheetList);
-    sheetInfoGroupBox->setHidden(true);
-    this->update();
+    showList.removeOne(sheetActive);
+    updateSheetListTable(showList);
+    removeCounter++;
+
+    // 自动更新至最后一条
+    if(showList.length() > 1){
+        sheetActive = showList.last();
+        currentIndex = showList.length() - 1;
+        sheetListTable->selectRow(currentIndex);
+        updateSheetInfo(sheetActive);
+    }
 }
 
 void SheetDialog::onSheetEdit()
@@ -753,8 +995,12 @@ void SheetDialog::onSheetEdit()
         QMessageBox::warning(this, tr("警告"), tr("没有材料被选中!"));
         return;
     }
+    editFlag = true;
+    sheetInsertBtn->setDisabled(true);
+    sheetRemoveBtn->setDisabled(true);
+    setSheetInfoDisable(false);
     buttonBox->button(QDialogButtonBox::Apply)->setDisabled(false);
-    sheetInfoGroupBox->setDisabled(false);
+    buttonBox->button(QDialogButtonBox::Cancel)->setDisabled(false);
+    buttonBox->button(QDialogButtonBox::Ok)->setDisabled(true);
     updateSheetInfo(sheetActive);
-    this->update();
 }

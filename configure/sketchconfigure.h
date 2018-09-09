@@ -1,5 +1,5 @@
-#ifndef CONFIGURE_H
-#define CONFIGURE_H
+﻿#ifndef SKETCHCONFIGURE_H
+#define SKETCHCONFIGURE_H
 
 #include <QDialog>
 #include <QPushButton>
@@ -12,10 +12,10 @@
 #include <QList>
 #include <debug.h>
 
-#define CONFG_FILE_PATH "config.ini"
+#define SKETCH_CONFG_FILE_PATH "sketch_config.ini"
 
 // 配置类，此配置类用于整个软件的配置
-class Configure : public QObject
+class SketchConfigure : public QObject
 {
     Q_OBJECT
 public:
@@ -45,13 +45,13 @@ public:
     {
         // 此方法类似于类的结构体
         PenStyle() :
-            color(Qt::red), style(Qt::SolidLine), width(1)
+            color(Qt::red), style(Qt::SolidLine), width(1), brush(Qt::white)
         {
 
         }
 
-        PenStyle(QColor c, Qt::PenStyle s, qreal w) :
-            color(c), style(s), width(w)
+        PenStyle(QColor c, Qt::PenStyle s, qreal w, QColor b=Qt::white) :
+            color(c), style(s), width(w), brush(b)
         {
 
         }
@@ -59,13 +59,15 @@ public:
         QColor color;  // 实体颜色, 默认为黑色
         Qt::PenStyle style;  // 实体样式，默认为实线
         qreal width;  // 实体宽度，默认为1
+        QColor brush;  // 刷子颜色
 
         // 设置画笔属性
-        void setPenStyle(QColor color, Qt::PenStyle style, double width)
+        void setPenStyle(QColor color, Qt::PenStyle style, double width, QColor brush = Qt::white)
         {
             this->color = color;
             this->style = style;
             this->width = width;
+            this->brush = brush;
         }
     };
 
@@ -154,7 +156,7 @@ public:
     {
         Axes() :
             showAxes(false),
-            axesType(Configure::small),
+            axesType(SketchConfigure::small),
             xAxisColor(Qt::blue),
             yAxisColor(Qt::red),
             arrowSizeInPix(10),
@@ -184,7 +186,7 @@ public:
     {
         Grid() :
             showGrid(false),
-            gridType(Configure::rectangular),
+            gridType(SketchConfigure::rectangular),
             gridColor(Qt::gray),
             xStep(100),
             yStep(100)
@@ -269,8 +271,8 @@ public:
         }
     };
 
-    explicit Configure(QObject *parent=0);
-    ~Configure();
+    explicit SketchConfigure(QObject *parent=0);
+    ~SketchConfigure();
 
     EntityStyle eStyle;  // 实体样式
     AxesGrid axesGrid;  // 轴和网格
@@ -290,13 +292,8 @@ public:
     void readConfigOffset(QSettings *settings);
     void writeConfigLanguage(QSettings *settings);
     void readConfigLanguage(QSettings *settings);
-
     void writeConfigView(QSettings *settings);
     void readConfigView(QSettings *settings);
-
-    static QColor intToColor(int rgb);  // 将int转化为QColor
-
-    static QColor intToColor(int rgb, bool a); // 将int转华为color
 
     static void updateConfig(QList<KeyValue> keyValue);
 
@@ -308,4 +305,4 @@ public slots:
     void onConfigChanged(QString name, QVariant value);  // 响应配置变化
 };
 
-#endif // CONFIGURE_H
+#endif // SKETCHCONFIGURE_H

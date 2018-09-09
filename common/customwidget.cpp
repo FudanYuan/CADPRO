@@ -1,4 +1,4 @@
-#include "customwidget.h"
+﻿#include "customwidget.h"
 #include <QHeaderView>
 #include <QPixmap>
 #include <QIcon>
@@ -106,8 +106,15 @@ void LineEdit::onTextEdited(const QString &value)
     emit customTextEdited(this->name, value);
 }
 
-CheckBox::CheckBox(QString name, QWidget *parent) :
+CheckBox::CheckBox(const QString &name, QWidget *parent) :
     QCheckBox(parent)
+{
+    this->name = name;
+    connect(this, &CheckBox::stateChanged, this, &CheckBox::onStateChanged);
+}
+
+CheckBox::CheckBox(const QString &name, const QString &text, QWidget *parent):
+    QCheckBox(text, parent)
 {
     this->name = name;
     connect(this, &CheckBox::stateChanged, this, &CheckBox::onStateChanged);
@@ -189,4 +196,67 @@ ComboBox::ComboBox(QString name, QWidget *parent) :
 void ComboBox::onActivated(int index)
 {
     emit customActivated(this->name, index);
+}
+
+CustomTabWidget::CustomTabWidget(QWidget *parent) :
+    QWidget(parent)
+{
+
+}
+
+void CustomTabWidget::onColorChanged(QString key, QColor color)
+{
+#if 1
+    qDebug() << "CustomTabWidget:: " << key << " " << color.rgba();
+#endif
+    emit tabChanged(key, QVariant(color.rgba()));
+}
+
+void CustomTabWidget::onTextChanged(QString key, QString value)
+{
+    emit tabChanged(key, QVariant(value));
+}
+
+void CustomTabWidget::onComboBoxChanged(QString key, int value)
+{
+    qDebug() << value << "  ,penStyle: " << (Qt::PenStyle)value;
+    emit tabChanged(key, QVariant(value));
+}
+
+void CustomTabWidget::onCheckChanged(QString key, bool value)
+{
+    emit tabChanged(key, QVariant(value));
+}
+
+CustomDockWidget::CustomDockWidget(const QString &title, QWidget *parent) :
+    QDockWidget(title, parent)
+{
+
+}
+
+void CustomDockWidget::changeEvent(QEvent *event)
+{
+    //qDebug() << (QEvent::Type)event->type();
+    switch (event->type()) {
+    case QEvent::Close:
+    case QEvent::Resize:
+        QDockWidget::changeEvent(event);
+        break;
+    default:
+        event->ignore();
+        break;
+    }
+}
+
+void CustomDockWidget::closeEvent(QCloseEvent *event)
+{
+    QDockWidget::closeEvent(event);
+    emit sizeChanged();
+}
+
+void CustomDockWidget::resizeEvent(QResizeEvent *event)
+{
+    //qDebug() << "dockwidget resize event";
+    QWidget::resizeEvent(event);
+    emit sizeChanged();
 }

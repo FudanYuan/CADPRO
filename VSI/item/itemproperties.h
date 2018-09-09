@@ -6,7 +6,11 @@
 #include <QHeaderView>
 #include <QDialog>
 #include <QPen>
+<<<<<<< HEAD
 #include "configure.h"
+=======
+#include "sketchconfigure.h"
+>>>>>>> Jeremy
 
 class ItemProperties : public QDialog
 {

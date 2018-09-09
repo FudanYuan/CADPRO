@@ -273,7 +273,7 @@ void Ellipse::setEllipse(qreal px, qreal py, qreal mx, qreal my,
 
     cPoint = QPointF(px, py);
     sPoint = QPointF(mx, my);
-    r1 = getDistance(cPoint, sPoint);
+    r1 = calculatePointsDistance(cPoint, sPoint);
     r2 = r1 * ratio;
     alpha = getLineAngle(cPoint, sPoint);
     ePoint = getMinorPoint();

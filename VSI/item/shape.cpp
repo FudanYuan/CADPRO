@@ -1,4 +1,4 @@
-#include "shape.h"
+﻿#include "shape.h"
 
 Shape::Shape() :
     layer(""),
@@ -6,14 +6,20 @@ Shape::Shape() :
     shape(None),
     id(0),
     number(1),
+    precsion(6),
     scaleFactor(1),
     moveable(false),
     selectable(false),
     overFlag(false),
-    selected(false),
+    selected(false),  // debug时为true
     showNode(false),
     editable(false),
+<<<<<<< HEAD
     editOverFlag(false)
+=======
+    editOverFlag(false),
+    fill(false)
+>>>>>>> Jeremy
 {
 }
 
@@ -28,27 +34,27 @@ void Shape::setMoveable(bool moveable)
     emit sceneMoveableChanged(moveable);
 }
 
-void Shape::setObjectSize(Configure::ObjSize objSize)
+void Shape::setObjectSize(SketchConfigure::ObjSize objSize)
 {
     this->objSize = objSize;
 }
 
-void Shape::setPenStyle(Configure::PenStyle penStyle)
+void Shape::setPenStyle(SketchConfigure::PenStyle penStyle)
 {
     this->penStyle = penStyle;
 }
 
-Configure::PenStyle Shape::getPenStyle()
+SketchConfigure::PenStyle Shape::getPenStyle()
 {
     return this->penStyle;
 }
 
-void Shape::setEntityUnderCursorStyle(Configure::PenStyle underCursorStyle)
+void Shape::setEntityUnderCursorStyle(SketchConfigure::PenStyle underCursorStyle)
 {
     this->underCursorStyle = underCursorStyle;
 }
 
-void Shape::setSelectStyle(Configure::PenStyle selectedEntity)
+void Shape::setSelectStyle(SketchConfigure::PenStyle selectedEntity)
 {
     this->selectedEntity = selectedEntity;
 }
@@ -128,7 +134,7 @@ void Shape::setSelected(bool selected)
     this->selected = selected;
 }
 
-bool Shape::isSelected() const
+bool Shape::isSelectedCus() const
 {
     return this->selected;
 }
@@ -138,7 +144,7 @@ void Shape::setShowNode(bool showNode)
     this->showNode = showNode;
 }
 
-bool Shape::isShowNode()
+bool Shape::isShowNode() const
 {
     return showNode;
 }
@@ -148,7 +154,7 @@ void Shape::setEditable(bool editable)
     this->editable = editable;
 }
 
-bool Shape::isEditable()
+bool Shape::isEditable() const
 {
     return this->editable;
 }
@@ -163,12 +169,29 @@ bool Shape::getEditOverFlag() const
     return this->editOverFlag;
 }
 
+<<<<<<< HEAD
+=======
+void Shape::setFill(bool fill)
+{
+    this->fill = fill;
+}
+
+bool Shape::isFill() const
+{
+    return this->fill;
+}
+
+>>>>>>> Jeremy
 void Shape::setCollision(bool coll)
 {
     this->collision = coll;
 }
 
+<<<<<<< HEAD
 bool Shape::getCollision()
+=======
+bool Shape::getCollision() const
+>>>>>>> Jeremy
 {
     return this->collision;
 }

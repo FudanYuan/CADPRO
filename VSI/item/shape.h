@@ -1,4 +1,4 @@
-#ifndef SHAPE_H
+﻿#ifndef SHAPE_H
 #define SHAPE_H
 
 #include <QObject>
@@ -6,7 +6,7 @@
 #include <QPainter>
 #include <QPointF>
 #include "common.h"
-#include "configure.h"
+#include "sketchconfigure.h"
 
 class Shape : public QObject
 {
@@ -40,13 +40,13 @@ public:
     virtual void drawing(QGraphicsSceneMouseEvent * event) = 0;
     virtual bool updateFlag(QGraphicsSceneMouseEvent *event) = 0;  // 更新标识
 
-    void setObjectSize(Configure::ObjSize objSize);  // 设置对象识别距离
+    void setObjectSize(SketchConfigure::ObjSize objSize);  // 设置对象识别距离
 
-    void setPenStyle(Configure::PenStyle penStyle);  // 设置实体类型
-    Configure::PenStyle getPenStyle();  // 获取画笔属性
+    void setPenStyle(SketchConfigure::PenStyle penStyle);  // 设置实体类型
+    SketchConfigure::PenStyle getPenStyle();  // 获取画笔属性
 
-    void setEntityUnderCursorStyle(Configure::PenStyle underCursorStyle);  // 设置光标下类型
-    void setSelectStyle(Configure::PenStyle selectedEntity);  // 选择实体类型
+    void setEntityUnderCursorStyle(SketchConfigure::PenStyle underCursorStyle);  // 设置光标下类型
+    void setSelectStyle(SketchConfigure::PenStyle selectedEntity);  // 选择实体类型
 
     void setShapeId(int id);  // 设置实体id
     int getShapeId();  // 获取实体id
@@ -70,19 +70,27 @@ public:
     bool getOverFlag() const;  // 获取结束标识
 
     void setSelected(bool selected);  // 设置选中
-    bool isSelected() const;  // 是否选中
+    bool isSelectedCus() const;  // 是否选中
 
     void setShowNode(bool showNode);  // 设置显示端点
-    bool isShowNode();  // 是否显示端点
+    bool isShowNode() const;  // 是否显示端点
 
     void setEditable(bool editable);  // 设置可编辑
-    bool isEditable();  // 是否可编辑
+    bool isEditable() const;  // 是否可编辑
 
     void setEditOverFlag(bool editOverFlag);  // 结束标志
     bool getEditOverFlag() const;  // 获取结束标识
 
+<<<<<<< HEAD
     void setCollision(bool coll);  // 设置是否碰撞
     bool getCollision();  // 是否碰撞
+=======
+    void setFill(bool fill);  // 设置是否填充
+    bool isFill() const;  // 是否填充
+
+    void setCollision(bool coll);  // 设置是否碰撞
+    bool getCollision() const;  // 是否碰撞
+>>>>>>> Jeremy
 
 protected:
     QString layer;  // 图层名称
@@ -90,7 +98,7 @@ protected:
     ShapeType shape;  // 类型
     int id;  // 编号
     int number;  // 图形个数
-
+    int precsion;  // 小数点位数
     qreal scaleFactor;  // 缩放因子
     bool moveable;  // 是否可移动
     bool selectable;  // 可选择标识
@@ -99,13 +107,17 @@ protected:
     bool showNode;  // 显示节点
     bool editable;  // 可编辑
     bool editOverFlag;  // 编辑结束
+<<<<<<< HEAD
 
+=======
+    bool fill;  // 是否填充，仅针对封闭图形
+>>>>>>> Jeremy
     mutable bool collision;  // 是否碰撞
 
-    Configure::ObjSize objSize;  // 对象大小
-    Configure::PenStyle penStyle;  // 属性
-    Configure::PenStyle underCursorStyle;  // 光标下属性
-    Configure::PenStyle selectedEntity;  // 选中属性
+    SketchConfigure::ObjSize objSize;  // 对象大小
+    SketchConfigure::PenStyle penStyle;  // 属性
+    SketchConfigure::PenStyle underCursorStyle;  // 光标下属性
+    SketchConfigure::PenStyle selectedEntity;  // 选中属性
 
 signals:
     void sceneMoveableChanged(bool moveable);  // 场景可移动性信号

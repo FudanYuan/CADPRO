@@ -1,4 +1,4 @@
-#ifndef SCENE_H
+﻿#ifndef SCENE_H
 #define SCENE_H
 
 #include <QGraphicsScene>
@@ -6,7 +6,8 @@
 #include <QPaintEvent>
 #include <QList>
 #include <QLine>
-#include "configure.h"
+#include "sketchconfigure.h"
+#include "nestconfigure.h"
 #include "shape.h"
 #include "point.h"
 #include "line.h"
@@ -19,13 +20,22 @@
 #include "trapezium.h"
 #include "eyelet.h"
 #include "text.h"
+#include "sheet.h"
+
 
 class Scene : public QGraphicsScene
 {
     Q_OBJECT
 public:
+    enum Type{
+        Sketch,
+        Nest
+    };
     Scene(QObject *parent = 0);
     ~Scene();
+
+    void setType(Type type);  // 设置类型
+    Type getType();  // 获取类型
 
     void setName(QString name);  // 设置图层名称
     QString getName();  // 获取图层名称
@@ -44,6 +54,7 @@ public:
 
     QList<Polyline *> getPolylineList() const;  // 获取多边形列表
     int getPolylineListLength() const;  // 获取多边形列表长度
+    void addPolylineList(Polyline *polyline);
 
     QList<Ellipse *> getEllipseList() const;  // 获取椭圆列表
     int getEllipseListLength() const;  // 获取椭圆列表长度
@@ -62,10 +73,28 @@ public:
 
     void setDrawable(bool flag);  // 设置开始标识
 
-    void setEntityStyle(Configure::EntityStyle eStyle);  // 设置实体样式
-    Configure::EntityStyle getEntityStyle();  // 获取实体样式
+    void setBackgroundColor(QColor color);  // 设置背景颜色
+    QColor getBackgroundColor();  // 获取背景颜色
 
-    void setAxesGrid(Configure::AxesGrid axesGrid);  // 设置网格坐标轴
+    void setOffset(QPointF pos);  // 设置偏移量
+    QPointF getOffset();  // 获取偏移量
+
+    void setEntityStyle(const SketchConfigure::EntityStyle &eStyle);  // 设置实体样式
+    SketchConfigure::EntityStyle getEntityStyle();  // 获取实体样式
+
+    void setAxesGrid(SketchConfigure::AxesGrid axesGrid);  // 设置网格坐标轴
+
+    void setSheetStyle(const NestConfigure::SheetStyle &style);  // 设置材料类型
+    NestConfigure::SheetStyle getSheetStyle() const;  // 获取实体样式
+
+    void setMainGrid(const NestConfigure::Grid &grid);  // 设置主网格
+    NestConfigure::Grid getMainGrid() const;  // 获取主网格
+
+    void setSecondGrid(const NestConfigure::Grid &grid);  // 设置主网格
+    NestConfigure::Grid getSecondGrid() const;  // 获取主网格
+
+    void setSheet(const Sheet &s);  // 设置材料类型
+    Sheet getSheet() const;  // 获取材料类型
 
     // 添加自定义图形元素
     void addCustomPointItem(Point *point);  // 添加自定义点
@@ -106,6 +135,7 @@ public:
     Text *getTextdialog() const;
     void setTextdialog(Text *value);
 
+    Scene *copy();  // 获取该对象
 protected:
     int polygonType;  //绘制正多边形传递的线类型
     int polygonLineNum;//绘制正多边形传递的边数
@@ -128,6 +158,7 @@ protected:
     void drawBackground(QPainter *painter, const QRectF &rect) Q_DECL_OVERRIDE;
 
 private:
+    Type type;  // 角色类型：SKetch, Nest
     QString name;  // 图层名称
     Shape::ShapeType preShape;  // 上一个图形
     Shape::ShapeType curShape;  // 当前图形
@@ -148,10 +179,18 @@ private:
 
     qreal penWidth;  // 画笔
     qreal scaleFactor;  // 缩放因子
+    QPointF offset;  // 偏移量
+    QColor backgroundColor;  // 背景颜色
 
-    // 配置文件
-    Configure::EntityStyle eStyle;  // 实体类型
-    Configure::AxesGrid axesGrid;  // 坐标网格
+    // 绘图配置文件
+    SketchConfigure::EntityStyle eStyle;  // 实体类型
+    SketchConfigure::AxesGrid axesGrid;  // 坐标网格
+
+    // 排版配置文件
+    NestConfigure::SheetStyle sheetStyle;  // 材料类型
+    NestConfigure::Grid mainGrid;  // 主网格
+    NestConfigure::Grid secondGrid;  // 副网格
+    Sheet sheet;  // 材料
 
     Eyelet *eyeletDialog ;//绘制鸡眼孔
     Text *textdialog;//文本的对话框传递
@@ -173,6 +212,7 @@ signals:
 
 public slots:
     void onViewScaleChanged(qreal scaleFactor);  // 响应view缩放事件
+    void onViewOffsetChanged(QPointF offset);  // 响应view偏移事件
     void onAxesChanged(bool show);  // 响应坐标轴是否显示
     void onGridChanged(bool show);  // 响应网格是否显示
     void onNewItem();  // 图元改变

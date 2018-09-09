@@ -1,4 +1,4 @@
-#include "point.h"
+﻿#include "point.h"
 #include <QCursor>
 #include <QPainter>
 #include <QPen>
@@ -7,7 +7,7 @@
 
 Point::Point(QGraphicsItem *parent) :
     QGraphicsItem(parent),
-    offset(1),
+    offset(10),
     ctype(normal)
 {
     setShapeType(Shape::Point);

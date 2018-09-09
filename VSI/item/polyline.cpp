@@ -1,4 +1,4 @@
-#include "polyline.h"
+﻿#include "polyline.h"
 #include <QCursor>
 #include <QPainter>
 #include <QPainterPath>
@@ -21,6 +21,10 @@ Polyline::Polyline(QGraphicsItem *parent) :
     setAcceptDrops(true);
     // 设置图元为可接受hover事件
     setAcceptHoverEvents(true);
+<<<<<<< HEAD
+=======
+    i=0;
+>>>>>>> Jeremy
 }
 
 void Polyline::startDraw(QGraphicsSceneMouseEvent *event)
@@ -60,10 +64,15 @@ void Polyline::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     // 所以如果我们想要让线宽保持不变，那就需要进行转换，即 penWidth = penWidth / scaleFactor;
     QPen pen = this->pen();
     // 重新设置画笔线宽;
+    pen.setColor(penStyle.color);
     pen.setWidthF(pen.widthF() / scaleFactor);
     if(collision){
         pen.setColor(selectedEntity.color);
     }
+<<<<<<< HEAD
+=======
+
+>>>>>>> Jeremy
     painter->setPen(pen);
     painter->setRenderHint(QPainter::Antialiasing);
 
@@ -83,7 +92,9 @@ void Polyline::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         for (int i = 0; i < len - 1; ++i) {
             //painter->setBrush(QBrush(collides ? selectedEntity.color : penStyle.color));
             //drawRectPoint(painter, points.at(i), size);
-            painter->setBrush(QBrush());
+            if(fill){  // 如果填充，设置刷子颜色
+                painter->setBrush(penStyle.brush);
+            }
             path.lineTo(points.at(i+1));
         }
         if(!overFlag){
@@ -101,7 +112,7 @@ void Polyline::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             QPointF sp = points.at(i);
             QPointF ep = points.at(i+1);
 
-            painter->setBrush(QBrush(penStyle.color));
+            painter->setBrush(QBrush(penStyle.brush));
             drawRectPoint(painter, points.at(0), 1);
             painter->setBrush(QBrush());
 
@@ -140,9 +151,25 @@ void Polyline::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     }
 //    drawRectPoint(painter, points.at(0), size);
     painter->drawPath(path);
+    drawRectPoint(painter, this->boundingRect().center(), 2);
     setPath(path);
+
+<<<<<<< HEAD
+=======
+    foreach (QLineF line, rLines) {
+        painter->save();
+        QPen p = pen;
+        p.setStyle(Qt::DashLine);
+        p.setColor(Qt::red);
+        painter->setPen(p);
+        painter->drawLine(line);
+        painter->restore();
+    }
+
+    painter->drawText(boundingRect().center(), QString("%1").arg(i));
 }
 
+>>>>>>> Jeremy
 QPainterPath Polyline::shape() const
 {
     return this->path();
@@ -157,14 +184,20 @@ bool Polyline::collidesWithItem(const QGraphicsItem *other, Qt::ItemSelectionMod
     return collision;
 }
 
+<<<<<<< HEAD
 void Polyline::setPolyline(QList<QPointF> pList, int flag, qreal ele, qreal angle, const QPointF off)
+=======
+void Polyline::setPolyline(QVector<QPointF> pList, int flag, qreal ele, qreal angle, const QPointF off)
+>>>>>>> Jeremy
 {
     QPen pen = QPen();
     pen.setColor(penStyle.color);
     pen.setStyle(penStyle.style);
     pen.setWidthF(penStyle.width);
+    pen.setBrush(penStyle.brush);
     setPen(pen);
 
+    fill = true;
     points.append(pList);
     type = (Type)(flag == 0 ? 1 : flag);
     elevation = ele;
@@ -174,14 +207,25 @@ void Polyline::setPolyline(QList<QPointF> pList, int flag, qreal ele, qreal angl
     overFlag = true;
 }
 
-void Polyline::setPoints(const QList<QPointF> &value)
+void Polyline::setPoints(const QVector<QPointF> &value)
 {
-    points = value;
+    points.clear();
+    points.append(value);
 }
 
-QList<QPointF> Polyline::getPoints()
+QVector<QPointF> Polyline::getPoints()
 {
     return this->points;
+}
+
+void Polyline::setRLines(const QVector<QLineF> &lines)
+{
+    this->rLines = lines;
+}
+
+QVector<QLineF> Polyline::getRLines()
+{
+    return this->rLines;
 }
 
 void Polyline::setType(Polyline::Type type)
@@ -204,17 +248,52 @@ qreal Polyline::getElevation()
     return this->elevation;
 }
 
+void Polyline::setAlpha(const qreal alpha)
+{
+    this->alpha = alpha;
+}
+
+qreal Polyline::getAlpha() const
+{
+    return this->alpha;
+}
+
+QRectF Polyline::getBoundingRect()
+{
+    qreal top = LONG_MAX;
+    qreal bottom = LONG_MIN;
+    qreal left = LONG_MAX;
+    qreal right = LONG_MIN;
+    foreach (QPointF pos, points) {
+        if(top > pos.ry()){
+            top = pos.ry();
+        }
+        if(bottom < pos.ry()){
+            bottom = pos.ry();
+        }
+        if(left > pos.rx()){
+            left = pos.rx();
+        }
+        if(right < pos.rx()){
+            right = pos.rx();
+        }
+    }
+    QRectF boundRect(QPointF(left, top), QPointF(right, bottom));
+    return boundRect;
+}
+
 Polyline *Polyline::copy()
 {
     Polyline *p = new Polyline(this);
     p->setPolyline(points, type, elevation, alpha, offset);
+    p->setRLines(this->rLines);
     return p;
 }
 
 void Polyline::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(selectable){
-        selected = true;
+        selected = !selected;
         qDebug() << "type: " << getShapeType();
         qDebug() << "id: " << getShapeId();
         setCursor(Qt::ClosedHandCursor);
@@ -230,7 +309,6 @@ void Polyline::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
 void Polyline::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-    // qDebug() << "Polyline::mouseMoveEvent";
     QGraphicsItem::mouseMoveEvent(event);
 }
 
@@ -285,8 +363,20 @@ void Polyline::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 
 void Polyline::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
+    return;
     if(selectable){
-        setCursor(Qt::OpenHandCursor);
+        qDebug() << "Polyline::hoverMoveEvent";
+        setCursor(Qt::PointingHandCursor);
+        for(int j = 0; j<points.length();j++) {
+            QLineF line(points[j], points[(j+1)%points.length()]);
+            QLineF line1(line.p1(), event->scenePos());
+            if((0 <= line.angleTo(line1) && line.angleTo(line1) <= 2)
+                    || (178 <= line.angleTo(line1) && line.angleTo(line1) <= 182)
+                    || (358 <= line.angleTo(line1) && line.angleTo(line1)<= 360)){
+                qDebug() << "存在该点 " << i++;
+                setCursor(Qt::UpArrowCursor);
+            }
+        }
         QGraphicsItem::hoverMoveEvent(event);
     }
 }
